@@ -7,11 +7,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Railway Deploy
-        run: |
-          curl -sX POST https://backboard.railway.com/graphql/v2 \
-            -H "Authorization: Bearer b12bbfd4-ee56-4fe4-bdd3-0d1f38ef3e3c" \
-            -H "Content-Type: application/json" \
-            -H "User-Agent: Mozilla/5.0" \
-            -d '{"query":"mutation{serviceInstanceDeploy(serviceId:\"11169fe4-cc53-40b9-83a6-283892fbe5f3\",environmentId:\"bdab5cdd-3594-48e1-a2d0-1801b41f0898\")}"}' \
-            | cat
+      - uses: actions/checkout@v4
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --service argos-v2 --detach
+        env:
+          RAILWAY_TOKEN: b12bbfd4-ee56-4fe4-bdd3-0d1f38ef3e3c
