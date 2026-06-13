@@ -1,1 +1,10 @@
-{"build":{"builder":"NIXPACKS"},"deploy":{"startCommand":"uvicorn main:app --host 0.0.0.0 --port $PORT","restartPolicyType":"ON_FAILURE"}}
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
+    "restartPolicyType": "ON_FAILURE"
+  },
+  "_deploy_ts": "2026-06-13T18:35"
+}
