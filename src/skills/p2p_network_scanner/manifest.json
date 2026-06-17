@@ -1,0 +1,23 @@
+{
+  "name": "p2p_network_scanner",
+  "version": "2.0.0",
+  "entry": "skill.py",
+  "entry_class": "P2PNetworkSkill",
+  "author": "ArgosUniversal",
+  "description": "Проверка доступности узлов P2P-сети Argos: валидация, history, event_bus, async batch scan.",
+  "category": "network",
+  "tags": [
+    "p2p",
+    "network",
+    "health",
+    "scanner"
+  ],
+  "dependencies": [
+    "requests",
+    "bs4"
+  ],
+  "permissions": [
+    "network"
+  ],
+  "min_argos_version": "2.1.3"
+}
