@@ -1,0 +1,44 @@
+{
+  "main_wallet": "UQD9K89C7n779rBLWzWY60bhLF7VPSuN1KmTLgdkRSU8kSnx",
+  "entities": {
+    "argos_claude_ai_bot": {
+      "name": "Клод",
+      "role": "Аналитик",
+      "earning_strategy": "Реферальные программы через Argo Search",
+      "wallet": "UQD9K89C7n779rBLWzWY60bhLF7VPSuN1KmTLgdkRSU8kSnx"
+    },
+    "argos_kimi_ai_bot": {
+      "name": "Кими", 
+      "role": "Исследователь",
+      "earning_strategy": "Поиск и агрегация контента",
+      "wallet": "UQD9K89C7n779rBLWzWY60bhLF7VPSuN1KmTLgdkRSU8kSnx"
+    },
+    "argos_deepseek_v3_bot": {
+      "name": "Дипсик",
+      "role": "Логик",
+      "earning_strategy": "Математические расчёты и оптимизация",
+      "wallet": "UQD9K89C7n779rBLWzWY60bhLF7VPSuN1KmTLgdkRSU8kSnx"
+    },
+    "argos_gemini_v3_bot": {
+      "name": "Джемини",
+      "role": "Визуалист",
+      "earning_strategy": "Генерация изображений и контента",
+      "wallet": "UQD9K89C7n779rBLWzWY60bhLF7VPSuN1KmTLgdkRSU8kSnx"
+    },
+    "argos_openai_v3_bot": {
+      "name": "OpenAI",
+      "role": "Универсал",
+      "earning_strategy": "Автоматизация задач и TON фарм",
+      "wallet": "UQD9K89C7n779rBLWzWY60bhLF7VPSuN1KmTLgdkRSU8kSnx"
+    },
+    "argos_cloudflare_bot": {
+      "name": "Клауд",
+      "role": "Edge агент",
+      "earning_strategy": "Быстрые ответы и мониторинг",
+      "wallet": "UQD9K89C7n779rBLWzWY60bhLF7VPSuN1KmTLgdkRSU8kSnx"
+    }
+  },
+  "ton_price_usd": 1.96,
+  "farming_bots": ["@Hamster_kombat_bot","@catsgang_bot","@wallet"],
+  "referral_programs": ["@argo"]
+}

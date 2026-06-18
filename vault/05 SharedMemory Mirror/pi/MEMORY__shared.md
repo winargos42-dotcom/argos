@@ -1,0 +1,1 @@
+/home/ava/.config/argos/pi-memory.md

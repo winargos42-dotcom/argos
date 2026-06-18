@@ -1,0 +1,77 @@
+# ARGOS Brain + Compute Center — локальный стек для dev/smoke-test.
+# Запуск из argoss/:
+#   docker compose -f docker-compose.brain-compute.yml up --build
+#
+# Что запускается:
+#   - redis         (localhost:6379, персистентность в ./data/redis-data/)
+#   - argos-brain   (localhost:5010)
+#   - argos-compute (localhost:8000) — в DRY MODE без Azure ключей
+#
+# Чтобы компьют-центр реально общался с Azure OpenAI — пропиши ключи в .env
+# (AZURE_OPENAI_ENDPOINT_EASTUS, AZURE_OPENAI_KEY_EASTUS и т.д.).
+# Без ключей /health всё равно отдаёт 200, задачи возвращают error.
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: argos-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  argos-brain:
+    build:
+      context: .
+      dockerfile: Dockerfile.brain
+    image: argos-brain:local
+    container_name: argos-brain
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ARGOS_BRAIN_API_PORT: "5010"
+    ports:
+      - "5010:5010"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5010/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  argos-compute:
+    build:
+      context: .
+      dockerfile: Dockerfile.compute
+    image: argos-compute:local
+    container_name: argos-compute
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      COMPUTE_CENTER_HOST: "0.0.0.0"
+      COMPUTE_CENTER_PORT: "8002"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+    ports:
+      - "8002:8002"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8002/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+# Локальные тома (persistent Redis data). Директория создаётся автоматически.

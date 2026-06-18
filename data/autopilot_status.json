@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-04-11T18:42:08.612142",
+  "running": true,
+  "threads": [
+    {
+      "name": "HealthMonitor",
+      "alive": true
+    },
+    {
+      "name": "BackupAgent",
+      "alive": true
+    },
+    {
+      "name": "SyncAgent",
+      "alive": true
+    },
+    {
+      "name": "Reporter",
+      "alive": true
+    },
+    {
+      "name": "NetworkGuard",
+      "alive": true
+    }
+  ]
+}

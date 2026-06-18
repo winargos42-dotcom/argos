@@ -1,0 +1,38 @@
+{
+  "session_id": "20260616_193219",
+  "timestamp": "2026-06-16T19:32:19.723672Z",
+  "duration_sec": 0.63,
+  "insights": [
+    {
+      "type": "performance",
+      "severity": "medium",
+      "title": "Disk: 75.1%",
+      "description": "Disk 75.1% > 75% threshold",
+      "action": "run ArgosDiskCleaner or expand storage",
+      "evidence": {
+        "metric": "disk_percent",
+        "value": 75.1,
+        "node": "laptop"
+      }
+    }
+  ],
+  "evidence_submitted": [
+    {
+      "node": "laptop",
+      "metric": "performance",
+      "value": 0.7509999999999999,
+      "result": {
+        "node_id": "laptop",
+        "confidence": 0.0,
+        "evidence_count": 437
+      }
+    }
+  ],
+  "metrics_snapshot": {
+    "argos_ram_percent": 70.5,
+    "argos_cpu_percent": 33.7,
+    "argos_disk_percent": 75.1,
+    "argos_nodes_total": 2.0,
+    "argos_nodes_online": 2.0
+  }
+}

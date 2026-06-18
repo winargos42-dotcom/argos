@@ -1,0 +1,46 @@
+# ESP8266 Bridge Configuration
+# Target: argos-esp-bridge (192.168.1.181)
+
+esphome:
+  name: argos-esp-bridge
+  platform: ESP8266
+  board: esp12e
+
+wifi:
+  ssid: "SiG"
+  password: "SECRET_WIFI_PASSWORD" # User must fill this
+  ap:
+    ssid: "argos-esp-bridge-fallback"
+
+mqtt:
+  broker: 192.168.1.53
+  topic_prefix: argos/esp-bridge
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+  - platform: uptime
+    name: "Uptime"
+  - platform: adc
+    name: "Battery Voltage"
+    pin: A0
+
+binary_sensor:
+  - platform: status
+    name: "ESP Bridge Status"
+
+# Enable I2C for future sensors (BME280/BMP280)
+i2c:
+  sda: 4
+  scl: 5
+
+# Example sensor stub for BME280 (commented out until hardware is added)
+# sensor:
+#   - platform: bme280
+#     address: 0x76
+#     temperature:
+#       name: "Bridge Temperature"
+#     humidity:
+#       name: "Bridge Humidity"
+#     pressure:
+#       name: "Bridge Pressure"

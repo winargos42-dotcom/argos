@@ -1,0 +1,75 @@
+# ARGOS ESP8266 — WiFi Bridge + Sensor Node for Orange Pi
+# ESP8266EX (4MB flash) MAC: 8c:4f:00:58:3a:fd
+# Connected via CH340 on /dev/ttyUSB0
+
+esphome:
+  name: argos-esp-bridge
+  friendly_name: ARGOS ESP Bridge
+
+esp8266:
+  board: esp12e
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  min_auth_mode: WPA2
+  ap:
+    ssid: "ARGOS-ESP-AP"
+    password: "888888889"
+
+captive_portal:
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+
+api:
+  encryption:
+    key: "G1RIDsc89P8B5ieUzTtQIsiiTqgSN5Z4fS0K03+OvUM="
+
+ota:
+  - platform: esphome
+    password: "888888889"
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  discovery: true
+
+i2c:
+  sda: GPIO4
+  scl: GPIO5
+  scan: true
+  frequency: 100kHz
+
+status_led:
+  pin: GPIO2
+
+sensor:
+  - platform: wifi_signal
+    name: "ESP Bridge WiFi Signal"
+    update_interval: 60s
+
+  - platform: uptime
+    name: "ESP Bridge Uptime"
+    update_interval: 60s
+
+  - platform: adc
+    pin: A0
+    name: "ESP Bridge ADC"
+    update_interval: 30s
+
+binary_sensor:
+  - platform: status
+    name: "ESP Bridge Status"
+
+switch:
+  - platform: restart
+    name: "ESP Bridge Restart"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "ESP Bridge IP"
+    ssid:
+      name: "ESP Bridge SSID"

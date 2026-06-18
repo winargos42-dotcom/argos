@@ -1,0 +1,80 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'argos-nexus'
+    replica: 'nexus'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter-nexus'
+    static_configs:
+      - targets: ['localhost:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'nexus'
+
+  - job_name: 'cadvisor-nexus'
+    static_configs:
+      - targets: ['localhost:8080']
+
+  - job_name: 'node-exporter-orion'
+    static_configs:
+      - targets: ['192.168.1.66:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'orion'
+
+  - job_name: 'node-exporter-opi'
+    static_configs:
+      - targets: ['192.168.2.168:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'opi'
+
+  - job_name: 'argos-brain-api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['192.168.1.66:5010']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'orion-brain'
+
+  - job_name: 'argos-z2m-opi'
+    static_configs:
+      - targets: ['192.168.2.168:8099']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'opi-z2m'
+
+  # Federation: если Orion/OPi тоже имеют Prometheus — собираем агрегаты
+  - job_name: 'federate-orion'
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets: ['192.168.1.66:9090']
+
+  - job_name: 'federate-opi'
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{__name__=~".+"}'
+    static_configs:
+      - targets: ['192.168.2.168:9090']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['localhost:9093']

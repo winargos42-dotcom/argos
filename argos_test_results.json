@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-05-15 15:45:09",
+  "tests": {
+    "Environment Config": {
+      "status": "FAIL",
+      "error": ""
+    },
+    "File System Access": {
+      "status": "PASS",
+      "error": null
+    },
+    "Skills Modules": {
+      "status": "PASS",
+      "error": null
+    },
+    "GPU Servers (3xAMD)": {
+      "status": "FAIL",
+      "error": "<urlopen error [Errno 111] Connection refused>"
+    },
+    "MCP Endpoint": {
+      "status": "PASS",
+      "error": null
+    },
+    "Brain API": {
+      "status": "FAIL",
+      "error": "<urlopen error [Errno 111] Connection refused>"
+    },
+    "Dashboard": {
+      "status": "FAIL",
+      "error": "<urlopen error [Errno 111] Connection refused>"
+    },
+    "Ollama Fallback": {
+      "status": "FAIL",
+      "error": ""
+    },
+    "P2P Network Ports": {
+      "status": "FAIL",
+      "error": "Port 5010 is not open"
+    },
+    "Telegram Bot": {
+      "status": "FAIL",
+      "error": "[Errno 2] No such file or directory: 'tasklist'"
+    },
+    "Backup System": {
+      "status": "PASS",
+      "error": null
+    },
+    "Memory System": {
+      "status": "FAIL",
+      "error": ""
+    },
+    "Watchdog Scripts": {
+      "status": "PASS",
+      "error": null
+    }
+  },
+  "summary": {
+    "passed": 5,
+    "failed": 8,
+    "total": 13
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "bridge_version": "1.0.0",
+  "created_at": "2026-04-27T00:23:22.695782",
+  "generated_skills": 0,
+  "skills_dir": "src/skills/generated",
+  "integration_status": "active"
+}

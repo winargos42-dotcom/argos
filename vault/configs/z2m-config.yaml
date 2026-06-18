@@ -1,0 +1,30 @@
+# Zigbee2MQTT Configuration for Orange Pi
+# Targeted for: /opt/zigbee2mqtt/data/configuration.yaml
+
+# MQTT Settings
+mqtt:
+  baseTopic: zigbee2mqtt
+  server: mqtt://192.168.1.53:1883
+  # Note: Laptop is the MQTT broker (192.168.1.53)
+
+# Serial Settings
+serial:
+  # Since the user mentioned "zigbee dongle connected to orange", 
+  # we assume it's on /dev/ttyUSB0 or /dev/ttyACM0.
+  # A detection script will be used to confirm this.
+  port: /dev/ttyUSB0 
+  adapter: ezsp # Most common for Sonoff/SMLight. Change to zstack if TI-based.
+
+# Advanced settings
+advanced:
+  homeassistant: true
+  network_lwpan: false
+
+# Frontend
+frontend:
+  port: 8099
+  host: 0.0.0.0
+
+# Logging
+logging:
+  level: debug

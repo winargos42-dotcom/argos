@@ -1,0 +1,14 @@
+route:
+  receiver: 'argos-webhook'
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: 'argos-webhook'
+    webhook_configs:
+      - url: 'http://host.docker.internal:19091/alerts'
+        send_resolved: true
+        http_config:
+          timeout: 10s

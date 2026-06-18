@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "generator": "0.1.0",
+  "template": "vertical:research",
+  "template_version": "0.0.0",
+  "vars": {
+    "name": "argoss-harness",
+    "description": "My AI agent harness",
+    "host": "claude-code"
+  },
+  "hosts": [
+    "claude-code"
+  ],
+  "files": {
+    ".claude/settings.json": "610a298a1f8bca2055adc766b70b242ac73e77cd85fccfdcb4a20a32e6a30bfe",
+    ".claude-plugin/plugin.json": "d07e9ce1a8319b3b88c62b5da0c42acd6c6b21f2ea0f55b6828cb6f55db3394b",
+    "CLAUDE.md": "6e971c03cea1418e21a5f3a67ba139d0b601d2a1a37016fc07dd09c40e969c77",
+    "README.md": "dcf0fdf296a78ca288ee2420f998f6c27c53c08df19fc59540fe2b155b6d5645",
+    "__tests__/smoke.test.ts": "a70e137209178fd4918bebb020462affc13b6eee233ea828566e562028ccd16a",
+    "bin/cli.js": "795ad962acb116f304217178f208154a2360d5d988bbf8bea66014e61990010c",
+    "package.json": "59346b9331252d8cb444646f4e2232eefaf41f919775f9bf9f18f6c00ffeed7e",
+    "src/agents/citer.ts": "b750b3143fd51167457275af7d4d0535c9189cc349da2c20f62fbe9111c55251",
+    "src/agents/fact-checker.ts": "be0772a527729dfdc081d8ec1409d15619f2a4b9ea3fcfc0a5866a40dffd029c",
+    "src/agents/scout.ts": "095f4bbd8fa8511a5a28b461959fff4ae6e70c7867eb38f9f2e552eec923f799",
+    "src/agents/source-grader.ts": "0498dc425b0dc9b04e07a531165b0d35409dd836c5e11273af073d0556599492",
+    "src/agents/synthesizer.ts": "f04bff2659c3dcbf57b30cf6db7403c66dd74d8cc36e3bac7c1948642898da7c",
+    "src/agents/web-searcher.ts": "f56649c4e29a6d6827d566dd84711cedd4ff64cf8dc054c3bcb1115df84bd66e",
+    "src/init.ts": "8288cfd5d2361a25cd7c8bfe320318f99970b19317ba926cca06344caa7660b1",
+    "tsconfig.json": "8b4e730a1aa39162ac574455d7a98e1881f5313ca80ffe503b9652dcf0c76b9d"
+  },
+  "generated_at": "2026-06-15T09:53:09.153Z",
+  "meta": {
+    "surface": "cli"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "description": "[![🏗️ Build ARGOS APK](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/build_apk.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/build_apk.yml) [![🚀 ARGOS Release — Сборка и публикация релиза](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/release.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/release.yml) [![📊 ARGOS Status Report](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/status_report.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/status_report.yml) [![🤖 Argos Auto-Publish Skills to PyPI](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/argos_evolution_publish.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/argos_evolution_publish.yml) [![🚀 ARGOS Release — Сборка и публикация релиза](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/release.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/release.yml) [![🖥️ Build ARGOS Windows setup.exe](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/build_windows.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/build_windows.yml) [![CI](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/ci.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/ci.yml) [![Docker](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/docker.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/docker.yml) [![Android APK](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/android-apk.yml/badge.svg)](https://github.com/iliyaqdrwalqu/Argoss/actions/workflows/android-apk.yml) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/iliyaqdrwalqu/Argoss/blob/main/colab/ARGOS_Colab_Launch.ipynb) [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) # 👁️ ARGOS UNIVERSAL OS (v2.1.4)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://thoresensandmann432-source@github.com/thoresensandmann432-source/argoss.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/thoresensandmann432-source/argoss/issues"
+  },
+  "homepage": "https://github.com/thoresensandmann432-source/argoss#readme",
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.11.0",
+    "express": "^5.2.1",
+    "lodash": "^4.18.1",
+    "openclaw": "^2026.4.11"
+  }
+}

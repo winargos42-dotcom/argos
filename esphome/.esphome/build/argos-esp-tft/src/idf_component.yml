@@ -1,0 +1,80 @@
+dependencies:
+  espressif/network_provisioning:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/network_provisioning
+  espressif/esp_secure_cert_mgr:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_secure_cert_mgr
+  espressif/json_parser:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/json_parser
+  espressif/esp-zigbee-lib:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp-zigbee-lib
+  espressif/esp_insights:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_insights
+  espressif/esp_schedule:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_schedule
+  espressif/esp-dsp:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp-dsp
+  espressif/esp_hosted:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_hosted
+  joltwallet/littlefs:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/littlefs
+  espressif/lan867x:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/lan867x
+  espressif/esp_diag_data_store:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_diag_data_store
+  espressif/libsodium:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/libsodium
+  espressif/esp_rcp_update:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_rcp_update
+  espressif/esp-zboss-lib:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp-zboss-lib
+  espressif/esp-sr:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp-sr
+  espressif/esp_modem:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_modem
+  chmorgan/esp-libhelix-mp3:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp-libhelix-mp3
+  espressif/cbor:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/cbor
+  espressif/qrcode:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/qrcode
+  espressif/esp-modbus:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp-modbus
+  espressif/rmaker_common:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/rmaker_common
+  espressif/esp_diagnostics:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_diagnostics
+  espressif/esp_rainmaker:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_rainmaker
+  espressif/esp_wifi_remote:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/esp_wifi_remote
+  espressif/json_generator:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-tft/component_stubs/json_generator
+  espressif/mdns:
+    version: 1.11.0
+  bblanchon/arduinojson:
+    version: 7.4.2

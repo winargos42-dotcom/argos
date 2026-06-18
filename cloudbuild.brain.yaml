@@ -1,0 +1,40 @@
+# Cloud Build конфиг для ARGOS AI Brain API.
+# Запуск из корня argoss/:
+#   gcloud builds submit --config=cloudbuild.brain.yaml .
+#
+# Два тега ставятся одновременно:
+#   :latest — используется Cloud Run по умолчанию
+#   :$BUILD_ID — уникальный id сборки, позволяет откатывать
+
+substitutions:
+  _IMAGE: 'gcr.io/${PROJECT_ID}/argos-brain'
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.brain'
+      - '-t'
+      - '${_IMAGE}:${BUILD_ID}'
+      - '-t'
+      - '${_IMAGE}:latest'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-build-id'
+    args: ['push', '${_IMAGE}:${BUILD_ID}']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-latest'
+    args: ['push', '${_IMAGE}:latest']
+
+images:
+  - '${_IMAGE}:${BUILD_ID}'
+  - '${_IMAGE}:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '900s'

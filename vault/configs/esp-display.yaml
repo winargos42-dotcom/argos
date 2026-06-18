@@ -1,0 +1,57 @@
+# ESP32 Display Configuration
+# Target: argos-esp32-display (192.168.1.211)
+
+esphome:
+  name: argos-esp32-display
+  platform: ESP32
+  board: esp32dev
+
+wifi:
+  ssid: "SiG"
+  password: "SECRET_WIFI_PASSWORD" # User must fill this
+
+mqtt:
+  broker: 192.168.1.53
+  topic_prefix: argos/esp-display
+
+# SSD1306 OLED Display via I2C
+i2c:
+  sda: 21
+  scl: 22
+
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    address: 0x3C
+    lambda: |-
+      it.printf(0, 0, id(font_small), "ARGOS Status");
+      it.printf(0, 20, id(font_small), "Nodes: %s", id(nodes_count).get_state());
+      it.printf(0, 40, id(font_small), "CPU: %s", id(cpu_load).get_state());
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 12
+
+# LED Status Indicator
+light:
+  - platform: binary
+    id: status_led
+    name: "Status LED"
+    output: led_output
+
+output:
+  - platform: gpio
+    id: led_output
+    pin: 2
+
+# MQTT Sensor stubs to receive data from ESP Display Manager (python script)
+sensor:
+  - platform: mqtt
+    name: "Nodes Count"
+    id: nodes_count
+    topic: "argos/display/nodes"
+  - platform: mqtt
+    name: "System CPU Load"
+    id: cpu_load
+    topic: "argos/display/cpu"

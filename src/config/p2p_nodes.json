@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    {
+      "id": "orangepi-orangepione",
+      "host": "192.168.2.168",
+      "port": 5001,
+      "tags": [
+        "iot"
+      ]
+    },
+    {
+      "id": "entity-valenok",
+      "host": "192.168.1.53",
+      "port": 5001,
+      "tags": [
+        "entity"
+      ]
+    },
+    {
+      "id": "pc-orion",
+      "host": "192.168.1.72",
+      "port": 5010,
+      "tags": [
+        "brain",
+        "gpu"
+      ]
+    },
+    {
+      "id": "laptop",
+      "host": "127.0.0.1",
+      "port": 5001,
+      "tags": [
+        "brain"
+      ]
+    }
+  ]
+}

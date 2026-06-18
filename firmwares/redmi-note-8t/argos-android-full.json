@@ -1,0 +1,70 @@
+{
+  "name": "ARGOS Android Multi-Tool Full Config",
+  "version": "2.0.0",
+  "date": "2026-05-14",
+  "target": {
+    "device": "Redmi Note 8T",
+    "codename": "willow/ginkgo",
+    "rom": "LineageOS 21",
+    "android": "14",
+    "root": "Magisk 28.1"
+  },
+  "network": {
+    "adb_wifi": "192.168.1.149:5555",
+    "ssh": "8022",
+    "argos_bridge": "7779",
+    "brain_api": "192.168.1.53:5001"
+  },
+  "components": {
+    "system_module": {
+      "path": "argos-system-module/",
+      "install": "Magisk module → /data/adb/modules/argos-system",
+      "features": [
+        "USB/CAN/UART permissions via post-fs-data",
+        "System xbin binaries (argos-status, argos-usb-setup, argos-can-up)",
+        "Auto-start frida-server + bridge on boot",
+        "udev-like rules without TWRP"
+      ]
+    },
+    "termux_bootstrap": {
+      "path": "scripts/termux-multitool-bootstrap.sh",
+      "install": "Manual in Termux: bash ~/argos-termux-bootstrap.sh",
+      "features": [
+        "tsu (Termux root wrapper)",
+        "SSH server :8022",
+        "Python 3 + pyserial pyusb paho-mqtt",
+        "USB scanner (CH340/FTDI/ELM327)",
+        "OBD-II bridge",
+        "UART terminal",
+        "CAN sniffer (root)",
+        "ARGOS bridge (agent :7779 → brain :5001)",
+        "Auto-start services script"
+      ]
+    },
+    "andrax": {
+      "path": "andrax_installer.sh",
+      "install": "bash ~/andrax_installer.sh (option 2)",
+      "features": [
+        "Proot Kali/Debian chroot",
+        "200+ pentest tools",
+        "nmap metasploit aircrack-ng",
+        "No root required"
+      ]
+    },
+    "ai_ml": {
+      "install": "pip install via ai-termux-install.sh",
+      "features": [
+        "numpy pandas scipy sklearn",
+        "transformers langchain",
+        "opencv-python ultralytics",
+        "openai anthropic"
+      ]
+    }
+  },
+  "scripts": {
+    "redmi8t-tool.sh": "Firmware flash / backup / root info / frida / app dump",
+    "mobile_manager.sh": "ADB WiFi management / SSH / partition dump / OTG",
+    "install_argos_system.sh": "One-shot Magisk system module installer",
+    "install_andrax_ai_termux.sh": "Phone-side Andrax + AI orchestrator"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-05-29 21:53:05",
+  "checks": {
+    "brain_api_local": "UP",
+    "brain_api_pc": "UP",
+    "mcp_local": "UP",
+    "mcp_pc": "UP",
+    "prometheus": "UP",
+    "ollama": "UP",
+    "orchestrator": "RUNNING",
+    "entity_council": "RUNNING",
+    "self_healer": "RUNNING",
+    "p2p_mesh": "RUNNING"
+  },
+  "summary": "10/10 UP"
+}

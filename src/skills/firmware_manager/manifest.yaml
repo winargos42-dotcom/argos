@@ -1,0 +1,16 @@
+name: firmware_manager
+version: "1.0.0"
+entry: skill.py
+author: Всеволод
+description: "Управление прошивками ESP32/ESP8266: сканирование портов, бэкап, сборка, прошивка"
+category: hardware
+tags:
+  - firmware
+  - esp32
+  - hardware
+  - iot
+dependencies:
+  - esptool
+permissions:
+  - execute
+  - files

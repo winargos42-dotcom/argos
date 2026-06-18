@@ -1,0 +1,23 @@
+{
+  "model_type": "nanogpt",
+  "architectures": [
+    "GPT"
+  ],
+  "n_layer": 10,
+  "n_head": 8,
+  "n_embd": 512,
+  "block_size": 1024,
+  "vocab_size": 32000,
+  "bias": false,
+  "dropout": 0.1,
+  "tie_word_embeddings": true,
+  "torch_dtype": "float16",
+  "gpt2_equivalent": {
+    "n_positions": 1024,
+    "n_ctx": 1024,
+    "n_embd": 512,
+    "n_head": 8,
+    "n_layer": 10,
+    "vocab_size": 32000
+  }
+}

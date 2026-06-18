@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  ollama-gpu:
+    image: ollama/ollama:latest
+    container_name: argos-ollama-gpu
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_VULKAN=1
+      - OLLAMA_NUM_PARALLEL=3
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_KEEP_ALIVE=24h
+    volumes:
+      - ollama-models:/root/.ollama/models
+      # Пробрасываем GPU (для Windows Docker Desktop экспериментально)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: amd
+              count: all
+              capabilities: [gpu]
+    # Привилегированный режим для доступа к железу
+    privileged: true
+    # Используем host сеть для лучшей производительности (Linux only)
+    # network_mode: host
+
+volumes:
+  ollama-models:

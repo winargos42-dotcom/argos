@@ -1,0 +1,5 @@
+EXIT=0
+--- STDOUT ---
+{"nodes":[{"address":"192.168.2.168","capabilities":[],"last_heartbeat":"2026-06-18T13:06:12.344250","meta":{},"models":[],"node_id":"orangepi-orangepione","registered_at":"2026-06-18T08:17:36.920810","status":"online"},{"address":"192.168.1.53","capabilities":[],"last_heartbeat":"2026-06-18T13:06:14.272842","meta":{},"models":[],"node_id":"entity-valenok","registered_at":"2026-06-18T08:17:42.990604","status":"online"}],"offline":0,"online":2,"timestamp":"2026-06-18T13:06:32.137063","total":2}
+
+--- STDERR ---

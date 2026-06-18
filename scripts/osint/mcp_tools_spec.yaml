@@ -1,0 +1,219 @@
+# MCP Tools Specification — OSINT Reconnaissance
+# Add this block to your ARGOS MCP server so agents can call these.
+
+tools:
+  # ── 1. Shodan ──────────────────────────────────────────────────────
+  - name: shodan_host
+    description: "Shodan host lookup by IP. Returns open ports, banners, services."
+    inputSchema:
+      type: object
+      properties:
+        ip: {type: string, description: "IPv4 or IPv6 address"}
+      required: [ip]
+
+  - name: shodan_search
+    description: "Shodan search by query string."
+    inputSchema:
+      type: object
+      properties:
+        query: {type: string}
+        page: {type: integer, default: 1}
+      required: [query]
+
+  # ── 2. Censys ─────────────────────────────────────────────────────
+  - name: censys_hosts
+    description: "Censys host search by query."
+    inputSchema:
+      type: object
+      properties:
+        query: {type: string}
+        per_page: {type: integer, default: 5}
+      required: [query]
+
+  # ── 3. FOFA ────────────────────────────────────────────────────────
+  - name: fofa_search
+    description: "FOFA asset search by query string (e.g. 'app=Apache')."
+    inputSchema:
+      type: object
+      properties:
+        query: {type: string}
+        size: {type: integer, default: 5}
+      required: [query]
+
+  # ── 4. ZoomEye ────────────────────────────────────────────────────
+  - name: zoomeye_host
+    description: "ZoomEye host/service search."
+    inputSchema:
+      type: object
+      properties:
+        query: {type: string}
+        page: {type: integer, default: 1}
+      required: [query]
+
+  # ── 5. FullHunt ───────────────────────────────────────────────────
+  - name: fullhunt_domain
+    description: "FullHunt attack surface enumeration for a domain."
+    inputSchema:
+      type: object
+      properties:
+        domain: {type: string}
+      required: [domain]
+
+  # ── 6. urlscan.io ──────────────────────────────────────────────────
+  - name: urlscan_submit
+    description: "Submit a URL to urlscan sandbox. Returns UUID to poll."
+    inputSchema:
+      type: object
+      properties:
+        url: {type: string, description: "Absolute URL to scan"}
+        public: {type: boolean, default: true}
+      required: [url]
+
+  - name: urlscan_result
+    description: "Poll urlscan result by UUID."
+    inputSchema:
+      type: object
+      properties:
+        uuid: {type: string}
+      required: [uuid]
+
+  # ── 7. Hunter.io ──────────────────────────────────────────────────
+  - name: hunter_emails
+    description: "Discover e-mails by domain pattern."
+    inputSchema:
+      type: object
+      properties:
+        domain: {type: string}
+        limit: {type: integer, default: 10}
+      required: [domain]
+
+  # ── 8. crt.sh ──────────────────────────────────────────────────────
+  - name: crtsh
+    description: "Certificate Transparency log search for subdomains."
+    inputSchema:
+      type: object
+      properties:
+        domain: {type: string}
+        exclude_expired: {type: boolean, default: true}
+      required: [domain]
+
+  # ── 9. SecurityTrails ─────────────────────────────────────────────
+  - name: securitytrails_domain
+    description: "SecurityTrails current DNS and WHOIS data."
+    inputSchema:
+      type: object
+      properties:
+        domain: {type: string}
+      required: [domain]
+
+  - name: securitytrails_subdomains
+    description: "Subdomain enumeration via SecurityTrails."
+    inputSchema:
+      type: object
+      properties:
+        domain: {type: string}
+        limit: {type: integer, default: 50}
+      required: [domain]
+
+  # ── 10. Intelligence X ──────────────────────────────────────────
+  - name: intelx_search
+    description: "Intelligence X leak/archive/historical search."
+    inputSchema:
+      type: object
+      properties:
+        term: {type: string}
+        max_results: {type: integer, default: 10}
+      required: [term]
+
+  # ── 11. Have I Been Pwned ───────────────────────────────────────
+  - name: hibp_check
+    description: "Check e-mail against known breach database."
+    inputSchema:
+      type: object
+      properties:
+        email: {type: string}
+        truncate: {type: boolean, default: true}
+      required: [email]
+
+  # ── 12. LeakIX ─────────────────────────────────────────────────────
+  - name: leakix_host
+    description: "LeakIX host/service details and misconfigurations."
+    inputSchema:
+      type: object
+      properties:
+        ip: {type: string}
+      required: [ip]
+
+  - name: leakix_search
+    description: "LeakIX global search for exposed databases/services."
+    inputSchema:
+      type: object
+      properties:
+        query: {type: string}
+        index: {type: string, default: "leaks"}
+      required: [query]
+
+  # ── 13. DeHashed ──────────────────────────────────────────────────
+  - name: dehashed_search
+    description: "DeHashed compromised credential search."
+    inputSchema:
+      type: object
+      properties:
+        query: {type: string}
+        page: {type: integer, default: 0}
+      required: [query]
+
+  # ── 14. Vulners ───────────────────────────────────────────────────
+  - name: vulners_cve
+    description: "Vulners CVE / bulletin / exploit lookup."
+    inputSchema:
+      type: object
+      properties:
+        cve: {type: string}
+      required: [cve]
+
+  - name: vulners_search
+    description: "Free-text search in Vulners vulnerability database."
+    inputSchema:
+      type: object
+      properties:
+        query: {type: string}
+        size: {type: integer, default: 5}
+      required: [query]
+
+  # ── 15. GreyNoise ──────────────────────────────────────────────────
+  - name: greynoise_context
+    description: "GreyNoise IP context (noise vs targeted)."
+    inputSchema:
+      type: object
+      properties:
+        ip: {type: string}
+      required: [ip]
+
+  # ── 16. WiGLE ─────────────────────────────────────────────────────
+  - name: wigle_search
+    description: "WiGLE Wi-Fi / Bluetooth network geolocation."
+    inputSchema:
+      type: object
+      properties:
+        ssid: {type: string}
+        lat: {type: number}
+        lon: {type: number}
+        results_per_page: {type: integer, default: 5}
+
+  # ── 17. Quick Recon ───────────────────────────────────────────────
+  - name: quick_recon
+    description: "Passive reconnaissance bundle: crt.sh + urlscan + HIBP for a domain."
+    inputSchema:
+      type: object
+      properties:
+        domain: {type: string}
+      required: [domain]
+
+  - name: ip_recon
+    description: "IP reconnaissance bundle: GreyNoise + LeakIX + optional Shodan/Censys."
+    inputSchema:
+      type: object
+      properties:
+        ip: {type: string}
+      required: [ip]

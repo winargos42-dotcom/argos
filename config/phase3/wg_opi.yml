@@ -1,0 +1,16 @@
+Interface:
+  Address: 10.200.0.3/24
+  ListenPort: 51820
+  MTU: 1420
+  PostDown: sysctl -w net.ipv4.ip_forward=0
+  PostUp: sysctl -w net.ipv4.ip_forward=1
+  PrivateKey: PRIVATE_OPI_KEY
+Peer:
+- AllowedIPs: 10.200.0.1/32
+  Endpoint: 192.168.1.66:51820
+  PersistentKeepalive: 25
+  PublicKey: PUBLIC_ORION_KEY
+- AllowedIPs: 10.200.0.2/32
+  Endpoint: 192.168.1.53:51820
+  PersistentKeepalive: 25
+  PublicKey: PUBLIC_NEXUS_KEY

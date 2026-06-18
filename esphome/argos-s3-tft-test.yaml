@@ -1,0 +1,107 @@
+# ARGOS S3 TFT — проба SPI ST7789 с разными пинами
+substitutions:
+  tft_mosi:  GPIO11
+  tft_sclk:  GPIO12
+  tft_cs:    GPIO10
+  tft_dc:    GPIO8
+  tft_rst:   GPIO21
+  tft_bl:    GPIO45
+
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  on_boot:
+    priority: 200
+    then:
+      - logger.log: "🎨 TFT test boot"
+      - output.turn_on: bl_out
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_CDC
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  topic_prefix: "argos/esp_s3_voice"
+
+output:
+  - platform: gpio
+    pin: ${tft_bl}
+    id: bl_out
+
+spi:
+  - id: tft_spi
+    clk_pin: ${tft_sclk}
+    mosi_pin: ${tft_mosi}
+
+color:
+  - id: c_red
+    red: 100%
+    green: 0%
+    blue: 0%
+  - id: c_green
+    red: 0%
+    green: 100%
+    blue: 0%
+  - id: c_blue
+    red: 0%
+    green: 0%
+    blue: 100%
+  - id: c_white
+    red: 100%
+    green: 100%
+    blue: 100%
+
+display:
+  - platform: ili9xxx
+    model: ST7789V
+    id: tft
+    spi_id: tft_spi
+    cs_pin: ${tft_cs}
+    dc_pin: ${tft_dc}
+    reset_pin: ${tft_rst}
+    dimensions:
+      width: 240
+      height: 320
+    invert_colors: true
+    update_interval: 2s
+    lambda: |-
+      // Большие цветные блоки чтобы было видно даже без шрифтов
+      it.fill(id(c_red));
+      it.filled_rectangle(0,   0, 240, 80, id(c_red));
+      it.filled_rectangle(0,  80, 240, 80, id(c_green));
+      it.filled_rectangle(0, 160, 240, 80, id(c_blue));
+      it.filled_rectangle(0, 240, 240, 80, id(c_white));
+
+binary_sensor:
+  - platform: status
+    name: "S3 Status"
+
+sensor:
+  - platform: uptime
+    name: "S3 Uptime"

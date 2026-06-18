@@ -1,0 +1,15 @@
+{
+  "last_unavail": [
+    "select.smart_switch_4ch_power_on_behavior",
+    "switch.smart_switch_4ch_switch_1",
+    "switch.smart_switch_4ch_switch_2",
+    "switch.smart_switch_4ch_switch_3",
+    "switch.smart_switch_4ch_switch_4",
+    "binary_sensor.zigbee2mqtt_bridge_connection_state_2",
+    "button.zigbee2mqtt_bridge_restart",
+    "select.zigbee2mqtt_bridge_log_level",
+    "sensor.zigbee2mqtt_bridge_version",
+    "switch.zigbee2mqtt_bridge_permit_join"
+  ],
+  "heal_count": 0
+}

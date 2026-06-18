@@ -1,0 +1,62 @@
+# ARGOS ESP32-S3 AI Node
+esphome:
+  name: argos-esp-s3-ai
+  friendly_name: ARGOS S3 AI
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+# Подсветка/индикация на GPIO2 (обычно LED на S3 devkits)
+status_led:
+  pin:
+    number: GPIO2
+    inverted: false
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  ap:
+    ssid: "ARGOS-S3-AP"
+    password: "888888889"
+
+captive_portal:
+logger:
+  level: INFO
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+
+ota:
+  - platform: esphome
+    password: "888888889"
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+
+sensor:
+  - platform: wifi_signal
+    name: "S3 WiFi Signal"
+    id: wifi_sig
+    update_interval: 30s
+  - platform: uptime
+    name: "S3 Uptime"
+    id: uptime_s
+    update_interval: 30s
+
+binary_sensor:
+  - platform: status
+    name: "S3 Status"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "S3 IP"
+      id: ip_addr
+
+switch:
+  - platform: restart
+    name: "S3 Restart"

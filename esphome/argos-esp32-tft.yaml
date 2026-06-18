@@ -1,0 +1,118 @@
+# ESP32-2432S024 (CYD) — правильные пины и драйвер ST7789V
+esphome:
+  name: argos-esp-tft
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+
+logger:
+  level: INFO
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+
+ota:
+  - platform: esphome
+    password: "888888889"
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+
+# === SPI пины (проверены) ===
+spi:
+  clk_pin: GPIO14
+  mosi_pin: GPIO13
+  miso_pin: GPIO12
+
+# === Подсветка GPIO27 (обязательно!) ===
+output:
+  - platform: ledc
+    pin: GPIO27
+    id: tft_backlight
+
+light:
+  - platform: monochromatic
+    output: tft_backlight
+    name: "TFT Backlight"
+    id: backlight
+    restore_mode: ALWAYS_ON
+
+# === Шрифты ===
+font:
+  - file: "gfonts://Roboto"
+    id: font_big
+    size: 20
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 14
+
+# === Датчики ===
+sensor:
+  - platform: wifi_signal
+    name: "WiFi"
+    id: wifi_sig
+    update_interval: 30s
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_s
+    update_interval: 30s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP"
+      id: ip_addr
+
+# === Дисплей ST7789V 240x320 (портрет) ===
+display:
+  - platform: mipi_spi
+    model: ST7789V
+    cs_pin: GPIO15
+    dc_pin: GPIO2
+    reset_pin: GPIO4
+    rotation: 0
+    update_interval: 5s
+    id: tft_display
+    lambda: |-
+      it.fill(Color::BLACK);
+      it.print(60, 10, id(font_big), Color::WHITE, "ARGOS OS");
+      it.filled_rectangle(10, 45, 220, 2, Color(0, 100, 255));
+      
+      if (id(ip_addr).has_state()) {
+        it.printf(10, 60, id(font_small), Color::WHITE, "IP: %s", id(ip_addr).state.c_str());
+      } else {
+        it.print(10, 60, id(font_small), Color::WHITE, "IP: ...");
+      }
+      
+      if (id(wifi_sig).has_state()) {
+        it.printf(10, 85, id(font_small), Color::WHITE, "WiFi: %.0f dBm", id(wifi_sig).state);
+      }
+      
+      uint32_t s = (uint32_t)id(uptime_s).state;
+      it.printf(10, 110, id(font_small), Color::WHITE, "Up: %dh %dm", s/3600, (s%3600)/60);
+      
+      it.filled_circle(210, 125, 8, Color(0, 255, 0));
+      it.print(10, 140, id(font_small), Color(0, 200, 255), "Status:");
+      it.print(10, 165, id(font_small), Color(0, 255, 0), "Entity Bus: OK");
+      
+      int y = 210;
+      it.filled_rectangle(10, y, 50, 30, Color(255, 0, 0));
+      it.filled_rectangle(70, y, 50, 30, Color(0, 255, 0));
+      it.filled_rectangle(130, y, 50, 30, Color(0, 0, 255));
+      it.filled_rectangle(190, y, 50, 30, Color(255, 255, 0));
+      it.print(12, y+35, id(font_small), Color::WHITE, "Brain");
+      it.print(77, y+35, id(font_small), Color::WHITE, "WiFi");
+      it.print(135, y+35, id(font_small), Color::WHITE, "MQTT");
+      it.print(190, y+35, id(font_small), Color::WHITE, "Ent.");
+
+switch:
+  - platform: restart
+    name: "Restart"

@@ -1,0 +1,201 @@
+# ARGOS S3 — Stage 2: ПОЛНЫЙ интерфейс
+# ВАЖНО: пины подобраны для типовой Xiaozhi-совместимой 2.8" платы
+# Если дисплей не загорелся — посмотри scanner логи и подправь BL/CS/DC/RST
+substitutions:
+  # === Display ST7789 240x320 ===
+  tft_mosi:  GPIO11
+  tft_sclk:  GPIO12
+  tft_cs:    GPIO10
+  tft_dc:    GPIO14
+  tft_rst:   GPIO21
+  tft_bl:    GPIO47        # ← подставим из scanner
+  # === Touch CST816S I2C ===
+  touch_sda: GPIO3
+  touch_scl: GPIO8
+  touch_int: GPIO4
+  touch_rst: GPIO2
+  # === Audio ES8311 + I2S ===
+  audio_i2c_sda: GPIO17
+  audio_i2c_scl: GPIO18
+  i2s_mclk:  GPIO16
+  i2s_bclk:  GPIO9
+  i2s_lrclk: GPIO45
+  i2s_din:   GPIO10   # mic в
+  i2s_dout:  GPIO8    # на динамик
+  spk_pa_en: GPIO46   # включение усилителя
+
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  on_boot:
+    priority: 600
+    then:
+      - logger.log: "🔵 ARGOS Stage 2 boot"
+      - output.turn_on: tft_backlight
+      - delay: 200ms
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_CDC
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+  ap:
+    ssid: "ARGOS-S3-Setup"
+    password: "argos2026"
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  topic_prefix: "argos/esp_s3_voice"
+
+# === I2C buses ===
+i2c:
+  - id: bus_touch
+    sda: ${touch_sda}
+    scl: ${touch_scl}
+    scan: true
+    frequency: 400kHz
+  - id: bus_audio
+    sda: ${audio_i2c_sda}
+    scl: ${audio_i2c_scl}
+    scan: true
+    frequency: 400kHz
+
+# === Backlight (PWM dimmable) ===
+output:
+  - platform: ledc
+    pin: ${tft_bl}
+    id: tft_backlight
+    inverted: false
+
+light:
+  - platform: monochromatic
+    id: led_bl
+    name: "TFT Backlight"
+    output: tft_backlight
+    default_transition_length: 200ms
+
+# === Display SPI bus ===
+spi:
+  - id: tft_spi
+    clk_pin: ${tft_sclk}
+    mosi_pin: ${tft_mosi}
+
+# === ST7789 240x320 ===
+display:
+  - platform: ili9xxx
+    model: ST7789V
+    id: tft_display
+    spi_id: tft_spi
+    cs_pin: ${tft_cs}
+    dc_pin: ${tft_dc}
+    reset_pin: ${tft_rst}
+    dimensions:
+      width: 240
+      height: 320
+    invert_colors: true
+    update_interval: 1s
+    lambda: |-
+      it.fill(Color(0,0,0));
+      it.printf(10, 10, id(font_l), Color(0,255,0), "ARGOS");
+      it.printf(10, 60, id(font_m), Color(255,255,255), "Brain: %.0f%%", id(wifi_sig).state * -1);
+      it.printf(10, 100, id(font_m), Color(150,150,255), "Up: %.0fs", id(uptime_sec).state);
+      it.printf(10, 140, id(font_m), Color(150,255,150), "%.1f C", id(int_temp).state);
+      it.printf(10, 200, id(font_s), Color(200,200,200), "192.168.1.102");
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_s
+    size: 14
+  - file: "gfonts://Roboto"
+    id: font_m
+    size: 22
+  - file: "gfonts://Roboto"
+    id: font_l
+    size: 42
+
+# === Touch CST816S ===
+# (драйвер появляется в ESPHome 2026.4+ как cst816)
+touchscreen:
+  - platform: cst816
+    id: tft_touch
+    i2c_id: bus_touch
+    interrupt_pin: ${touch_int}
+    reset_pin: ${touch_rst}
+    transform:
+      mirror_x: false
+      mirror_y: false
+      swap_xy: false
+    on_touch:
+      - logger.log: "👆 TOUCH"
+      - mqtt.publish:
+          topic: argos/esp_s3_voice/touch
+          payload: '{"event":"touch"}'
+
+# === Sensors ===
+sensor:
+  - platform: wifi_signal
+    name: "S3 WiFi Signal"
+    id: wifi_sig
+    update_interval: 30s
+  - platform: uptime
+    name: "S3 Uptime"
+    id: uptime_sec
+    update_interval: 30s
+  - platform: internal_temperature
+    name: "S3 Internal Temp"
+    id: int_temp
+    update_interval: 30s
+
+binary_sensor:
+  - platform: status
+    name: "S3 Status"
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "S3 Boot Button"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "S3 IP"
+    mac_address:
+      name: "S3 MAC"
+
+switch:
+  - platform: restart
+    name: "S3 Restart"
+
+  # Speaker PA enable
+  - platform: gpio
+    pin: ${spk_pa_en}
+    name: "S3 Speaker PA"
+    id: spk_pa
+    inverted: false
+    restore_mode: ALWAYS_ON

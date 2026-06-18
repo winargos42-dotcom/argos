@@ -1,0 +1,259 @@
+# 🐳 Dockerfile для Compute Center
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Установить зависимости системы
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копировать requirements
+COPY requirements-compute.txt .
+RUN pip install --no-cache-dir -r requirements-compute.txt
+
+# Копировать код
+COPY compute_center_service.py .
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Переменные окружения
+ENV PYTHONUNBUFFERED=1
+ENV LOG_LEVEL=INFO
+
+# Expose port
+EXPOSE 8000
+
+# Run
+CMD ["python", "compute_center_service.py"]
+---
+# docker-compose.yml - Локальное тестирование
+
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  cosmos-emulator:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
+    ports:
+      - "8081:8081"
+      - "10251:10251"
+      - "10252:10252"
+      - "10253:10253"
+      - "10254:10254"
+    environment:
+      - AZURE_COSMOS_EMULATOR_PARTITION_COUNT=3
+      - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
+    volumes:
+      - cosmos_data:/data/db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost:8081/_dbs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  compute-center:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - COSMOS_ENDPOINT=https://cosmos-emulator:8081
+      - COSMOS_KEY=${COSMOS_EMULATOR_KEY}
+      - AZURE_OPENAI_ENDPOINT_EASTUS=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_KEY_EASTUS=${AZURE_OPENAI_KEY}
+      - LOG_LEVEL=INFO
+    depends_on:
+      redis:
+        condition: service_started
+      cosmos-emulator:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  redis_data:
+  cosmos_data:
+---
+# kubernetes-deployment.yaml - AKS deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compute-center
+  namespace: default
+  labels:
+    app: compute-center
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: compute-center
+  template:
+    metadata:
+      labels:
+        app: compute-center
+    spec:
+      # Node selector для compute node pool
+      nodeSelector:
+        workload: computation
+      
+      # Affinity для распределения по узлам
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - compute-center
+              topologyKey: kubernetes.io/hostname
+      
+      containers:
+      - name: compute-center
+        image: aicomputeregistry.azurecr.io/compute-center:latest
+        imagePullPolicy: Always
+        
+        ports:
+        - containerPort: 8000
+          name: http
+        
+        env:
+        - name: REDIS_HOST
+          value: redis-service.default.svc.cluster.local
+        - name: REDIS_PORT
+          value: "6379"
+        - name: COSMOS_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: cosmos-secret
+              key: endpoint
+        - name: COSMOS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cosmos-secret
+              key: key
+        - name: AZURE_OPENAI_ENDPOINT_EASTUS
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: endpoint-eastus
+        - name: AZURE_OPENAI_KEY_EASTUS
+          valueFrom:
+            secretKeyRef:
+              name: azure-openai-secret
+              key: key-eastus
+        - name: LOG_LEVEL
+          value: INFO
+        
+        # Resource limits
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+      
+      # Service account для Azure managed identity
+      serviceAccountName: compute-center-sa
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compute-center-service
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: compute-center
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: compute-center-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: compute-center
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max

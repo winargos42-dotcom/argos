@@ -1,0 +1,17 @@
+{
+  "argos-entity-bus": 0,
+  "argos-entity-council": 0,
+  "argos-valenok": 0,
+  "argos-control-plane": 0,
+  "autopilot_v3": 0,
+  "argos-hive": 1,
+  "argos-curiosity": 0,
+  "argos-auto-tasker": 1,
+  "argos-memory": 1,
+  "argos-idea-scorer": 1,
+  "argos-meta-tasker": 1,
+  "argos-ab-test": 0,
+  "argos-survival": 1,
+  "argos-kill-switch": 0,
+  "argos-auto-deploy": 1
+}

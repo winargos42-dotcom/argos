@@ -1,0 +1,129 @@
+---
+argos_import: project_file
+source_path: tmp/kolibrios/kernel/branches/kolibri-lldw/sec_loader/trunk/boot/PrimaryLoader.txt
+source_abs: F:\debug\argoss\tmp\kolibrios\kernel\branches\kolibri-lldw\sec_loader\trunk\boot\PrimaryLoader.txt
+source_ext: .txt
+source_sha256: 77c93d9856c444cb180a24823f703f71432b7494a13952a55e3642a54cf04566
+text_sha256: 40018ca0b3aadbce8ad1a89acf6ca1e3f36b63ccd6fcadfd4ab40da6a08a2962
+extract_mode: text
+project_root: F:\debug\argoss
+imported_at: 2026-05-04 04:14:41
+---
+
+# PrimaryLoader.txt
+
+- Source: `tmp/kolibrios/kernel/branches/kolibri-lldw/sec_loader/trunk/boot/PrimaryLoader.txt`
+- Extract: `text`
+- SHA256: `77c93d9856c444cb180a24823f703f71432b7494a13952a55e3642a54cf04566`
+
+## Content
+
+; Copyright (c) 2008-2009, diamond
+; All rights reserved.
+;
+; Redistribution and use in source and binary forms, with or without
+; modification, are permitted provided that the following conditions are met:
+;       * Redistributions of source code must retain the above copyright
+;       notice, this list of conditions and the following disclaimer.
+;       * Redistributions in binary form must reproduce the above copyright
+;       notice, this list of conditions and the following disclaimer in the
+;       documentation and/or other materials provided with the distribution.
+;       * Neither the name of the <organization> nor the
+;       names of its contributors may be used to endorse or promote products
+;       derived from this software without specific prior written permission.
+;
+; THIS SOFTWARE IS PROVIDED BY Alexey Teplov aka <Lrz> ''AS IS'' AND ANY
+; EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+; WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+; DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+; DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+; (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+; ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+;*****************************************************************************
+
+Спецификация на первичный загрузчик KordOS.
+Загрузчик должен предоставлять следующие сервисы:
+1. При загрузке компьютера, получив управление от BIOS'а, загружать
+	файл loader из папки kord по адресу 1000:0000.
+	Размер файла loader не превосходит 30000h = 192 Kb.
+2. При этом устанавливать следующие регистры:
+	ax идентифицирует устройство:
+	al = тип:
+		'f' - флопик
+		'h' - HDD
+		'c' - CD/DVD
+		'u' - USB флешка
+		'?' - неизвестное устройство
+	ah = номер устройства (среди всех устройств фиксированного типа)
+	bx = тип файловой системы:
+		'12' = FAT12
+		'16' = FAT16
+		'32' = FAT32
+		'nt' = NTFS
+		'is' = ISO-9660
+	ds:si = far-указатель на callback-сервис
+3. Предоставлять callback-сервис для вторичного загрузчика - far-процедуру:
+	на входе: ax = запрашиваемая функция
+	на выходе: CF=1, если функция не поддерживается; CF=0 иначе
+	Загрузчик может разрушать все регистры, включая сегментные,
+	за исключением ss и sp.
+4. Всегда должна поддерживаться callback-функция 1:
+	назначение: прочитать файл, расположенный на загрузочном устройстве
+	на входе: ax = 1, ds:di = указатель на информационную структуру:
+		dw:dw	far-указатель на буфер,
+			первое слово - смещение, второе - сегмент
+		dw	максимальное число 4Kb-блоков для чтения (0x1000 байт)
+			должно быть ненулевым и строго меньше 0x100
+		ASCIIZ	имя файла в формате "<папка1>/<папка2>/<файл>"
+	Если имя файла содержит символы из старшей половины
+	ASCIIZ-таблицы или не является 8.3-именем (в смысле, одна из компонент
+	имени файла имеет имя длиннее 8 символов или расширение длиннее 3),
+	загрузчик может не найти такой файл, даже если он есть
+	(а может и найти).
+	на выходе: bx = статус:
+		0 = успешно
+		1 = файл оказался слишком большим, буфер заполнен целиком
+			и есть ещё данные файла
+		2 = файл не найден
+		3 = произошла ошибка чтения
+		dx:ax = размер файла или FFFF:FFFF, если файл не найден
+5. Всегда должна поддерживаться callback-функция 2:
+	назначение: продолжить чтение файла, частично загруженного функцией 1
+	на входе: ax = 2, ds:di = указатель на информационную структуру:
+		dw:dw	far-указатель на буфер,
+			первое слово - смещение, второе - сегмент
+		dw	максимальное число 4Kb-блоков для чтения (0x1000 байт)
+			должно быть ненулевым и строго меньше 0x100
+	на выходе: bx = статус:
+		0 = успешно
+		1 = файл оказался слишком большим, буфер заполнен целиком
+			и есть ещё данные файла
+		3 = произошла ошибка чтения
+		dx:ax = размер файла
+	Функцию можно вызывать только в случае, когда последний вызов функции
+	1 и все последующие вызовы функции 2 вернули bx=1 (иными словами,
+	только для продолжения загрузки файла, который уже был частично
+	загружен, но ещё не загружен полностью).
+Загрузчик может быть уверен, что данные в областях памяти 0-9000 и
+	60000-A0000 не будут модифицированы ядром.
+
+<!-- ARGOS_MEMORY_WEB:START -->
+## Связи памяти
+
+- Центральный узел: [[ARGOS Memory Web]]
+- Тематический узел: [[Project Mirror Hub]]
+- Карта памяти: [[Карта памяти]]
+- Контекст работы: [[Контекст работы]]
+- Журнал MCP: [[2026-05-04 MCP Skill Audit]]
+- Источник связи: `local-vault`
+<!-- ARGOS_MEMORY_WEB:END -->
+
+[[Backbone Hub]]
+
+## Graph Bridge
+- [[ARGOS Memory Web]]
+- [[Backbone Hub]]
+- [[Project Mirror Hub]]

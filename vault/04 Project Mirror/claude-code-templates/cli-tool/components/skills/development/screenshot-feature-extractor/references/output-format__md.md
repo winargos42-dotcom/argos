@@ -1,0 +1,123 @@
+---
+argos_import: project_file
+source_path: claude-code-templates/cli-tool/components/skills/development/screenshot-feature-extractor/references/output-format.md
+source_abs: F:\debug\argoss\claude-code-templates\cli-tool\components\skills\development\screenshot-feature-extractor\references\output-format.md
+source_ext: .md
+source_sha256: 4b66398da72410f0e0b90b062a14eea32d2e21decd72a72c90f907eed15915ee
+text_sha256: b8960992a35cf3406d2caf32e00edeffb434abba705e4a97a5ea32c45d2b23bb
+extract_mode: text
+project_root: F:\debug\argoss
+imported_at: 2026-05-04 04:13:46
+---
+
+# output-format.md
+
+- Source: `claude-code-templates/cli-tool/components/skills/development/screenshot-feature-extractor/references/output-format.md`
+- Extract: `text`
+- SHA256: `4b66398da72410f0e0b90b062a14eea32d2e21decd72a72c90f907eed15915ee`
+
+## Content
+
+# Output Format Reference
+
+## Required Structure
+
+```markdown
+# [产品名称] 开发任务清单
+
+## 项目概述
+[一段话描述产品定位和核心功能]
+
+---
+
+## 任务拆解
+
+### 1. [模块名称]
+- [ ] [主任务描述 - 功能层面]
+  - [ ] [子任务1 - 描述要实现什么功能/交互]
+  - [ ] [子任务2 - 描述要实现什么功能/交互]
+  - [ ] [子任务3 - 描述要实现什么功能/交互]
+
+### 2. [模块名称]
+- [ ] [主任务描述]
+  - [ ] [子任务1]
+  - [ ] [子任务2]
+
+（继续拆解所有从截图中识别到的功能模块）
+```
+
+---
+
+## Task Description Examples
+
+### Good (功能描述)
+- [ ] 实现用户注册功能，支持邮箱和手机号两种方式
+- [ ] 创建登录页面，包含记住密码和忘记密码选项
+- [ ] 设计音频设备选择下拉框，显示所有可用设备
+- [ ] 实现实时字幕双语对照显示
+- [ ] 添加会议录音功能，支持暂停和继续
+- [ ] 创建分享弹窗，包含二维码和链接复制
+
+### Bad (包含技术实现 - 避免)
+- [ ] 使用 JWT Token 实现登录态管理
+- [ ] 集成 WebSocket 实现实时通信
+- [ ] 使用 React 创建组件
+- [ ] 调用讯飞 ASR API
+- [ ] 用 Redis 缓存数据
+
+---
+
+## Module Organization
+
+Typical modules for web applications:
+
+1. **用户认证与权限** - 注册、登录、权限管理
+2. **核心业务功能** - 从截图识别的主要功能
+3. **数据展示与管理** - 列表、搜索、筛选、编辑
+4. **实时交互功能** - 实时更新、通知、状态同步
+5. **分享与协作** - 分享、导出、协作
+6. **设置与配置** - 用户偏好、系统设置
+7. **付费与会员** - 套餐、支付、账单
+8. **管理后台** - 数据统计、用户管理
+
+---
+
+## UI Patterns to Recognize
+
+- 仪表盘布局 (侧边栏、顶部导航、卡片)
+- 数据表格 (筛选、排序、分页)
+- 表单模式 (多步骤、验证、自动保存)
+- 弹窗和抽屉交互
+- 空状态和引导流程
+- 错误和加载状态
+- 响应式布局
+
+---
+
+## Feature Categories
+
+- **Authentication**: 登录、注册、单点登录、双因素认证、密码重置
+- **User Management**: 个人资料、角色、权限、团队
+- **Content**: 增删改查、富文本、媒体上传、版本控制
+- **Collaboration**: 评论、分享、实时协作
+- **Analytics**: 数据面板、报表、图表、导出
+- **Settings**: 偏好设置、通知、集成
+- **Billing**: 套餐、支付、发票、使用量
+
+<!-- ARGOS_MEMORY_WEB:START -->
+## Связи памяти
+
+- Центральный узел: [[ARGOS Memory Web]]
+- Тематический узел: [[Project Mirror Hub]]
+- Карта памяти: [[Карта памяти]]
+- Контекст работы: [[Контекст работы]]
+- Журнал MCP: [[2026-05-04 MCP Skill Audit]]
+- Источник связи: `local-vault`
+<!-- ARGOS_MEMORY_WEB:END -->
+
+[[Backbone Hub]]
+
+## Graph Bridge
+- [[ARGOS Memory Web]]
+- [[Backbone Hub]]
+- [[Project Mirror Hub]]

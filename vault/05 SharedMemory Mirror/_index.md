@@ -1,0 +1,52 @@
+# SharedMemory Mirror Index
+
+- Центральный узел: [[ARGOS Memory Web]]
+- Тематический узел: [[SharedMemory Hub]]
+- Source: `C:\Users\AvA\OneDrive\ObsidianShared\SharedMemory`
+- Mirrored files: `43`
+- Updated: `2026-05-10 14:00:58`
+
+- [[Argos_Tunnel_Setup__shared]] — `05 SharedMemory Mirror/02 Logs/Argos_Tunnel_Setup__shared.md`
+- [[ArgosStatusReport__shared]] — `05 SharedMemory Mirror/02 Logs/ArgosStatusReport__shared.md`
+- [[Ngrok_Setup_Report__shared]] — `05 SharedMemory Mirror/02 Logs/Ngrok_Setup_Report__shared.md`
+- [[MEMORY__shared]] — `05 SharedMemory Mirror/argos/MEMORY__shared.md`
+- [[STATUS_TRAINING_COMPLETE__shared]] — `05 SharedMemory Mirror/argos/STATUS_TRAINING_COMPLETE__shared.md`
+- [[Argos_Tunnel_Setup__shared]] — `05 SharedMemory Mirror/Argos_Tunnel_Setup__shared.md`
+- [[ArgosStatusReport__shared]] — `05 SharedMemory Mirror/ArgosStatusReport__shared.md`
+- [[claude-code-system-prompt__shared]] — `05 SharedMemory Mirror/claude/claude-code-system-prompt__shared.md`
+- [[feedback_style__shared]] — `05 SharedMemory Mirror/claude/feedback_style__shared.md`
+- [[MEMORY__shared]] — `05 SharedMemory Mirror/claude/MEMORY__shared.md`
+- [[project_3gpu__shared]] — `05 SharedMemory Mirror/claude/project_3gpu__shared.md`
+- [[project_argos__shared]] — `05 SharedMemory Mirror/claude/project_argos__shared.md`
+- [[project_argos_deps__shared]] — `05 SharedMemory Mirror/claude/project_argos_deps__shared.md`
+- [[project_argos_laptop__shared]] — `05 SharedMemory Mirror/claude/project_argos_laptop__shared.md`
+- [[project_argos_training__shared]] — `05 SharedMemory Mirror/claude/project_argos_training__shared.md`
+- [[project_argos_vaults__shared]] — `05 SharedMemory Mirror/claude/project_argos_vaults__shared.md`
+- [[project_cloud_providers__shared]] — `05 SharedMemory Mirror/claude/project_cloud_providers__shared.md`
+- [[project_display_config__shared]] — `05 SharedMemory Mirror/claude/project_display_config__shared.md`
+- [[project_ha__shared]] — `05 SharedMemory Mirror/claude/project_ha__shared.md`
+- [[project_hivemind__shared]] — `05 SharedMemory Mirror/claude/project_hivemind__shared.md`
+- [[project_homeassistant__shared]] — `05 SharedMemory Mirror/claude/project_homeassistant__shared.md`
+- [[project_job_application__shared]] — `05 SharedMemory Mirror/claude/project_job_application__shared.md`
+- [[project_laptop_setup__shared]] — `05 SharedMemory Mirror/claude/project_laptop_setup__shared.md`
+- [[project_mcp__shared]] — `05 SharedMemory Mirror/claude/project_mcp__shared.md`
+- [[project_obsidian__shared]] — `05 SharedMemory Mirror/claude/project_obsidian__shared.md`
+- [[project_orangepi__shared]] — `05 SharedMemory Mirror/claude/project_orangepi__shared.md`
+- [[project_p2p__shared]] — `05 SharedMemory Mirror/claude/project_p2p__shared.md`
+- [[project_pc_hardware__shared]] — `05 SharedMemory Mirror/claude/project_pc_hardware__shared.md`
+- [[project_pending_tasks__shared]] — `05 SharedMemory Mirror/claude/project_pending_tasks__shared.md`
+- [[project_post_reboot__shared]] — `05 SharedMemory Mirror/claude/project_post_reboot__shared.md`
+- [[project_roadmap__shared]] — `05 SharedMemory Mirror/claude/project_roadmap__shared.md`
+- [[reference_memory_sync__shared]] — `05 SharedMemory Mirror/claude/reference_memory_sync__shared.md`
+- [[user_profile__shared]] — `05 SharedMemory Mirror/claude/user_profile__shared.md`
+- [[Ngrok_Setup_Report__shared]] — `05 SharedMemory Mirror/Ngrok_Setup_Report__shared.md`
+- [[MEMORY__shared]] — `05 SharedMemory Mirror/ollama/MEMORY__shared.md`
+- [[MEMORY__shared]] — `05 SharedMemory Mirror/opencode/MEMORY__shared.md`
+- [[ARGOS_LINKS__shared]] — `05 SharedMemory Mirror/shared/ARGOS_LINKS__shared.md`
+- [[ARGOS_MCP_REPORT_2026-05-02__shared]] — `05 SharedMemory Mirror/shared/ARGOS_MCP_REPORT_2026-05-02__shared.md`
+- [[JOURNAL__shared]] — `05 SharedMemory Mirror/shared/JOURNAL__shared.md`
+- [[PLAN_AFTER_REBOOT__shared]] — `05 SharedMemory Mirror/shared/PLAN_AFTER_REBOOT__shared.md`
+- [[REMOTE-ACCESS__shared]] — `05 SharedMemory Mirror/shared/REMOTE-ACCESS__shared.md`
+- [[REPORT_2026-05-03__shared]] — `05 SharedMemory Mirror/shared/REPORT_2026-05-03__shared.md`
+- [[SETUP__shared]] — `05 SharedMemory Mirror/shared/SETUP__shared.md`
+- [[SHARED__shared]] — `05 SharedMemory Mirror/shared/SHARED__shared.md`

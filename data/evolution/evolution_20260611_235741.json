@@ -1,0 +1,37 @@
+{
+  "session_id": "20260611_235741",
+  "timestamp": "2026-06-11T23:57:41.802842Z",
+  "duration_sec": 0.66,
+  "insights": [
+    {
+      "type": "availability",
+      "severity": "medium",
+      "title": "Offline nodes: 1/26",
+      "description": "1 brain nodes offline",
+      "action": "check network connectivity and node heartbeat",
+      "evidence": {
+        "offline": 1,
+        "total": 26
+      }
+    }
+  ],
+  "evidence_submitted": [
+    {
+      "node": "laptop",
+      "metric": "availability",
+      "value": 0.5,
+      "result": {
+        "node_id": "laptop",
+        "confidence": 0.0,
+        "evidence_count": 185
+      }
+    }
+  ],
+  "metrics_snapshot": {
+    "argos_cpu_percent": 17.7,
+    "argos_ram_percent": 67.3,
+    "argos_disk_percent": 73.9,
+    "argos_nodes_total": 26.0,
+    "argos_nodes_online": 25.0
+  }
+}

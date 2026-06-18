@@ -1,0 +1,16 @@
+[
+  {
+    "ts": "2026-03-27 21:54:14",
+    "op": "save",
+    "file": "test_injected.py",
+    "status": "ok",
+    "detail": "backup=none"
+  },
+  {
+    "ts": "2026-03-27 21:54:14",
+    "op": "inject",
+    "file": "test_injected.py",
+    "status": "ok",
+    "detail": "module=argos_skill_test_injected"
+  }
+]

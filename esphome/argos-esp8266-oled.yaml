@@ -1,0 +1,117 @@
+# ARGOS ESP8266 OLED 0.96" SSD1306 — WiFi Bridge Display Node
+# Board: ESP8266 (NodeMCU/ESP12E) with CH340
+# OLED: SSD1306 128x64 I2C, address 0x3C
+# Pins: SDA=GPIO4 (D2), SCL=GPIO5 (D1)
+
+esphome:
+  name: argos-esp8266-oled
+  friendly_name: ARGOS ESP8266 OLED
+
+esp8266:
+  board: esp12e
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  min_auth_mode: WPA2
+  ap:
+    ssid: "ARGOS-ESP-OLED-AP"
+    password: "888888889"
+
+captive_portal:
+
+logger:
+  level: INFO
+  baud_rate: 115200
+
+api:
+  encryption:
+    key: "G1RIDsc89P8B5ieUzTtQIsiiTqgSN5Z4fS0K03+OvUM="
+
+ota:
+  - platform: esphome
+    password: "888888889"
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  discovery: true
+
+i2c:
+  sda: GPIO4
+  scl: GPIO5
+  scan: true
+  frequency: 100kHz
+
+status_led:
+  pin: GPIO2
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_main
+    size: 14
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 10
+
+sensor:
+  - platform: wifi_signal
+    name: "ESP OLED WiFi"
+    id: wifi_sig
+    update_interval: 30s
+
+  - platform: uptime
+    name: "ESP OLED Uptime"
+    id: uptime_s
+    update_interval: 30s
+
+binary_sensor:
+  - platform: status
+    name: "ESP OLED Status"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "ESP OLED IP"
+      id: ip_addr
+  - platform: mqtt_subscribe
+    name: "ARGOS Message"
+    id: argos_msg
+    topic: "argos/esp-display/message"
+    on_value:
+      then:
+        - component.update: oled_display
+
+switch:
+  - platform: restart
+    name: "ESP OLED Restart"
+
+# OLED SSD1306 0.96" 128x64 I2C
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    address: 0x3C
+    id: oled_display
+    update_interval: 5s
+    lambda: |-
+      it.fill(COLOR_OFF);
+      it.printf(0, 0, id(font_main), "ARGOS v2.1");
+
+      if (id(ip_addr).has_state()) {
+        it.printf(0, 18, id(font_small), "IP: %s", id(ip_addr).state.c_str());
+      } else {
+        it.printf(0, 18, id(font_small), "Connecting...");
+      }
+
+      if (id(wifi_sig).has_state()) {
+        it.printf(0, 30, id(font_small), "WiFi: %.0fdBm", id(wifi_sig).state);
+      }
+
+      uint32_t s = (uint32_t)id(uptime_s).state;
+      it.printf(0, 42, id(font_small), "Up: %dh%dm", s/3600, (s%3600)/60);
+
+      if (id(argos_msg).has_state() && !id(argos_msg).state.empty()) {
+        it.printf(0, 54, id(font_small), id(argos_msg).state.c_str());
+      } else {
+        it.printf(0, 54, id(font_small), "Bus: OK");
+      }

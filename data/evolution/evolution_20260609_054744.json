@@ -1,0 +1,39 @@
+{
+  "session_id": "20260609_054744",
+  "timestamp": "2026-06-09T05:47:45.374603Z",
+  "duration_sec": 1.16,
+  "insights": [
+    {
+      "type": "trust",
+      "severity": "medium",
+      "title": "Trust drop: orion=0.62",
+      "description": "Node orion trust degraded to 0.62",
+      "action": "investigate node health, check evidence sources",
+      "evidence": {
+        "node": "orion",
+        "confidence": 0.6174999999999999,
+        "ev_count": 5
+      }
+    }
+  ],
+  "evidence_submitted": [
+    {
+      "node": "orion",
+      "metric": "trust",
+      "value": 0.5,
+      "result": {
+        "node_id": "orion",
+        "confidence": 0.98,
+        "evidence_count": 1
+      }
+    }
+  ],
+  "metrics_snapshot": {
+    "argos_nodes_online": 23.0,
+    "argos_nodes_total": 24.0,
+    "argos_brain_api_up": 1.0,
+    "argos_cpu_percent": 32.8,
+    "argos_ram_percent": 74.0,
+    "argos_disk_percent": 73.0
+  }
+}

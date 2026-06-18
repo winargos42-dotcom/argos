@@ -1,0 +1,41 @@
+workerPoolSpecs:
+  - machineSpec:
+      machineType: a2-highgpu-1g
+      acceleratorType: NVIDIA_TESLA_A100
+      acceleratorCount: 1
+    replicaCount: 1
+    containerSpec:
+      imageUri: us-docker.pkg.dev/vertex-ai/training/pytorch-gpu.2-4.py310:latest
+      command:
+        - bash
+        - -c
+      args:
+        - |
+          set -e
+          echo "=== ARGOS NeMo + CodeParrot LoRA Training ==="
+          pip install --no-cache-dir -q transformers peft accelerate bitsandbytes datasets huggingface-hub sentencepiece protobuf
+          
+          # Download training script from GCS
+          mkdir -p /training
+          gsutil cp gs://argosssss/vertex-training/train_nemo_codeparrot.py /training/
+          
+          python /training/train_nemo_codeparrot.py \
+            --data_path gs://argosssss/datasets/codeparrot/ \
+            --output_dir gs://argosssss/models/nemo-codeparrot-lora/ \
+            --model_name mistralai/Mistral-Nemo-Instruct-2407 \
+            --hf_token hf_pnu...TVIq \
+            --num_train_epochs 1 \
+            --per_device_train_batch_size 1 \
+            --gradient_accumulation_steps 4 \
+            --learning_rate 2e-4 \
+            --lora_r 64 \
+            --lora_alpha 128 \
+            --max_seq_length 4096 \
+            --save_steps 500
+      env:
+        - name: HF_HOME
+          value: /tmp/hf_cache
+        - name: TRANSFORMERS_CACHE
+          value: /tmp/hf_cache
+        - name: HF_TOKEN
+          value: hf_pnu...TVIq

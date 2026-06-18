@@ -1,0 +1,133 @@
+---
+argos_import: project_file
+source_path: claude-code-templates/cli-tool/components/skills/development/playwright/references/workflows.md
+source_abs: F:\debug\argoss\claude-code-templates\cli-tool\components\skills\development\playwright\references\workflows.md
+source_ext: .md
+source_sha256: 621d2b8542a91d1d5cd65a5a7774ea250683e4c217e00e9c90d301eb6367d86e
+text_sha256: a2b5835a00ebee3906c146adf7f764f7718ea3f89a8702d86eaa135dfe0fc8c2
+extract_mode: text
+project_root: F:\debug\argoss
+imported_at: 2026-05-04 04:13:45
+---
+
+# workflows.md
+
+- Source: `claude-code-templates/cli-tool/components/skills/development/playwright/references/workflows.md`
+- Extract: `text`
+- SHA256: `621d2b8542a91d1d5cd65a5a7774ea250683e4c217e00e9c90d301eb6367d86e`
+
+## Content
+
+# Playwright CLI Workflows
+
+Use the wrapper script and snapshot often.
+Assume `PWCLI` is set and `pwcli` is an alias for `"$PWCLI"`.
+In this repo, run commands from `output/playwright/<label>/` to keep artifacts contained.
+
+## Standard interaction loop
+
+```bash
+pwcli open https://example.com
+pwcli snapshot
+pwcli click e3
+pwcli snapshot
+```
+
+## Form submission
+
+```bash
+pwcli open https://example.com/form --headed
+pwcli snapshot
+pwcli fill e1 "user@example.com"
+pwcli fill e2 "password123"
+pwcli click e3
+pwcli snapshot
+pwcli screenshot
+```
+
+## Data extraction
+
+```bash
+pwcli open https://example.com
+pwcli snapshot
+pwcli eval "document.title"
+pwcli eval "el => el.textContent" e12
+```
+
+## Debugging and inspection
+
+Capture console messages and network activity after reproducing an issue:
+
+```bash
+pwcli console warning
+pwcli network
+```
+
+Record a trace around a suspicious flow:
+
+```bash
+pwcli tracing-start
+# reproduce the issue
+pwcli tracing-stop
+pwcli screenshot
+```
+
+## Sessions
+
+Use sessions to isolate work across projects:
+
+```bash
+pwcli --session marketing open https://example.com
+pwcli --session marketing snapshot
+pwcli --session checkout open https://example.com/checkout
+```
+
+Or set the session once:
+
+```bash
+export PLAYWRIGHT_CLI_SESSION=checkout
+pwcli open https://example.com/checkout
+```
+
+## Configuration file
+
+By default, the CLI reads `playwright-cli.json` from the current directory. Use `--config` to point at a specific file.
+
+Minimal example:
+
+```json
+{
+  "browser": {
+    "launchOptions": {
+      "headless": false
+    },
+    "contextOptions": {
+      "viewport": { "width": 1280, "height": 720 }
+    }
+  }
+}
+```
+
+## Troubleshooting
+
+- If an element ref fails, run `pwcli snapshot` again and retry.
+- If the page looks wrong, re-open with `--headed` and resize the window.
+- If a flow depends on prior state, use a named `--session`.
+
+<!-- ARGOS_MEMORY_WEB:START -->
+## Связи памяти
+
+- Центральный узел: [[ARGOS Memory Web]]
+- Тематический узел: [[Project Mirror Hub]]
+- Карта памяти: [[Карта памяти]]
+- Контекст работы: [[Контекст работы]]
+- Журнал MCP: [[2026-05-04 MCP Skill Audit]]
+- Источник связи: `local-vault`
+<!-- ARGOS_MEMORY_WEB:END -->
+
+[[Backbone Hub]]
+
+## Graph Bridge
+- [[ARGOS Memory Web]]
+- [[Backbone Hub]]
+- [[Project Mirror Hub]]

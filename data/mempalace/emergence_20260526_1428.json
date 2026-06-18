@@ -1,0 +1,14 @@
+{
+  "ts": "2026-05-26T14:28:16.484761",
+  "working_lines": 270,
+  "test_count": 1,
+  "fail_count": 1,
+  "tasks_generated": 1,
+  "tasks": [
+    {
+      "id": "AUTO_EMERGE_20260526_1428_003",
+      "title": "[AUTO] Improve Codegen Quality — добавить prompt engineering для синтаксической валидности",
+      "source": "emergence_loop: 1/1 tests failing"
+    }
+  ]
+}

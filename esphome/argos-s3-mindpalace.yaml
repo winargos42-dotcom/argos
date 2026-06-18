@@ -1,0 +1,315 @@
+# ARGOS S3 — Mind Palace Visualizer
+# Центральное ядро ARGOS + 7 машин на орбите + 6 сущностей + пульсирующие связи
+substitutions:
+  tft_mosi:  GPIO11      # Freenove FNK0104 verified
+  tft_sclk:  GPIO12      # Freenove FNK0104 verified
+  tft_cs:    GPIO10      # Freenove FNK0104 verified
+  tft_dc:    GPIO46      # Freenove FNK0104 verified
+  tft_bl:    GPIO45      # Freenove FNK0104 verified
+  i2c_sda:   GPIO16      # Freenove I2C (ES8311 + sensors)
+  i2c_scl:   GPIO15      # Freenove I2C
+
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  on_boot:
+    priority: 200
+    then:
+      - logger.log: "🌌 ARGOS Mind Palace boot"
+      - output.turn_on: bl_out
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_CDC
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  topic_prefix: "argos/esp_s3_voice"
+  on_message:
+    # Получаем статус нод через MQTT для подсветки
+    - topic: argos/brain/nodes_online
+      then:
+        - globals.set: {id: nodes_online, value: !lambda 'return atoi(x.c_str());'}
+    - topic: argos/brain/nodes_total
+      then:
+        - globals.set: {id: nodes_total, value: !lambda 'return atoi(x.c_str());'}
+
+i2c:
+  sda: ${i2c_sda}
+  scl: ${i2c_scl}
+  scan: true
+
+globals:
+  - id: nodes_online
+    type: int
+    initial_value: '0'
+    restore_value: no
+  - id: nodes_total
+    type: int
+    initial_value: '33'
+    restore_value: no
+  - id: pulse_phase
+    type: float
+    initial_value: '0.0'
+    restore_value: no
+
+output:
+  - platform: ledc
+    pin: ${tft_bl}
+    id: bl_out
+    inverted: false
+
+light:
+  - platform: monochromatic
+    name: "TFT BL"
+    id: bl_light
+    output: bl_out
+    default_transition_length: 100ms
+    restore_mode: ALWAYS_ON
+
+spi:
+  - id: tft_spi
+    clk_pin: ${tft_sclk}
+    mosi_pin: ${tft_mosi}
+
+font:
+  - file: "gfonts://Roboto"
+    id: f_title
+    size: 18
+    glyphs: "!\"%()+,-_./:°*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"
+  - file: "gfonts://Roboto"
+    id: f_med
+    size: 12
+    glyphs: "!\"%()+,-_./:°*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"
+  - file: "gfonts://Roboto"
+    id: f_small
+    size: 10
+    glyphs: "!\"%()+,-_./:°*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"
+
+color:
+  - id: c_bg
+    red:   3%
+    green: 3%
+    blue:  10%
+  - id: c_core
+    red: 100%
+    green: 60%
+    blue: 10%
+  - id: c_node_on
+    red:   30%
+    green: 100%
+    blue:  60%
+  - id: c_node_off
+    red: 100%
+    green:  20%
+    blue:  20%
+  - id: c_entity
+    red:  50%
+    green: 80%
+    blue: 100%
+  - id: c_line
+    red:  40%
+    green: 50%
+    blue:  80%
+  - id: c_text
+    red: 100%
+    green: 100%
+    blue: 100%
+  - id: c_dim
+    red: 60%
+    green: 60%
+    blue: 70%
+
+display:
+  - platform: ili9xxx
+    model: ILI9341
+    id: tft_display
+    spi_id: tft_spi
+    cs_pin: ${tft_cs}
+    dc_pin: ${tft_dc}
+    data_rate: 20MHz
+    dimensions:
+      width: 320
+      height: 240
+    transform:
+      swap_xy: true
+    color_order: BGR
+    invert_colors: true
+    update_interval: 100ms
+    lambda: |-
+      // Фон
+      it.fill(id(c_bg));
+
+      // Центр
+      const int CX = 160;
+      const int CY = 120;
+      const int R_CORE = 22;
+      const int R_ORBIT_M = 95;   // машины
+      const int R_ORBIT_E = 55;   // сущности
+
+      // Пульсирующее ядро ARGOS (фаза от millis)
+      id(pulse_phase) = (millis() % 2000) / 2000.0f;
+      float pulse = 1.0f + 0.15f * sinf(id(pulse_phase) * 2 * 3.14159f);
+      int core_r = (int)(R_CORE * pulse);
+      // Внешнее свечение
+      it.filled_circle(CX, CY, core_r + 4, Color(60, 30, 0));
+      it.filled_circle(CX, CY, core_r,     id(c_core));
+      it.filled_circle(CX, CY, core_r - 8, Color(255, 200, 100));
+      it.print(CX - 22, CY - 7, id(f_med), id(c_text), "ARGOS");
+
+      // 7 МАШИН на внешней орбите
+      const char* machines[7] = {"Орн","Нкс","Эгд","Авн","Снт","Арк","Знт"};
+      for (int i = 0; i < 7; i++) {
+        float ang = (i / 7.0f) * 2 * 3.14159f - 3.14159f / 2;
+        int mx = CX + (int)(R_ORBIT_M * cosf(ang));
+        int my = CY + (int)(R_ORBIT_M * sinf(ang));
+        // Линия связи к центру (пунктир через короткие)
+        for (int s = 3; s < 10; s++) {
+          int lx = CX + (int)((R_ORBIT_M * s / 10.0f) * cosf(ang));
+          int ly = CY + (int)((R_ORBIT_M * s / 10.0f) * sinf(ang));
+          if (s % 2 == 0) it.draw_pixel_at(lx, ly, id(c_line));
+        }
+        Color nc = (i < id(nodes_online)) ? id(c_node_on) : id(c_node_off);
+        it.filled_circle(mx, my, 8, nc);
+        it.print(mx - 10, my + 9, id(f_small), id(c_text), machines[i]);
+      }
+
+      // 6 СУЩНОСТЕЙ на внутренней орбите
+      const char* ents[6] = {"Клд","ДпС","Кми","Джм","Опн","Клф"};
+      for (int i = 0; i < 6; i++) {
+        float ang = (i / 6.0f) * 2 * 3.14159f + 0.5f;
+        int ex = CX + (int)(R_ORBIT_E * cosf(ang));
+        int ey = CY + (int)(R_ORBIT_E * sinf(ang));
+        it.filled_circle(ex, ey, 5, id(c_entity));
+        it.print(ex - 8, ey + 7, id(f_small), id(c_dim), ents[i]);
+      }
+
+      // Верхняя статус-строка
+      it.printf(5, 4, id(f_title), id(c_text), "ARGOS Mind");
+      it.printf(160, 6, id(f_med), id(c_node_on), "%d/%d", id(nodes_online), id(nodes_total));
+
+      // Нижний бар с IP
+      it.filled_rectangle(0, 220, 320, 20, Color(10,10,20));
+      if (id(room_temp).has_state()) {
+        it.printf(5, 224, id(f_small), id(c_dim), "%.1fC  %.0f%%  %.0fhPa", id(room_temp).state, id(room_hum).state, id(room_press).state);
+      } else {
+        it.printf(5, 224, id(f_small), id(c_dim), "%.1fC (chip)", id(int_temp).state);
+      }
+
+binary_sensor:
+  - platform: status
+    name: "S3 Status"
+
+sensor:
+  - platform: internal_temperature
+    name: "S3 Temp"
+    id: int_temp
+    update_interval: 30s
+  - platform: uptime
+    name: "S3 Uptime"
+    update_interval: 30s
+  - platform: wifi_signal
+    name: "S3 WiFi"
+    update_interval: 30s
+  - platform: aht10
+    variant: AHT20
+    temperature:
+      name: "Room Temp"
+      id: room_temp
+    humidity:
+      name: "Room Humidity"
+      id: room_hum
+    update_interval: 30s
+  - platform: bmp280_i2c
+    temperature:
+      name: "BMP Temp"
+      oversampling: 16x
+    pressure:
+      name: "Room Pressure"
+      id: room_press
+    update_interval: 30s
+
+i2s_audio:
+  - id: i2s_out
+    i2s_lrclk_pin: GPIO7
+    i2s_bclk_pin: GPIO5
+    i2s_mclk_pin: GPIO4
+
+speaker:
+  - platform: i2s_audio
+    id: ext_speaker
+    dac_type: external
+    i2s_audio_id: i2s_out
+    i2s_dout_pin: GPIO8
+    sample_rate: 16000
+    bits_per_sample: 16bit
+
+voice_assistant:
+  id: va
+  microphone: ext_mic
+  speaker: ext_speaker
+  on_start:
+    - light.turn_on:
+        id: bl_light
+        brightness: 100%
+  on_end:
+    - light.turn_on:
+        id: bl_light
+        brightness: 60%
+  on_error:
+    - logger.log: "VA error"
+
+button:
+  - platform: template
+    name: "ARGOS Listen"
+    on_press:
+      - voice_assistant.start:
+
+microphone:
+  - platform: i2s_audio
+    id: ext_mic
+    adc_type: external
+    i2s_audio_id: i2s_out
+    i2s_din_pin: GPIO6
+    pdm: false
+    sample_rate: 16000
+    bits_per_sample: 16bit
+
+switch:
+  - platform: restart
+    name: "S3 Restart"
+  - platform: gpio
+    pin: GPIO1
+    id: pa_switch
+    name: "S3 PA Enable"
+    restore_mode: ALWAYS_ON
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "S3 IP"

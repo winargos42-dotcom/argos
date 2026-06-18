@@ -1,0 +1,14 @@
+{
+  "session_id": "20260612_093012",
+  "timestamp": "2026-06-12T09:30:13.496004Z",
+  "duration_sec": 0.62,
+  "insights": [],
+  "evidence_submitted": [],
+  "metrics_snapshot": {
+    "argos_cpu_percent": 8.0,
+    "argos_ram_percent": 71.0,
+    "argos_disk_percent": 74.0,
+    "argos_nodes_total": 25.0,
+    "argos_nodes_online": 25.0
+  }
+}

@@ -1,0 +1,66 @@
+components:
+  consensus:
+    algorithm: ' Raft + weight voting'
+    current_quorum: 9
+    quorum: sum(weights) // 2 + 1
+    total_weight: 18
+  distributed_inference:
+    cpu_nodes:
+    - nexus
+    - opi
+    engine: vLLM / Ray Serve
+    gpu_nodes:
+    - orion
+    model_sharding: pipeline parallelism across Orion+OPi
+  self_modification:
+    safety: Kill switch + consensus + git rollback
+    trigger: Idea champion score > 20
+    workflow: Codegen → Test → Deploy → Monitor → Rollback if fail
+date: '2026-05-23T20:07:14.807307'
+deployment:
+  phase_1: 24 services (current)
+  phase_2: 48 services
+  phase_3: 150 services
+  rollback: docker service update --rollback
+  scaling: Swarm auto-scale based on CPU/GPU load
+description: HiveMind GPU mesh — 150 сервисов, distributed LLM, P2P consensus
+network:
+  discovery: mDNS + custom gossip
+  overlay: argos_overlay (Docker swarm)
+  wireguard: 10.200.0.0/24 mesh
+nodes:
+  nexus:
+    cpu: i5-3320M
+    gpu: Intel iGPU
+    ip: 192.168.1.53
+    role: manager
+    services:
+    - gateway
+    - monitoring
+    - autonomy-core
+    - storage
+    - p2p-hub
+    weight: 5
+  opi:
+    cpu: Cortex-A55
+    gpu: Mali-G52
+    ip: 192.168.2.168
+    role: worker
+    services:
+    - edge-inference
+    - zigbee-bridge
+    - ha-local
+    - backup-node
+    weight: 3
+  orion:
+    cpu: Ryzen 7
+    gpu: RX580 8GB
+    ip: 192.168.1.66
+    role: master
+    services:
+    - brain-api
+    - distributed-inference
+    - model-training
+    - entity-council-gpu
+    weight: 10
+project: ARGOS Phase 3

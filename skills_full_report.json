@@ -1,0 +1,167 @@
+[
+  {
+    "path": "src\\skills\\arc_agi3_skill.py",
+    "type": "PACKAGED",
+    "name": "arc_agi3_skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\arc_agi3_skill.py",
+    "type": "MODULE",
+    "name": "arc_agi3_skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\content_gen\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\crypto_monitor\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\evolution\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\fastapi_skill.py",
+    "type": "PACKAGED",
+    "name": "fastapi_skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\fastapi_skill.py",
+    "type": "MODULE",
+    "name": "fastapi_skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\firmware_manager\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\gcp_deploy\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\net_scanner\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\new_skill.py",
+    "type": "PACKAGED",
+    "name": "new_skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\new_skill.py",
+    "type": "MODULE",
+    "name": "new_skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\scheduler\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\weather\\skill.py",
+    "type": "PACKAGED",
+    "name": "weather",
+    "status": "OK",
+    "manifest": true,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  },
+  {
+    "path": "src\\skills\\web_scrapper\\skill.py",
+    "type": "PACKAGED",
+    "name": "skill",
+    "status": "INCOMPLETE",
+    "manifest": false,
+    "has_skill_func": false,
+    "has_skill_class": false,
+    "dependencies": [],
+    "errors": []
+  }
+]

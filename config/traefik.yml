@@ -1,0 +1,13 @@
+api:
+  insecure: true
+dashboard: true
+ping:
+  entryPoint: "web"
+entryPoints:
+  web:
+    address: ":80"
+providers:
+  docker:
+    exposedByDefault: false
+log:
+  level: INFO

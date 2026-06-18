@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  memgraph:
+    image: memgraph/memgraph:2.16
+    ports:
+      - "7687:7687"  # Bolt
+      - "7444:7444"  # Web UI (Lab)
+    volumes:
+      - ./data/neo4j_import:/imports
+      - memgraph_data:/var/lib/memgraph
+    environment:
+      - MEMGRAPH="--bolt-port=7687 --log-level=INFO"
+    command: ["--bolt-port=7687", "--log-level=INFO"]
+
+volumes:
+  memgraph_data:

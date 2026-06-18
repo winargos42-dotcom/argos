@@ -1,0 +1,123 @@
+# ARGOS ESP32-S3 AI Voice + TFT Node
+# Цель: WiFi → API (HA) → MQTT (ARGOS) → визуальная панель + кнопка
+# Этап 1: минимум живой; дисплей и аудио добавим после идентификации пинов
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  comment: "ESP32-S3 8MB Flash + 8MB PSRAM + TFT + ES8311 + I2S mic + SD"
+  on_boot:
+    priority: 600
+    then:
+      - logger.log: "✅ ARGOS S3 Voice загружен"
+      - mqtt.publish:
+          topic: argos/esp_s3_voice/boot
+          payload: '{"event":"boot","fw":"argos-s3-voice-1.0"}'
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# Логи через USB CDC (нативный USB ESP32-S3, без CH340/CP210x)
+logger:
+  level: INFO
+  hardware_uart: USB_CDC
+
+# Подключение к HA — он у нас на ноуте (192.168.1.53:8123)
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+  power_save_mode: none
+  ap:
+    ssid: "ARGOS-S3-Setup"
+    password: "argos2026"
+
+captive_portal:
+
+# MQTT в ARGOS — брокер на ноуте :1883
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  topic_prefix: "argos/esp_s3_voice"
+  birth_message:
+    topic: argos/esp_s3_voice/status
+    payload: online
+  will_message:
+    topic: argos/esp_s3_voice/status
+    payload: offline
+  on_message:
+    - topic: argos/esp_s3_voice/cmd
+      then:
+        - logger.log:
+            format: "CMD: %s"
+            args: ['x.c_str()']
+            tag: argos
+        - lambda: |-
+            ESP_LOGI("argos", "Received: %s", x.c_str());
+
+time:
+  - platform: sntp
+    id: ntp_time
+    timezone: Australia/Sydney
+
+sensor:
+  - platform: wifi_signal
+    name: "S3 WiFi Signal"
+    update_interval: 30s
+  - platform: uptime
+    name: "S3 Uptime"
+    update_interval: 30s
+  - platform: internal_temperature
+    name: "S3 Internal Temp"
+    update_interval: 30s
+
+binary_sensor:
+  - platform: status
+    name: "S3 Status"
+
+  # BOOT button (GPIO0) — на 99% S3-плат
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "S3 Boot Button"
+    on_press:
+      - mqtt.publish:
+          topic: argos/esp_s3_voice/event
+          payload: '{"event":"boot_button","action":"press"}'
+      - logger.log: "🔘 Кнопка нажата"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "S3 IP"
+    ssid:
+      name: "S3 SSID"
+    mac_address:
+      name: "S3 MAC"
+  - platform: version
+    name: "S3 Firmware Version"
+
+switch:
+  - platform: restart
+    name: "S3 Restart"
+
+# Будущее: дисплей и аудио — добавим после идентификации пинов

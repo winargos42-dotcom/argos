@@ -1,0 +1,71 @@
+# Minimal color fill test — ESP-BOX pins
+# Try 1: ILI9341 + MOSI=6/SCLK=7/CS=5/DC=4/RST=48/BL=45
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  on_boot:
+    priority: 200
+    then:
+      - output.turn_on: bl_out
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: DEBUG
+  hardware_uart: USB_CDC
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+
+output:
+  - platform: ledc
+    pin: GPIO45
+    id: bl_out
+    inverted: false
+
+light:
+  - platform: monochromatic
+    name: "TFT BL"
+    output: bl_out
+    restore_mode: ALWAYS_ON
+
+spi:
+  clk_pin: GPIO7
+  mosi_pin: GPIO6
+
+display:
+  - platform: ili9xxx
+    model: ST7789V
+    cs_pin: GPIO5
+    dc_pin: GPIO4
+    reset_pin: GPIO48
+    dimensions:
+      width: 320
+      height: 240
+    rotation: 0
+    invert_colors: false
+    update_interval: 1s
+    lambda: |-
+      it.fill(Color(255, 0, 0));
+      it.filled_rectangle(0, 0, 160, 120, Color(0, 255, 0));
+      it.filled_rectangle(160, 0, 160, 120, Color(0, 0, 255));
+      it.filled_rectangle(0, 120, 160, 120, Color(255, 255, 0));

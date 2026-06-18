@@ -1,0 +1,69 @@
+# ARGOS S3 — прицельный BL тест: только один пин на постоянку
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  on_boot:
+    priority: 200
+    then:
+      - output.turn_on: bl_pin
+      - logger.log: "🔆 BL pin GPIO45 включён постоянно"
+      - mqtt.publish: {topic: "argos/esp_s3_voice/bl_test", payload: "ALWAYS_ON_GPIO45"}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_CDC
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  topic_prefix: "argos/esp_s3_voice"
+
+binary_sensor:
+  - platform: status
+    name: "S3 Status"
+
+sensor:
+  - platform: uptime
+    name: "S3 Uptime"
+
+output:
+  - platform: gpio
+    pin: GPIO45   # ← КАНДИДАТ-4. Если не загорится — поменяю на 38/15/45/46/48
+    id: bl_pin
+
+switch:
+  - platform: output
+    name: "S3 BL"
+    output: bl_pin
+    restore_mode: ALWAYS_ON
+
+text_sensor:
+  - platform: template
+    name: "S3 BL Pin Tested"
+    lambda: |-
+      return {"GPIO45"};
+    update_interval: 60s

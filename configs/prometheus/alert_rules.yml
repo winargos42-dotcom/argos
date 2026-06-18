@@ -1,0 +1,58 @@
+groups:
+  - name: argos
+    rules:
+      - alert: ArgosNodeDown
+        expr: argos_nodes_online / argos_nodes_total < 0.85
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ARGOS ноды offline: {{ $value | humanizePercentage }}"
+
+      - alert: ArgosPCBrainDown
+        expr: argos_pc_ssh_up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ПК Орион потерян (SSH down)"
+
+      - alert: ArgosOrchestratorDown
+        expr: argos_orchestrator_running == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Orchestrator не работает"
+
+      - alert: ArgosHighLoad
+        expr: argos_cpu_load_avg5m > 4
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Высокая нагрузка на Nexus: {{ $value }}"
+
+      - alert: ArgosDiskWarning
+        expr: argos_disk_usage_pct > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Диск заполнен на {{ $value }}%"
+
+      - alert: ArgosEntityCouncilStalled
+        expr: increase(argos_entity_cycles_total[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Entity Council не работает 30+ минут"
+
+      - alert: ArgosP2PMeshPartitioned
+        expr: argos_p2p_peers_count < 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P2P mesh partition: {{ $value }} peers"

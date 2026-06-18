@@ -1,0 +1,91 @@
+[
+  {
+    "node_id": "orion",
+    "current": 0.919,
+    "predicted": 0.435,
+    "trend": "degrading",
+    "factors": {
+      "severity": 0.1,
+      "diversity": 0.2,
+      "volume": 0.05,
+      "evidence_count": 1,
+      "unique_sources": 1
+    }
+  },
+  {
+    "node_id": "laptop",
+    "current": 1.0,
+    "predicted": 0.843,
+    "trend": "degrading",
+    "factors": {
+      "severity": 0.627,
+      "diversity": 1.0,
+      "volume": 0.7,
+      "evidence_count": 14,
+      "unique_sources": 5
+    }
+  },
+  {
+    "node_id": "nexus",
+    "current": 1.0,
+    "predicted": 1.0,
+    "trend": "stable",
+    "factors": {
+      "no_evidence": 1.0
+    }
+  },
+  {
+    "node_id": "egida",
+    "current": 1.0,
+    "predicted": 1.0,
+    "trend": "stable",
+    "factors": {
+      "no_evidence": 1.0
+    }
+  },
+  {
+    "node_id": "pico",
+    "current": 1.0,
+    "predicted": 1.0,
+    "trend": "stable",
+    "factors": {
+      "no_evidence": 1.0
+    }
+  },
+  {
+    "node_id": "esp32",
+    "current": 1.0,
+    "predicted": 1.0,
+    "trend": "stable",
+    "factors": {
+      "no_evidence": 1.0
+    }
+  },
+  {
+    "node_id": "android",
+    "current": 1.0,
+    "predicted": 1.0,
+    "trend": "stable",
+    "factors": {
+      "no_evidence": 1.0
+    }
+  },
+  {
+    "node_id": "phone-redmi",
+    "current": 1.0,
+    "predicted": 1.0,
+    "trend": "stable",
+    "factors": {
+      "no_evidence": 1.0
+    }
+  },
+  {
+    "node_id": "entity-valenok",
+    "current": 1.0,
+    "predicted": 1.0,
+    "trend": "stable",
+    "factors": {
+      "no_evidence": 1.0
+    }
+  }
+]

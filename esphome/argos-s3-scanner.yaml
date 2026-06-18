@@ -1,0 +1,168 @@
+# ARGOS S3 Scanner v4 — BL + I2C bitbang autostart, MQTT FOUND events
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  on_boot:
+    priority: -100
+    then:
+      - logger.log: "🔍 Scanner v4 — autostart"
+      - script.execute: kick_scan
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_CDC
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+  topic_prefix: "argos/esp_s3_voice"
+
+# Hardware I2C — 2 пары (новые, ещё не пробованные)
+i2c:
+  - id: bus_a
+    sda: GPIO1
+    scl: GPIO2
+    scan: true
+    frequency: 100kHz
+  - id: bus_b
+    sda: GPIO41
+    scl: GPIO42
+    scan: true
+    frequency: 100kHz
+
+binary_sensor:
+  - platform: status
+    name: "S3 Status"
+
+sensor:
+  - platform: uptime
+    name: "S3 Uptime"
+
+output:
+  - {platform: gpio, pin: GPIO15, id: bl_15}
+  - {platform: gpio, pin: GPIO38, id: bl_38}
+  - {platform: gpio, pin: GPIO45, id: bl_45}
+  - {platform: gpio, pin: GPIO46, id: bl_46}
+  - {platform: gpio, pin: GPIO47, id: bl_47}
+  - {platform: gpio, pin: GPIO48, id: bl_48}
+
+interval:
+  - interval: 50s
+    then:
+      - logger.log: "█ GPIO15 5s"
+      - mqtt.publish: {topic: "argos/esp_s3_voice/bl_test", payload: "GPIO15"}
+      - output.turn_on: bl_15
+      - delay: 5s
+      - output.turn_off: bl_15
+      - delay: 1s
+      - logger.log: "█ GPIO38 5s"
+      - mqtt.publish: {topic: "argos/esp_s3_voice/bl_test", payload: "GPIO38"}
+      - output.turn_on: bl_38
+      - delay: 5s
+      - output.turn_off: bl_38
+      - delay: 1s
+      - logger.log: "█ GPIO45 5s"
+      - mqtt.publish: {topic: "argos/esp_s3_voice/bl_test", payload: "GPIO45"}
+      - output.turn_on: bl_45
+      - delay: 5s
+      - output.turn_off: bl_45
+      - delay: 1s
+      - logger.log: "█ GPIO46 5s"
+      - mqtt.publish: {topic: "argos/esp_s3_voice/bl_test", payload: "GPIO46"}
+      - output.turn_on: bl_46
+      - delay: 5s
+      - output.turn_off: bl_46
+      - delay: 1s
+      - logger.log: "█ GPIO47 5s"
+      - mqtt.publish: {topic: "argos/esp_s3_voice/bl_test", payload: "GPIO47"}
+      - output.turn_on: bl_47
+      - delay: 5s
+      - output.turn_off: bl_47
+      - delay: 1s
+      - logger.log: "█ GPIO48 5s"
+      - mqtt.publish: {topic: "argos/esp_s3_voice/bl_test", payload: "GPIO48"}
+      - output.turn_on: bl_48
+      - delay: 5s
+      - output.turn_off: bl_48
+      - logger.log: "═ цикл конец, пауза 10с ═"
+
+# Bit-bang I2C сканер через lambda на пары не охваченные hw
+# Запустится через 30с после старта
+script:
+  - id: bitbang_scan
+    then:
+      - lambda: |-
+          // Сканируем неохваченные пары: (4,5) (6,7) (16,17) (18,19) (39,40)
+          int pairs[][2] = {{4,5},{6,7},{16,17},{18,19},{39,40},{20,21},{43,44}};
+          int n = sizeof(pairs)/sizeof(pairs[0]);
+          for (int p=0; p<n; p++){
+            int SDA = pairs[p][0], SCL = pairs[p][1];
+            pinMode(SDA, INPUT_PULLUP);
+            pinMode(SCL, INPUT_PULLUP);
+            delay(5);
+            int found = 0;
+            char buf[80];
+            snprintf(buf, sizeof(buf), "BB scan SDA=%d SCL=%d:", SDA, SCL);
+            ESP_LOGI("bbscan", "%s", buf);
+            for (int addr = 0x08; addr < 0x78; addr++){
+              // START
+              pinMode(SDA, OUTPUT); digitalWrite(SDA, LOW); delayMicroseconds(5);
+              pinMode(SCL, OUTPUT); digitalWrite(SCL, LOW); delayMicroseconds(5);
+              // 7-bit address + write bit
+              uint8_t b = (addr<<1);
+              for (int i=7; i>=0; i--){
+                digitalWrite(SDA, (b>>i)&1); delayMicroseconds(3);
+                digitalWrite(SCL, HIGH); delayMicroseconds(5);
+                digitalWrite(SCL, LOW); delayMicroseconds(3);
+              }
+              // ACK?
+              pinMode(SDA, INPUT_PULLUP); delayMicroseconds(3);
+              digitalWrite(SCL, HIGH); delayMicroseconds(5);
+              int ack = digitalRead(SDA);
+              digitalWrite(SCL, LOW); delayMicroseconds(5);
+              // STOP
+              pinMode(SDA, OUTPUT); digitalWrite(SDA, LOW); delayMicroseconds(3);
+              digitalWrite(SCL, HIGH); delayMicroseconds(5);
+              digitalWrite(SDA, HIGH); delayMicroseconds(5);
+              pinMode(SDA, INPUT_PULLUP);
+              pinMode(SCL, INPUT_PULLUP);
+              if (ack == 0) {
+                snprintf(buf, sizeof(buf), "  FOUND 0x%02X on SDA=%d SCL=%d", addr, SDA, SCL);
+                ESP_LOGW("bbscan", "%s", buf);
+                found++;
+              }
+              delayMicroseconds(20);
+            }
+            ESP_LOGI("bbscan", "  pair done, found=%d", found);
+            delay(50);
+          }
+          ESP_LOGI("bbscan", "=== BB SCAN COMPLETE ===");
+
+  - id: kick_scan
+    then:
+      - delay: 30s
+      - script.execute: bitbang_scan

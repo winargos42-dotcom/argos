@@ -1,0 +1,82 @@
+dependencies:
+  espressif/esp_wifi_remote:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_wifi_remote
+  chmorgan/esp-libhelix-mp3:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp-libhelix-mp3
+  espressif/esp_insights:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_insights
+  espressif/esp-zboss-lib:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp-zboss-lib
+  joltwallet/littlefs:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/littlefs
+  espressif/json_generator:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/json_generator
+  espressif/esp_rainmaker:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_rainmaker
+  espressif/libsodium:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/libsodium
+  espressif/esp-sr:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp-sr
+  espressif/esp-zigbee-lib:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp-zigbee-lib
+  espressif/esp_modem:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_modem
+  espressif/cbor:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/cbor
+  espressif/esp_hosted:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_hosted
+  espressif/rmaker_common:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/rmaker_common
+  espressif/esp_schedule:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_schedule
+  espressif/esp-dsp:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp-dsp
+  espressif/qrcode:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/qrcode
+  espressif/esp_secure_cert_mgr:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_secure_cert_mgr
+  espressif/esp_diagnostics:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_diagnostics
+  espressif/lan867x:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/lan867x
+  espressif/esp_rcp_update:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_rcp_update
+  espressif/esp-modbus:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp-modbus
+  espressif/esp_diag_data_store:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/esp_diag_data_store
+  espressif/network_provisioning:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/network_provisioning
+  espressif/json_parser:
+    version: '*'
+    override_path: /home/ava/Projects/argoss/esphome/.esphome/build/argos-esp-s3-ai/component_stubs/json_parser
+  espressif/mdns:
+    version: 1.11.0
+  zorxx/multipart-parser:
+    version: 1.0.1
+  bblanchon/arduinojson:
+    version: 7.4.2

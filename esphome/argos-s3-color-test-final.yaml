@@ -1,0 +1,75 @@
+# Freenove ESP32-S3 Display 2.8" (FNK0104) — VERIFIED pins from xiaozhi-esp32
+# ILI9341, MOSI=11, SCLK=12, CS=10, DC=46, RST=NC, BL=45
+esphome:
+  name: argos-s3-voice
+  friendly_name: ARGOS S3 Voice
+  on_boot:
+    priority: 200
+    then:
+      - output.turn_on: bl_out
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+  flash_size: 8MB
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+  level: INFO
+  hardware_uart: USB_CDC
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: "argos2026"
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  fast_connect: true
+
+output:
+  - platform: ledc
+    pin: GPIO45
+    id: bl_out
+    inverted: false
+
+light:
+  - platform: monochromatic
+    name: "TFT BL"
+    output: bl_out
+    restore_mode: ALWAYS_ON
+
+spi:
+  clk_pin: GPIO12
+  mosi_pin: GPIO11
+
+display:
+  - platform: ili9xxx
+    model: ILI9341
+    cs_pin: GPIO10
+    dc_pin: GPIO46
+    data_rate: 20MHz
+    dimensions:
+      width: 320
+      height: 240
+    transform:
+      swap_xy: true
+      mirror_x: false
+      mirror_y: false
+    color_order: BGR
+    invert_colors: true
+    update_interval: 1s
+    lambda: |-
+      it.fill(Color(255, 0, 0));
+      it.filled_rectangle(0, 0, 160, 120, Color(0, 255, 0));
+      it.filled_rectangle(160, 0, 160, 120, Color(0, 0, 255));
+      it.filled_rectangle(0, 120, 160, 120, Color(255, 255, 0));

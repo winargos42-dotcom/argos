@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-06-08T03:59:30.828577+00:00",
+  "tokenizer": "Qwen/Qwen2.5-7B-Instruct",
+  "datasets": [
+    {
+      "name": "ZeroAgency/ru-big-russian-dataset",
+      "requested_name": "AvaSiG/ru-big-russian-dataset-bucket",
+      "downloaded": 100,
+      "after_exact_dedup": 100,
+      "after_near_dedup": 100,
+      "after_filter": 72,
+      "tokens_min": 41,
+      "tokens_max": 2002,
+      "tokens_mean": 658.65,
+      "tokens_median": 591.0,
+      "duration_sec": 41.88
+    }
+  ],
+  "total_rows_raw": 100,
+  "total_rows_final": 72,
+  "total_tokens": 47423,
+  "disk_usage_mb": 63.18,
+  "warnings": []
+}

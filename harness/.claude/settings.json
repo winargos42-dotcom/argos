@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": ["Bash(npx argoss-harness*)", "mcp__argoss-harness__*", "WebFetch"],
+    "deny": ["Bash(rm *)", "Read(./.env)", "Read(./.env.*)"]
+  },
+  "mcpServers": {
+    "argoss-harness": { "command": "npx", "args": ["-y", "argoss-harness@latest", "mcp", "start"] }
+  }
+}

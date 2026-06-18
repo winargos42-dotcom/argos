@@ -1,0 +1,58 @@
+---
+argos_import: project_file
+source_path: tmp/kolibrios/programs/media/log_el/trunk/test3.txt
+source_abs: F:\debug\argoss\tmp\kolibrios\programs\media\log_el\trunk\test3.txt
+source_ext: .txt
+source_sha256: c37c12053b1f27ceacee5d832b9bd9a8d7ae7a6c5d7e67504f247b09b16b76a1
+text_sha256: 445eb48aa265e26bd4a82c49edfc53cc3a61377dd20e1d0671e5d4e24096c37f
+extract_mode: text
+project_root: F:\debug\argoss
+imported_at: 2026-05-04 04:14:46
+---
+
+# test3.txt
+
+- Source: `tmp/kolibrios/programs/media/log_el/trunk/test3.txt`
+- Extract: `text`
+- SHA256: `c37c12053b1f27ceacee5d832b9bd9a8d7ae7a6c5d7e67504f247b09b16b76a1`
+
+## Content
+
+size 300 200
+elements 1
+126  97 0 not
+points 95
+131  95  6  124  95  6  122  95  2  122 101  1  120 103  9  118 105  9
+116 107  9  114 109  9  112 111  9  110 113  9  108 115  9  106 117  9
+104 119  9  102 121  9  100 123  9   98 125  9   96 127  9   94 129  9
+ 92 131  9   90 133  9   88 135  9   86 137  9   84 139  9   82 141  9
+133 101 12  135 103 12  137 105 12  139 107 12  141 109 12  143 111 12
+145 113 12  147 115 12  149 117 12  151 119 12  153 121 12  155 123 12
+157 125 12  159 127 12  161 129 12  163 131 12  165 133 12  167 135 12
+169 137 12  171 139 12  173 141 12  133  93  6  135  91  6  137  89  6
+139  87  6  141  85  6  143  83  6  145  81  6  147  79  6  149  77  6
+151  75  6  153  73  6  155  71  6  157  69  6  159  67  6  161  65  6
+163  63  6  165  61  6  167  59  6  169  57  6  171  55  6  173  53  6
+120  93  3  118  91  3  116  89  3  114  87  3  112  85  3  110  83  3
+108  81  3  106  79  3  104  77  3  102  75  3  100  73  3   98  71  3
+ 96  69  3   94  67  3   92  65  3   90  63  3   88  61  3   86  59  3
+ 84  57  3   82  55  3  127 101  2  127  95 12  122  98  6  131  98  1
+ 80  53  0  127  51  0  175  98  0  127 143  0   80  98  0
+
+<!-- ARGOS_MEMORY_WEB:START -->
+## Связи памяти
+
+- Центральный узел: [[ARGOS Memory Web]]
+- Тематический узел: [[Project Mirror Hub]]
+- Карта памяти: [[Карта памяти]]
+- Контекст работы: [[Контекст работы]]
+- Журнал MCP: [[2026-05-04 MCP Skill Audit]]
+- Источник связи: `local-vault`
+<!-- ARGOS_MEMORY_WEB:END -->
+
+[[Backbone Hub]]
+
+## Graph Bridge
+- [[ARGOS Memory Web]]
+- [[Backbone Hub]]
+- [[Project Mirror Hub]]

@@ -1,0 +1,42 @@
+[
+  {
+    "host": "node-a",
+    "port": 5001,
+    "online": true,
+    "status": "OK",
+    "code": 200,
+    "error": null,
+    "last_seen": 1781737851.4604025,
+    "last_change": 1781737851.4604025,
+    "consecutive_failures": 0,
+    "history": [
+      {
+        "ts": 1781737851.4604025,
+        "online": true,
+        "status": "OK",
+        "code": 200,
+        "error": null
+      }
+    ]
+  },
+  {
+    "host": "node-b",
+    "port": 5002,
+    "online": false,
+    "status": null,
+    "code": null,
+    "error": "refused",
+    "last_seen": null,
+    "last_change": null,
+    "consecutive_failures": 1,
+    "history": [
+      {
+        "ts": 1781737851.4604094,
+        "online": false,
+        "status": null,
+        "code": null,
+        "error": "refused"
+      }
+    ]
+  }
+]

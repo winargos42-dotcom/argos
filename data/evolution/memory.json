@@ -1,0 +1,20 @@
+{
+  "mistake_general_to_confirmation": {
+    "count": 1,
+    "first_seen": "2026-05-13T23:48:43.993260+00:00",
+    "last_seen": "2026-05-13T23:48:43.993260+00:00"
+  },
+  "2b29eb6a0c8a8e0d": {
+    "decisions": [
+      {
+        "id": "0fe3f2dbe68c",
+        "timestamp": "2026-05-13T23:48:43.993397+00:00",
+        "context": "model_selection",
+        "decision": "use_llama31_8b",
+        "outcome": "fast_response",
+        "success": true,
+        "node_id": "local"
+      }
+    ]
+  }
+}

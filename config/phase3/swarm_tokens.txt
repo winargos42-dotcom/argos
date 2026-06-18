@@ -1,0 +1,4 @@
+# Generated: 2026-05-23T20:07:14.807120
+Worker token: SWMTKN-1-55vkijtns5l610hahy16tjslsvzvjufl7nhr01fjygjt4ata9l-3q9jzawrleaj2q02hdhvxupct
+Manager command: docker swarm join --token SWMTKN-1-55vkijtns5l610hahy16tjslsvzvjufl7nhr01fjygjt4ata9l-3q9jzawrleaj2q02hdhvxupct 192.168.2.1:2377
+# For Orion/OPi: copy this command and run as root

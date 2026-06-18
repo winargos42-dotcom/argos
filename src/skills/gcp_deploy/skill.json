@@ -1,0 +1,6 @@
+{
+    "name": "gcp_deploy",
+    "description": "Развертывание ARGOS на Google Cloud Run",
+    "entry": "skills/gcp_deploy/skill.py",
+    "enabled": true
+}

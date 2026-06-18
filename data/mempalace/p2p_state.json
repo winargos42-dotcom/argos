@@ -1,0 +1,233 @@
+{
+  "election_history": [
+    {
+      "ts": "2026-05-24T01:34:04.714664",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-25T09:35:56.928064",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-25T12:30:47.190658",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T14:55:12.038871",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T15:16:43.714485",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T15:25:28.261678",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T15:33:17.266214",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T15:36:12.797799",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T15:58:20.197638",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T17:48:43.342337",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T17:49:33.875002",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T17:53:04.920323",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T17:58:12.166846",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T22:12:13.225590",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T22:14:26.540600",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T22:22:58.271145",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T22:34:11.120749",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-27T23:17:12.587122",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-28T14:16:14.845160",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-28T15:20:34.788487",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-28T15:38:17.313506",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-28T16:34:45.537472",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-28T16:44:00.162407",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-28T16:55:34.073309",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-29T01:29:52.197518",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-29T03:02:58.495332",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-30T00:38:32.275123",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-30T02:15:13.987433",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-30T11:20:48.824516",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-05-30T18:38:17.590200",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-01T00:27:04.426224",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-01T13:01:19.677495",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-03T03:06:52.111553",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-03T15:13:36.161832",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-03T19:08:29.829537",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-03T20:13:47.458816",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-05T04:19:45.853531",
+      "from": "orion",
+      "to": "unknown",
+      "reason": "brain_dead"
+    },
+    {
+      "ts": "2026-06-08T09:23:56.273573",
+      "from": null,
+      "to": "unknown",
+      "reason": "brain_dead"
+    }
+  ],
+  "leader_changes": 38
+}

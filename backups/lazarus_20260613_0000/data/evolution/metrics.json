@@ -1,0 +1,19 @@
+{
+  "total_reflections": 1,
+  "mistakes_learned": 1,
+  "accuracy_by_type": {
+    "general": {
+      "total": 1,
+      "correct": 0
+    },
+    "confirmation": {
+      "total": 0,
+      "correct": 0
+    }
+  },
+  "decisions_made": 1,
+  "successful_decisions": 1,
+  "cross_node_learnings": 0,
+  "parameter_tuning_count": 1,
+  "awareness_level": 1.1
+}

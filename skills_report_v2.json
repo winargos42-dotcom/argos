@@ -1,0 +1,1305 @@
+{
+  "meta": {
+    "total_files": 339,
+    "skills_found": 79,
+    "regular_modules": 252,
+    "errors": 0
+  },
+  "skills": [
+    {
+      "path": "argos_patcher.py",
+      "name": "argos_patcher",
+      "description": "Автономный патчер и авто-обновление ARGOS",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 377
+    },
+    {
+      "path": "argos_service.py",
+      "name": "argos_service",
+      "description": "Установка и управление ARGOS как Windows-сервисом",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 75
+    },
+    {
+      "path": "awa_core.py",
+      "name": "awa_core",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 427
+    },
+    {
+      "path": "crypto_monitor.py",
+      "name": "crypto_monitor",
+      "description": "Мониторинг криптовалютных курсов и алертов",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 118
+    },
+    {
+      "path": "dag_agent.py",
+      "name": "dag_agent",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 348
+    },
+    {
+      "path": "evolution.py",
+      "name": "evolution",
+      "description": "Эволюционные алгоритмы и генетическая оптимизация",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 9
+    },
+    {
+      "path": "graceful_shutdown.py",
+      "name": "graceful_shutdown",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 114
+    },
+    {
+      "path": "hardware_intel.py",
+      "name": "hardware_intel",
+      "description": "Диагностика железа: CPU/RAM/GPU/USB/BT/NFC",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": true
+      },
+      "line_count": 229
+    },
+    {
+      "path": "integration_patch_v1205.py",
+      "name": "integration_patch_v1205",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 227
+    },
+    {
+      "path": "pip_manager_ext.py",
+      "name": "pip_manager_ext",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 442
+    },
+    {
+      "path": "skill_loader.py",
+      "name": "skill_loader",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 597
+    },
+    {
+      "path": "skill_loader_patch.py",
+      "name": "skill_loader_patch",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 627
+    },
+    {
+      "path": "sub_agency.py",
+      "name": "sub_agency",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 340
+    },
+    {
+      "path": "connectivity/iot_bridge.py",
+      "name": "iot_bridge",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 459
+    },
+    {
+      "path": "connectivity/kimi_bridge.py",
+      "name": "kimi_bridge",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 335
+    },
+    {
+      "path": "connectivity/p2p_transport.py",
+      "name": "p2p_transport",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 67
+    },
+    {
+      "path": "connectivity/redis_bus.py",
+      "name": "redis_bus",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 98
+    },
+    {
+      "path": "interface/kivy_1gui.py",
+      "name": "kivy_1gui",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 121
+    },
+    {
+      "path": "interface/kivy_gui.py",
+      "name": "kivy_gui",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 229
+    },
+    {
+      "path": "mind/evolution_engine.py",
+      "name": "{skill_name}",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 415
+    },
+    {
+      "path": "modules/base.py",
+      "name": "base",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 26
+    },
+    {
+      "path": "modules/biosphere_tools.py",
+      "name": "biosphere_tools",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 314
+    },
+    {
+      "path": "modules/system_monitor_module.py",
+      "name": "system_monitor_module",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 32
+    },
+    {
+      "path": "modules/vision_module.py",
+      "name": "vision_module",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 48
+    },
+    {
+      "path": "modules/voice_module.py",
+      "name": "voice_module",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 36
+    },
+    {
+      "path": "skills/ai_coder.py",
+      "name": "ai_coder",
+      "description": "Генерация и доработка кода через Ollama",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 305
+    },
+    {
+      "path": "skills/ai_coder_evolution_bridge.py",
+      "name": "ai_coder_evolution_bridge",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 406
+    },
+    {
+      "path": "skills/arc_agi3_skill.py",
+      "name": "arc_agi3_skill",
+      "description": "Работа с датасетами ARC-AGI-1/2 и решение задач",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 344
+    },
+    {
+      "path": "skills/argos_patcher.py",
+      "name": "argos_patcher",
+      "description": "Автономный патчер и авто-обновление ARGOS",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 377
+    },
+    {
+      "path": "skills/argos_service.py",
+      "name": "argos_service",
+      "description": "Установка и управление ARGOS как Windows-сервисом",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 75
+    },
+    {
+      "path": "skills/autonomy_fileops.py",
+      "name": "autonomy_fileops",
+      "description": "Автономный агент мониторинга и операций с файлами",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 178
+    },
+    {
+      "path": "skills/auto_backup.py",
+      "name": "auto_backup",
+      "description": "Инкрементальный ZIP-бэкап конфигов и данных",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 264
+    },
+    {
+      "path": "skills/browser_conduit.py",
+      "name": "browser_conduit",
+      "description": "Передача текста в браузер через буфер обмена",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 177
+    },
+    {
+      "path": "skills/content_gen.py",
+      "name": "content_gen",
+      "description": "Генерация контента: тексты, посты, статьи через LLM",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 197
+    },
+    {
+      "path": "skills/crypto_monitor.py",
+      "name": "crypto_monitor",
+      "description": "Мониторинг криптовалютных курсов и алертов",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 165
+    },
+    {
+      "path": "skills/crypto_utils.py",
+      "name": "crypto_utils",
+      "description": "Шифрование, хэши, HMAC, Base64 (stdlib + cryptography)",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 230
+    },
+    {
+      "path": "skills/desktop_actions.py",
+      "name": "desktop_actions",
+      "description": "Управление ПК: мышь, клавиатура, скриншот",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 208
+    },
+    {
+      "path": "skills/ebay_parser.py",
+      "name": "ebay_parser",
+      "description": "Парсинг eBay без API: поиск товаров и мониторинг цен",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 209
+    },
+    {
+      "path": "skills/esp32_usb_bridge.py",
+      "name": "esp32_usb_bridge",
+      "description": "USB-мост для ESP32: прошивка и serial-команды",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 666
+    },
+    {
+      "path": "skills/evolution.py",
+      "name": "evolution",
+      "description": "Эволюционные алгоритмы и генетическая оптимизация",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": true,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 9
+    },
+    {
+      "path": "skills/fastapi_skill.py",
+      "name": "fastapi_skill",
+      "description": "FastAPI REST-сервер для удалённого управления",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 215
+    },
+    {
+      "path": "skills/firmware_examples.py",
+      "name": "firmware_examples",
+      "description": "Загрузка шаблонов прошивок Tasmota/WLED/ESPHome",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 391
+    },
+    {
+      "path": "skills/ga4_analytics.py",
+      "name": "ga4_analytics",
+      "description": "Google Analytics 4: метрики и отчёты",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 232
+    },
+    {
+      "path": "skills/hardware_intel.py",
+      "name": "hardware_intel",
+      "description": "Диагностика железа: CPU/RAM/GPU/USB/BT/NFC",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": true
+      },
+      "line_count": 229
+    },
+    {
+      "path": "skills/huggingface_ai.py",
+      "name": "huggingface_ai",
+      "description": "HuggingFace Inference: пул токенов, round-robin",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 1080
+    },
+    {
+      "path": "skills/iot_watchdog.py",
+      "name": "iot_watchdog",
+      "description": "Мониторинг доступности IoT-устройств + алерты",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 337
+    },
+    {
+      "path": "skills/multi_provider_chat.py",
+      "name": "multi_provider_chat",
+      "description": "Единый чат через xAI/Grok, OpenAI, Groq, Cloudflare, Ollama и Kimi",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 122
+    },
+    {
+      "path": "skills/network_shadow.py",
+      "name": "network_shadow",
+      "description": "Маскировка сетевого устройства (MAC/hostname)",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 47
+    },
+    {
+      "path": "skills/net_scanner.py",
+      "name": "net_scanner",
+      "description": "Сканирование локальной сети: хосты, порты, сервисы",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 131
+    },
+    {
+      "path": "skills/pip_manager.py",
+      "name": "pip_manager",
+      "description": "Управление pip-пакетами и поиск по PyPI",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 244
+    },
+    {
+      "path": "skills/scheduler.py",
+      "name": "scheduler",
+      "description": "Планировщик задач: cron-расписание и отложенные команды",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 201
+    },
+    {
+      "path": "skills/serp_search.py",
+      "name": "serp_search",
+      "description": "Веб-поиск через SerpAPI или DuckDuckGo",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 156
+    },
+    {
+      "path": "skills/shodan_scanner.py",
+      "name": "shodan_scanner",
+      "description": "Сканирование сети и устройств через Shodan API",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 59
+    },
+    {
+      "path": "skills/smart_environments.py",
+      "name": "smart_environments",
+      "description": "Управление умным домом: сцены, окружения, IoT",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 613
+    },
+    {
+      "path": "skills/smtp_mailer.py",
+      "name": "smtp_mailer",
+      "description": "Отправка email через SMTP с TLS/SSL",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 226
+    },
+    {
+      "path": "skills/system_monitor.py",
+      "name": "system_monitor",
+      "description": "Мониторинг CPU/RAM/диска/сети в реальном времени",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 369
+    },
+    {
+      "path": "skills/tasmota_updater.py",
+      "name": "tasmota_updater",
+      "description": "Авто-скачивание прошивок Tasmota с OTA-сервера",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": true
+      },
+      "line_count": 85
+    },
+    {
+      "path": "skills/test_injected.py",
+      "name": "test_injected",
+      "description": "Тестовый навык для проверки инъекции",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 14
+    },
+    {
+      "path": "skills/tg_code_injector.py",
+      "name": "tg_code_injector",
+      "description": "Инъекция кода в ARGOS через Telegram от ADMIN",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 484
+    },
+    {
+      "path": "skills/ton_blockchain.py",
+      "name": "ton_blockchain",
+      "description": "TON блокчейн: баланс, транзакции, кошелёк",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 273
+    },
+    {
+      "path": "skills/usb_access_point.py",
+      "name": "usb_access_point",
+      "description": "USB-гаджет + WiFi AP + веб-морда ARGOS",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 456
+    },
+    {
+      "path": "skills/web_explorer.py",
+      "name": "web_explorer",
+      "description": "Веб-разведчик: DDG, Wikipedia, GitHub, arXiv",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 535
+    },
+    {
+      "path": "skills/web_scrapper.py",
+      "name": "web_scrapper",
+      "description": "Веб-скрапинг страниц: HTML-парсинг и извлечение данных",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": true,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 64
+    },
+    {
+      "path": "skills/ai_code_generator/skill.py",
+      "name": "ai_code_generator",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 264
+    },
+    {
+      "path": "skills/content_gen/skill.py",
+      "name": "skill",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 365
+    },
+    {
+      "path": "skills/evolution/skill.py",
+      "name": "skill",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 365
+    },
+    {
+      "path": "skills/evolved/evolved_более_точное_распозн.py",
+      "name": "evolved_более_точное_распознавание",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 21
+    },
+    {
+      "path": "skills/evolved/evolved_оптимизация_работы_с.py",
+      "name": "evolved_оптимизация_работы_с",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 37
+    },
+    {
+      "path": "skills/evolved/evolved_улучшение_качества_о.py",
+      "name": "evolved_улучшение_качества_о",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 29
+    },
+    {
+      "path": "skills/evolved/evolved_улучшение_форматиров.py",
+      "name": "evolved_улучшение_форматиров",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": true,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 16
+    },
+    {
+      "path": "skills/firmware_manager/skill.py",
+      "name": "skill",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 128
+    },
+    {
+      "path": "skills/gcp_deploy/skill.py",
+      "name": "gcp_deploy",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": true
+      },
+      "line_count": 69
+    },
+    {
+      "path": "skills/gcp_deploy/__init__.py",
+      "name": "__init__",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": true,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": false
+      },
+      "line_count": 4
+    },
+    {
+      "path": "skills/generated/azure_vpn_p2p_manager.py",
+      "name": "azure_vpn_p2p_manager",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 314
+    },
+    {
+      "path": "skills/generated/domain_manager.py",
+      "name": "domain_manager",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 108
+    },
+    {
+      "path": "skills/generated/p2p_network_manager.py",
+      "name": "p2p_network_manager",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 428
+    },
+    {
+      "path": "skills/generated/p2p_network_manager_fixed.py",
+      "name": "p2p_network_manager_fixed",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 428
+    },
+    {
+      "path": "skills/generated/weather_forecast_fetcher.py",
+      "name": "weather_forecast_fetcher",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": true,
+        "has_handle_func": false
+      },
+      "line_count": 69
+    },
+    {
+      "path": "skills/weather/skill.py",
+      "name": "skill",
+      "description": "No description",
+      "is_skill": true,
+      "patterns": {
+        "has_skill_description": false,
+        "has_skill_name": false,
+        "has_skill_triggers": false,
+        "has_register_func": false,
+        "has_execute_func": false,
+        "has_handle_func": true
+      },
+      "line_count": 138
+    }
+  ],
+  "by_folder": {
+    ".": [
+      "argos_patcher",
+      "argos_service",
+      "awa_core",
+      "crypto_monitor",
+      "dag_agent",
+      "evolution",
+      "graceful_shutdown",
+      "hardware_intel",
+      "integration_patch_v1205",
+      "pip_manager_ext",
+      "skill_loader",
+      "skill_loader_patch",
+      "sub_agency"
+    ],
+    "connectivity": [
+      "iot_bridge",
+      "kimi_bridge",
+      "p2p_transport",
+      "redis_bus"
+    ],
+    "interface": [
+      "kivy_1gui",
+      "kivy_gui"
+    ],
+    "mind": [
+      "{skill_name}"
+    ],
+    "modules": [
+      "base",
+      "biosphere_tools",
+      "system_monitor_module",
+      "vision_module",
+      "voice_module"
+    ],
+    "skills": [
+      "ai_coder",
+      "ai_coder_evolution_bridge",
+      "arc_agi3_skill",
+      "argos_patcher",
+      "argos_service",
+      "autonomy_fileops",
+      "auto_backup",
+      "browser_conduit",
+      "content_gen",
+      "crypto_monitor",
+      "crypto_utils",
+      "desktop_actions",
+      "ebay_parser",
+      "esp32_usb_bridge",
+      "evolution",
+      "fastapi_skill",
+      "firmware_examples",
+      "ga4_analytics",
+      "hardware_intel",
+      "huggingface_ai",
+      "iot_watchdog",
+      "multi_provider_chat",
+      "network_shadow",
+      "net_scanner",
+      "pip_manager",
+      "scheduler",
+      "serp_search",
+      "shodan_scanner",
+      "smart_environments",
+      "smtp_mailer",
+      "system_monitor",
+      "tasmota_updater",
+      "test_injected",
+      "tg_code_injector",
+      "ton_blockchain",
+      "usb_access_point",
+      "web_explorer",
+      "web_scrapper"
+    ],
+    "skills\\ai_code_generator": [
+      "ai_code_generator"
+    ],
+    "skills\\content_gen": [
+      "skill"
+    ],
+    "skills\\evolution": [
+      "skill"
+    ],
+    "skills\\evolved": [
+      "evolved_более_точное_распознавание",
+      "evolved_оптимизация_работы_с",
+      "evolved_улучшение_качества_о",
+      "evolved_улучшение_форматиров"
+    ],
+    "skills\\firmware_manager": [
+      "skill"
+    ],
+    "skills\\gcp_deploy": [
+      "gcp_deploy",
+      "__init__"
+    ],
+    "skills\\generated": [
+      "azure_vpn_p2p_manager",
+      "domain_manager",
+      "p2p_network_manager",
+      "p2p_network_manager_fixed",
+      "weather_forecast_fetcher"
+    ],
+    "skills\\weather": [
+      "skill"
+    ]
+  },
+  "errors": []
+}

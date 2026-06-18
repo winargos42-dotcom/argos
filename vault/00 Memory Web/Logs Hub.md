@@ -1,0 +1,45 @@
+# Logs Hub
+
+- Центральный узел: [[ARGOS Memory Web]]
+- Карта памяти: [[Карта памяти]]
+- Обновлено: `2026-05-10 11:39:26`
+
+- [[2026-05-03]] — `02 Logs/2026-05-03.md`
+- [[2026-05-04 3GPU Setup]] — `02 Logs/2026-05-04 3GPU Setup.md`
+- [[2026-05-04 Integration Test]] — `02 Logs/2026-05-04 Integration Test.md`
+- [[2026-05-04 MCP Skill Audit]] — `02 Logs/2026-05-04 MCP Skill Audit.md`
+- [[2026-05-04]] — `02 Logs/2026-05-04.md`
+- [[2026-05-05 AI Providers Audit]] — `02 Logs/2026-05-05 AI Providers Audit.md`
+- [[2026-05-05 HF Audit]] — `02 Logs/2026-05-05 HF Audit.md`
+- [[2026-05-05 HF Token Update]] — `02 Logs/2026-05-05 HF Token Update.md`
+- [[2026-05-05 Infrastructure Reconnaissance]] — `02 Logs/2026-05-05 Infrastructure Reconnaissance.md`
+- [[2026-05-06 ARGOS Restart Complete]] — `02 Logs/2026-05-06 ARGOS Restart Complete.md`
+- [[2026-05-06 ARGOS Restart]] — `02 Logs/2026-05-06 ARGOS Restart.md`
+- [[2026-05-06 AutoGPT Integration Complete]] — `02 Logs/2026-05-06 AutoGPT Integration Complete.md`
+- [[2026-05-06 GCP A100 Quota Request]] — `02 Logs/2026-05-06 GCP A100 Quota Request.md`
+- [[2026-05-06 Telegram GPU Fix]] — `02 Logs/2026-05-06 Telegram GPU Fix.md`
+- [[2026-05-06-Ava-Vertex-Finetune-Thread]] — `02 Logs/2026-05-06-Ava-Vertex-Finetune-Thread.md`
+- [[2026-05-06-Recovery-Checkpoint-2]] — `02 Logs/2026-05-06-Recovery-Checkpoint-2.md`
+- [[2026-05-06-Telegram-Fix]] — `02 Logs/2026-05-06-Telegram-Fix.md`
+- [[2026-05-06-Telegram-Ollama-Recovery]] — `02 Logs/2026-05-06-Telegram-Ollama-Recovery.md`
+- [[2026-05-06-TG-Bridge]] — `02 Logs/2026-05-06-TG-Bridge.md`
+- [[2026-05-07-Quick-Sync]] — `02 Logs/2026-05-07-Quick-Sync.md`
+- [[2026-05-07-TG-Bridge]] — `02 Logs/2026-05-07-TG-Bridge.md`
+- [[2026-05-08 ARGOS Training Session]] — `02 Logs/2026-05-08 ARGOS Training Session.md`
+- [[2026-05-08 Status Update 2330]] — `02 Logs/2026-05-08 Status Update 2330.md`
+- [[2026-05-08-TG-Bridge]] — `02 Logs/2026-05-08-TG-Bridge.md`
+- [[2026-05-09 Hardware Upgrade]] — `02 Logs/2026-05-09 Hardware Upgrade.md`
+- [[2026-05-09-TG-Bridge]] — `02 Logs/2026-05-09-TG-Bridge.md`
+- [[2026-05-09]] — `02 Logs/2026-05-09.md`
+- [[2026-05-10 Agent Memory Audit]] — `02 Logs/2026-05-10 Agent Memory Audit.md`
+- [[2026-05-10 Cloud Providers Audit]] — `02 Logs/2026-05-10 Cloud Providers Audit.md`
+- [[2026-05-10 Obsidian Full Scan]] — `02 Logs/2026-05-10 Obsidian Full Scan.md`
+- [[2026-05-10 Obsidian Last 2 Days Full Read Audit]] — `02 Logs/2026-05-10 Obsidian Last 2 Days Full Read Audit.md`
+- [[2026-05-10 Obsidian Last 2 Days Semantic Summary]] — `02 Logs/2026-05-10 Obsidian Last 2 Days Semantic Summary.md`
+- [[2026-05-10 Skills Audit - 50 навыков]] — `02 Logs/2026-05-10 Skills Audit - 50 навыков.md`
+- [[2026-05-10 Telegram Timeout Fallback Patch]] — `02 Logs/2026-05-10 Telegram Timeout Fallback Patch.md`
+- [[2026-05-10-TG-Bridge]] — `02 Logs/2026-05-10-TG-Bridge.md`
+- [[vault_lint_20260507_2305]] — `02 Logs/vault_lint_20260507_2305.md`
+- [[2026-05-04]] — `Daily/2026-05-04.md`
+- [[2026-05-09]] — `Daily/2026-05-09.md`
+- [[2026-05-10]] — `Daily/2026-05-10.md`

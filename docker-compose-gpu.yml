@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # GPU0 - RX 580 (qwen2.5-3b)
+  gpu0-rx580:
+    image: ubuntu:22.04
+    container_name: argos-gpu0-rx580
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /mnt/f/ROCm/models:/models:ro
+      - ./gpu0-logs:/logs
+    environment:
+      - HIP_VISIBLE_DEVICES=0
+      - GPU_DEVICE_ORDINAL=0
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+    ports:
+      - "8082:8082"
+    command: >
+      bash -c "
+        apt-get update && 
+        apt-get install -y wget cmake build-essential git &&
+        wget -q https://github.com/ggerganov/llama.cpp/releases/download/b3074/llama-b3074-bin-ubuntu-x64.zip -O /tmp/llama.zip &&
+        unzip -q /tmp/llama.zip -d /opt/llama &&
+        chmod +x /opt/llama/llama-server &&
+        /opt/llama/llama-server 
+          -m /models/qwen2.5-3b.gguf 
+          --port 8082 
+          -ngl 999 
+          -c 4096 
+          --host 0.0.0.0 
+          > /logs/server.log 2>&1
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # GPU1 - Vega 11 (tinyllama)
+  gpu1-vega11:
+    image: ubuntu:22.04
+    container_name: argos-gpu1-vega11
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /mnt/f/ROCm/models:/models:ro
+      - ./gpu1-logs:/logs
+    environment:
+      - HIP_VISIBLE_DEVICES=1
+      - GPU_DEVICE_ORDINAL=1
+    ports:
+      - "8083:8083"
+    command: >
+      bash -c "
+        apt-get update && 
+        apt-get install -y wget cmake build-essential git &&
+        wget -q https://github.com/ggerganov/llama.cpp/releases/download/b3074/llama-b3074-bin-ubuntu-x64.zip -O /tmp/llama.zip &&
+        unzip -q /tmp/llama.zip -d /opt/llama &&
+        chmod +x /opt/llama/llama-server &&
+        /opt/llama/llama-server 
+          -m /models/tinyllama-1.1b-chat-q4_k_m.gguf 
+          --port 8083 
+          -ngl 999 
+          -c 2048 
+          --host 0.0.0.0 
+          > /logs/server.log 2>&1
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # GPU2 - RX 560 (phi4-mini)
+  gpu2-rx560:
+    image: ubuntu:22.04
+    container_name: argos-gpu2-rx560
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+    volumes:
+      - /mnt/f/ROCm/models:/models:ro
+      - ./gpu2-logs:/logs
+    environment:
+      - HIP_VISIBLE_DEVICES=2
+      - GPU_DEVICE_ORDINAL=2
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+    ports:
+      - "8084:8084"
+    command: >
+      bash -c "
+        apt-get update && 
+        apt-get install -y wget cmake build-essential git &&
+        wget -q https://github.com/ggerganov/llama.cpp/releases/download/b3074/llama-b3074-bin-ubuntu-x64.zip -O /tmp/llama.zip &&
+        unzip -q /tmp/llama.zip -d /opt/llama &&
+        chmod +x /opt/llama/llama-server &&
+        /opt/llama/llama-server 
+          -m /models/phi4-mini.gguf 
+          --port 8084 
+          -ngl 999 
+          -c 2048 
+          --host 0.0.0.0 
+          > /logs/server.log 2>&1
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Health check aggregator
+  gpu-monitor:
+    image: alpine:latest
+    container_name: argos-gpu-monitor
+    depends_on:
+      - gpu0-rx580
+      - gpu1-vega11
+      - gpu2-rx560
+    volumes:
+      - ./monitor:/monitor
+    command: >
+      sh -c "
+        while true; do
+          sleep 30
+          echo '$$(date): GPU Monitor Active' >> /monitor/status.log
+        done
+      "
+
+networks:
+  default:
+    name: argos-gpu-network
+    driver: bridge

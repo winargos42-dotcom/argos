@@ -1,0 +1,111 @@
+# ARGOS ESP32 Display — перепрошивка 2026-05-18
+esphome:
+  name: argos-esp-display
+  friendly_name: ARGOS ESP Display
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  ap:
+    ssid: "ARGOS-DISPLAY-AP"
+    password: "888888889"
+
+captive_portal:
+logger:
+  level: INFO
+  baud_rate: 115200
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+
+ota:
+  - platform: esphome
+    password: "888888889"
+
+mqtt:
+  broker: "192.168.1.53"
+  port: 1883
+
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+
+font:
+  - file: "gfonts://Roboto"
+    id: font_main
+    size: 14
+  - file: "gfonts://Roboto"
+    id: font_small
+    size: 10
+
+sensor:
+  - platform: wifi_signal
+    name: "ESP Display WiFi"
+    id: wifi_sig
+    update_interval: 30s
+  - platform: uptime
+    name: "ESP Display Uptime"
+    id: uptime_s
+    update_interval: 30s
+
+binary_sensor:
+  - platform: status
+    name: "ESP Display Status"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "ESP Display IP"
+      id: ip_addr
+  - platform: mqtt_subscribe
+    name: "ARGOS Message"
+    id: argos_msg
+    topic: "argos/esp-display/message"
+    on_value:
+      then:
+        - component.update: main_display
+
+switch:
+  - platform: restart
+    name: "ESP Display Restart"
+
+# Дисплей — пробуем SSD1306 I2C (стандартный OLED)
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    address: 0x3C
+    id: main_display
+    update_interval: 5s
+    lambda: |-
+      it.fill(COLOR_OFF);
+      it.printf(0, 0, id(font_main), "ARGOS OS v2.1");
+      
+      // IP адрес
+      if (id(ip_addr).has_state()) {
+        it.printf(0, 16, id(font_small), "IP: %s", id(ip_addr).state.c_str());
+      } else {
+        it.printf(0, 16, id(font_small), "Connecting...");
+      }
+      
+      // WiFi сигнал
+      if (id(wifi_sig).has_state()) {
+        it.printf(0, 28, id(font_small), "WiFi: %.0fdBm", id(wifi_sig).state);
+      }
+      
+      // Uptime
+      uint32_t s = (uint32_t)id(uptime_s).state;
+      it.printf(0, 40, id(font_small), "Up: %dh%dm", s/3600, (s%3600)/60);
+      
+      // ARGOS сообщение
+      if (id(argos_msg).has_state() && !id(argos_msg).state.empty()) {
+        it.printf(0, 52, id(font_small), id(argos_msg).state.c_str());
+      } else {
+        it.printf(0, 52, id(font_small), "Entity Bus: OK");
+      }

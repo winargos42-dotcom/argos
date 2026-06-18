@@ -1,0 +1,18 @@
+{
+  "timestamp": "20260615_0000",
+  "hostname": "archlinux",
+  "files": [
+    "scripts/orchestrator.py",
+    "scripts/entity_council.py",
+    "scripts/entity_roles.py",
+    "scripts/entity_obsidian_bridge.py",
+    "scripts/brain_heartbeat.py",
+    "scripts/prometheus_exporter.py",
+    "scripts/self_healer.py",
+    "scripts/claude_tg_bridge.py",
+    "scripts/auto_synthesizer.py",
+    "data/collective_consciousness.json",
+    "data/evolution/metrics.json"
+  ],
+  "notes": "Lazarus v2 auto-backup"
+}

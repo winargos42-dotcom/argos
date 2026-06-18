@@ -1,0 +1,39 @@
+{
+  "session_id": "20260611_042125",
+  "timestamp": "2026-06-11T04:21:26.399972Z",
+  "duration_sec": 1.16,
+  "insights": [
+    {
+      "type": "performance",
+      "severity": "medium",
+      "title": "High RAM: 82.9%",
+      "description": "RAM 82.9% > 80% threshold",
+      "action": "restart memory-heavy services or add swap",
+      "evidence": {
+        "metric": "ram_percent",
+        "value": 82.9,
+        "node": "laptop"
+      }
+    }
+  ],
+  "evidence_submitted": [
+    {
+      "node": "laptop",
+      "metric": "performance",
+      "value": 0.8290000000000001,
+      "result": {
+        "node_id": "laptop",
+        "quarantined_until": 1781155286.3942676,
+        "duration_s": 3600
+      }
+    }
+  ],
+  "metrics_snapshot": {
+    "argos_nodes_online": 23.0,
+    "argos_nodes_total": 25.0,
+    "argos_brain_api_up": 1.0,
+    "argos_cpu_percent": 40.5,
+    "argos_ram_percent": 82.9,
+    "argos_disk_percent": 73.8
+  }
+}

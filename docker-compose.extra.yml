@@ -1,0 +1,90 @@
+services:
+  redis-cache:
+    image: redis:7-alpine
+    ports: ["6380:6379"]
+    volumes: ["redis_data:/data"]
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports: ["1883:1883", "9003:9001"]
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports: ["9093:9093"]
+    volumes:
+      - ./config/alertmanager.yml:/etc/alertmanager/config.yml:ro
+    command: --config.file=/etc/alertmanager/config.yml
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports: ["8888:80"]
+    restart: unless-stopped
+
+  memcached:
+    image: memcached:alpine
+    ports: ["11211:11211"]
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports: ["9002:9000"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+    restart: unless-stopped
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    ports: ["3001:3001"]
+    volumes: ["uptime_data:/app/data"]
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+    ports: ["5678:5678"]
+    volumes: ["n8n_data:/home/node/.n8n"]
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=argos
+      - N8N_BASIC_AUTH_PASSWORD=argos_n8n_2024
+    restart: unless-stopped
+
+  postgres-app:
+    image: postgres:16-alpine
+    ports: ["5433:5432"]
+    volumes: ["postgres_app_data:/var/lib/postgresql/data"]
+    environment:
+      - POSTGRES_USER=argos
+      - POSTGRES_PASSWORD=argos_pg_pass
+      - POSTGRES_DB=argos_app
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports: ["5050:80"]
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=argos@local
+      - PGADMIN_DEFAULT_PASSWORD=argos_pgadmin_2024
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  portainer_data:
+  uptime_data:
+  n8n_data:
+  postgres_app_data:

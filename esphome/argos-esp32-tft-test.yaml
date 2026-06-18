@@ -1,0 +1,83 @@
+# ARGOS ESP32 CYD (2432S024) — упрощённый тестовый конфиг
+esphome:
+  name: argos-esp-tft
+  friendly_name: ARGOS ESP TFT
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+wifi:
+  ssid: "SiG"
+  password: "888888889"
+  ap:
+    ssid: "ARGOS-TFT-AP"
+    password: "888888889"
+
+captive_portal:
+logger:
+  level: INFO
+  baud_rate: 115200
+
+api:
+  encryption:
+    key: "H7KMDsc92P9B6jfVzUtQJtiiUrhTO6Z5gS1L14+PvVN="
+
+ota:
+  - platform: esphome
+    password: "888888889"
+
+spi:
+  clk_pin: GPIO14
+  mosi_pin: GPIO13
+  miso_pin: GPIO12
+
+output:
+  - platform: ledc
+    pin: GPIO27
+    id: tft_backlight
+
+light:
+  - platform: monochromatic
+    output: tft_backlight
+    name: "TFT Backlight"
+    id: backlight
+    restore_mode: ALWAYS_ON
+
+# === ВАРИАНТ A: ILI9341 (старые платы CYD) ===
+# display:
+#   - platform: ili9xxx
+#     model: ili9341
+#     cs_pin: GPIO15
+#     dc_pin: GPIO2
+#     reset_pin: GPIO4
+#     rotation: 0
+#     invert_colors: false
+#     update_interval: 3s
+#     id: tft_display
+#     lambda: |-
+#       it.filled_rectangle(0, 0, 240, 320, Color::BLACK);
+#       it.filled_rectangle(50, 100, 140, 120, Color::RED);
+#       it.print(70, 150, id(font_builtin), Color::WHITE, "ARGOS");
+
+# === ВАРИАНТ B: ST7789V (новые платы CYD) ===
+display:
+  - platform: st7789v
+    model: "240X320"
+    cs_pin: GPIO15
+    dc_pin: GPIO2
+    reset_pin: GPIO4
+    rotation: 0
+    update_interval: 3s
+    id: tft_display
+    lambda: |-
+      it.filled_rectangle(0, 0, 240, 320, Color::BLACK);
+      it.filled_rectangle(50, 100, 140, 120, Color::RED);
+      it.print(70, 150, id(font_builtin), Color::WHITE, "ARGOS");
+
+# Встроенный шрифт (не требует интернета)
+font:
+  - file: "gfonts://Roboto"
+    id: font_builtin
+    size: 24

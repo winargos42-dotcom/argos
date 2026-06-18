@@ -1,0 +1,380 @@
+wing: argoss
+rooms:
+- name: argos_universalsigtrip.egg_info
+  description: Files from argos_universalsigtrip.egg-info/
+  keywords:
+  - argos_universalsigtrip.egg_info
+  - argos_universalsigtrip.egg-info
+- name: f3iles
+  description: Files from f3iles/
+  keywords:
+  - f3iles
+  - f3iles
+- name: reports
+  description: Files from reports/
+  keywords:
+  - reports
+  - reports
+- name: hf_harrier
+  description: Files from hf-harrier/
+  keywords:
+  - hf_harrier
+  - hf-harrier
+- name: lora_rocm_setup
+  description: Files from lora_rocm_setup/
+  keywords:
+  - lora_rocm_setup
+  - lora_rocm_setup
+- name: vault
+  description: Files from vault/
+  keywords:
+  - vault
+  - vault
+- name: deployment_kit
+  description: Files from deployment_kit/
+  keywords:
+  - deployment_kit
+  - deployment_kit
+- name: file6s_output
+  description: Files from file6s_output/
+  keywords:
+  - file6s_output
+  - file6s_output
+- name: tmp
+  description: Files from tmp/
+  keywords:
+  - tmp
+  - tmp
+- name: kimi_agent_argos
+  description: Files from Kimi_Agent_Argos/
+  keywords:
+  - kimi_agent_argos
+  - kimi_agent_argos
+- name: backend
+  description: Files from models/
+  keywords:
+  - backend
+  - models
+- name: argos_deploy
+  description: Files from argos_deploy/
+  keywords:
+  - argos_deploy
+  - argos_deploy
+- name: data
+  description: Files from data/
+  keywords:
+  - data
+  - data
+- name: memory
+  description: Files from memory/
+  keywords:
+  - memory
+  - memory
+- name: environment_files
+  description: Files from environment_files/
+  keywords:
+  - environment_files
+  - environment_files
+- name: installer
+  description: Files from installer/
+  keywords:
+  - installer
+  - installer
+- name: esphome
+  description: Files from esphome/
+  keywords:
+  - esphome
+  - esphome
+- name: design
+  description: Files from assets/
+  keywords:
+  - design
+  - assets
+- name: notebooks
+  description: Files from notebooks/
+  keywords:
+  - notebooks
+  - notebooks
+- name: res
+  description: Files from res/
+  keywords:
+  - res
+  - res
+- name: examples
+  description: Files from examples/
+  keywords:
+  - examples
+  - examples
+- name: wsl
+  description: Files from wsl/
+  keywords:
+  - wsl
+  - wsl
+- name: fetched
+  description: Files from fetched/
+  keywords:
+  - fetched
+  - fetched
+- name: hf_argos
+  description: Files from hf-Argos/
+  keywords:
+  - hf_argos
+  - hf-argos
+- name: apps
+  description: Files from apps/
+  keywords:
+  - apps
+  - apps
+- name: configuration
+  description: Files from deploy/
+  keywords:
+  - configuration
+  - deploy
+- name: acp_receiver
+  description: Files from acp_receiver/
+  keywords:
+  - acp_receiver
+  - acp_receiver
+- name: firmwares
+  description: Files from firmwares/
+  keywords:
+  - firmwares
+  - firmwares
+- name: argos_reports
+  description: Files from argos-reports/
+  keywords:
+  - argos_reports
+  - argos-reports
+- name: gpu1_logs
+  description: Files from gpu1-logs/
+  keywords:
+  - gpu1_logs
+  - gpu1-logs
+- name: argoss
+  description: Files from argoss/
+  keywords:
+  - argoss
+  - argoss
+- name: gpu2_logs
+  description: Files from gpu2-logs/
+  keywords:
+  - gpu2_logs
+  - gpu2-logs
+- name: documentation
+  description: Files from docs/
+  keywords:
+  - documentation
+  - docs
+- name: logs
+  description: Files from logs/
+  keywords:
+  - logs
+  - logs
+- name: colab
+  description: Files from colab/
+  keywords:
+  - colab
+  - colab
+- name: ollama_copilot_master
+  description: Files from ollama-copilot-master/
+  keywords:
+  - ollama_copilot_master
+  - ollama-copilot-master
+- name: mempalace_develop
+  description: Files from mempalace-develop/
+  keywords:
+  - mempalace_develop
+  - mempalace-develop
+- name: argos_core
+  description: Files from argos-core/
+  keywords:
+  - argos_core
+  - argos-core
+- name: argoss_clone
+  description: Files from argoss_clone/
+  keywords:
+  - argoss_clone
+  - argoss_clone
+- name: firmware
+  description: Files from firmware/
+  keywords:
+  - firmware
+  - firmware
+- name: builds
+  description: Files from builds/
+  keywords:
+  - builds
+  - builds
+- name: files
+  description: Files from files/
+  keywords:
+  - files
+  - files
+- name: releases
+  description: Files from releases/
+  keywords:
+  - releases
+  - releases
+- name: claude_code_config_main
+  description: Files from claude-code-config-main/
+  keywords:
+  - claude_code_config_main
+  - claude-code-config-main
+- name: argos_scripts
+  description: Files from argos_scripts/
+  keywords:
+  - argos_scripts
+  - argos_scripts
+- name: testing
+  description: Files from tests/
+  keywords:
+  - testing
+  - tests
+- name: openai_chatkit_advanced_samples
+  description: Files from openai-chatkit-advanced-samples/
+  keywords:
+  - openai_chatkit_advanced_samples
+  - openai-chatkit-advanced-samples
+- name: piper1_gpl_main
+  description: Files from piper1-gpl-main/
+  keywords:
+  - piper1_gpl_main
+  - piper1-gpl-main
+- name: awesome_claude_code_subagents_main
+  description: Files from awesome-claude-code-subagents-main/
+  keywords:
+  - awesome_claude_code_subagents_main
+  - awesome-claude-code-subagents-main
+- name: artifacts
+  description: Files from artifacts/
+  keywords:
+  - artifacts
+  - artifacts
+- name: monitoring
+  description: Files from monitoring/
+  keywords:
+  - monitoring
+  - monitoring
+- name: docker
+  description: Files from docker/
+  keywords:
+  - docker
+  - docker
+- name: terraform
+  description: Files from terraform/
+  keywords:
+  - terraform
+  - terraform
+- name: backups
+  description: Files from backups/
+  keywords:
+  - backups
+  - backups
+- name: claude_code_templates
+  description: Files from claude-code-templates/
+  keywords:
+  - claude_code_templates
+  - claude-code-templates
+- name: piper_windows_amd64
+  description: Files from piper_windows_amd64/
+  keywords:
+  - piper_windows_amd64
+  - piper_windows_amd64
+- name: awesome_agent_skills_main
+  description: Files from awesome-agent-skills-main/
+  keywords:
+  - awesome_agent_skills_main
+  - awesome-agent-skills-main
+- name: src
+  description: Files from src/
+  keywords:
+  - src
+  - src
+- name: public
+  description: Files from public/
+  keywords:
+  - public
+  - public
+- name: archive
+  description: Files from archive/
+  keywords:
+  - archive
+  - archive
+- name: gpu0_logs
+  description: Files from gpu0-logs/
+  keywords:
+  - gpu0_logs
+  - gpu0-logs
+- name: llama.cpp
+  description: Files from llama.cpp/
+  keywords:
+  - llama.cpp
+  - llama.cpp
+- name: argos_skill_evolution
+  description: Files from argos-skill-evolution/
+  keywords:
+  - argos_skill_evolution
+  - argos-skill-evolution
+- name: p4a_recipes
+  description: Files from p4a-recipes/
+  keywords:
+  - p4a_recipes
+  - p4a-recipes
+- name: scripts
+  description: Files from scripts/
+  keywords:
+  - scripts
+  - scripts
+- name: comfyui
+  description: Files from comfyui/
+  keywords:
+  - comfyui
+  - comfyui
+- name: file6s
+  description: Files from file6s/
+  keywords:
+  - file6s
+  - file6s
+- name: generated
+  description: Files from generated/
+  keywords:
+  - generated
+  - generated
+- name: integrations
+  description: Files from integrations/
+  keywords:
+  - integrations
+  - integrations
+- name: sigtrip
+  description: Files from SiGtRiP/
+  keywords:
+  - sigtrip
+  - sigtrip
+- name: railway
+  description: Files from railway/
+  keywords:
+  - railway
+  - railway
+- name: include
+  description: Files from include/
+  keywords:
+  - include
+  - include
+- name: modules
+  description: Files from modules/
+  keywords:
+  - modules
+  - modules
+- name: research
+  description: Files from references/
+  keywords:
+  - research
+  - references
+- name: planning
+  description: Files from requirements/
+  keywords:
+  - planning
+  - requirements
+- name: general
+  description: Files that don't fit other rooms
+  keywords: []
