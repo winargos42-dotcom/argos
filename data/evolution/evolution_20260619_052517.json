@@ -1,0 +1,60 @@
+{
+  "session_id": "20260619_052517",
+  "timestamp": "2026-06-19T05:25:18.606510Z",
+  "duration_sec": 1.48,
+  "insights": [
+    {
+      "type": "performance",
+      "severity": "high",
+      "title": "High CPU: 88.1%",
+      "description": "CPU load 88.1% > 70% threshold",
+      "action": "consider scaling or optimization",
+      "evidence": {
+        "metric": "cpu_percent",
+        "value": 88.1,
+        "node": "laptop"
+      }
+    },
+    {
+      "type": "performance",
+      "severity": "medium",
+      "title": "Disk: 78.8%",
+      "description": "Disk 78.8% > 75% threshold",
+      "action": "run ArgosDiskCleaner or expand storage",
+      "evidence": {
+        "metric": "disk_percent",
+        "value": 78.8,
+        "node": "laptop"
+      }
+    }
+  ],
+  "evidence_submitted": [
+    {
+      "node": "laptop",
+      "metric": "performance",
+      "value": 0.8809999999999999,
+      "result": {
+        "node_id": "laptop",
+        "quarantined_until": 1781850318.4911022,
+        "duration_s": 3600
+      }
+    },
+    {
+      "node": "laptop",
+      "metric": "performance",
+      "value": 0.7879999999999999,
+      "result": {
+        "node_id": "laptop",
+        "confidence": 0.0,
+        "evidence_count": 670
+      }
+    }
+  ],
+  "metrics_snapshot": {
+    "argos_ram_percent": 69.0,
+    "argos_cpu_percent": 88.1,
+    "argos_disk_percent": 78.8,
+    "argos_nodes_total": 28.0,
+    "argos_nodes_online": 28.0
+  }
+}

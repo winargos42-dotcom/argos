@@ -1,0 +1,59 @@
+{
+  "session_id": "20260619_072631",
+  "timestamp": "2026-06-19T07:26:32.016477Z",
+  "duration_sec": 0.73,
+  "insights": [
+    {
+      "type": "performance",
+      "severity": "medium",
+      "title": "Disk: 79.9%",
+      "description": "Disk 79.9% > 75% threshold",
+      "action": "run ArgosDiskCleaner or expand storage",
+      "evidence": {
+        "metric": "disk_percent",
+        "value": 79.9,
+        "node": "laptop"
+      }
+    },
+    {
+      "type": "availability",
+      "severity": "high",
+      "title": "Offline nodes: 6/34",
+      "description": "6 brain nodes offline",
+      "action": "check network connectivity and node heartbeat",
+      "evidence": {
+        "offline": 6,
+        "total": 34
+      }
+    }
+  ],
+  "evidence_submitted": [
+    {
+      "node": "laptop",
+      "metric": "performance",
+      "value": 0.799,
+      "result": {
+        "node_id": "laptop",
+        "quarantined_until": 1781857591.9948149,
+        "duration_s": 3600
+      }
+    },
+    {
+      "node": "laptop",
+      "metric": "availability",
+      "value": 0.5,
+      "result": {
+        "node_id": "laptop",
+        "confidence": 0.0,
+        "evidence_count": 683
+      }
+    }
+  ],
+  "metrics_snapshot": {
+    "argos_ram_percent": 66.7,
+    "argos_cpu_percent": 42.0,
+    "argos_disk_percent": 79.9,
+    "argos_nodes_total": 34.0,
+    "argos_nodes_online": 28.0
+  }
+}

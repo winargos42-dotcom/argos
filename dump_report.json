@@ -1,0 +1,27 @@
+{
+  "reports": [
+    {
+      "path": "/tmp/061926-120671-01.dmp",
+      "size_bytes": 2421132,
+      "mtime": "2026-06-19 09:56:45",
+      "signature": "",
+      "version": "",
+      "number_of_streams": 0,
+      "flags": 0,
+      "exception_code": null,
+      "exception_code_name": null,
+      "exception_address": null,
+      "bugcheck_code": null,
+      "bugcheck_code_name": null,
+      "bugcheck_p1": null,
+      "bugcheck_p2": null,
+      "bugcheck_p3": null,
+      "bugcheck_p4": null,
+      "module_name": null,
+      "image_name": null,
+      "failure_bucket_id": null,
+      "windbg_output": null,
+      "error": "not a minidump: signature=b'PAGE'"
+    }
+  ]
+}
