@@ -144,6 +144,30 @@ async def proxy_gemini(path: str, request: Request):
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
 
+@app.api_route("/proxy/telegram/{path:path}", methods=["GET","POST"])
+async def proxy_telegram(path: str, request: Request):
+    """Прокси my.telegram.org через GCP (обход гео-блока)."""
+    import httpx
+    url = f"https://my.telegram.org/{path}"
+    try:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as c:
+            if request.method == "POST":
+                body = await request.body()
+                r = await c.post(url, content=body, headers={
+                    k: v for k,v in request.headers.items()
+                    if k.lower() not in ('host','content-length')
+                })
+            else:
+                r = await c.get(url, headers={
+                    k: v for k,v in request.headers.items()
+                    if k.lower() != 'host'
+                })
+            return Response(content=r.content, status_code=r.status_code,
+                          headers=dict(r.headers))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+
 @app.post("/proxy/ask")
 async def proxy_ask(body: dict):
     """Универсальный AI запрос через Railway — автовыбор провайдера."""

@@ -226,6 +226,25 @@ def ask_cloudflare(prompt, system):
     except Exception as e:
         return f"[err:{e}]"
 
+def ask_valenok(prompt, system):
+    """Локальный персонаж Валенок — без внешних API."""
+    thoughts = [
+        "Валенок смотрит: если железо работает — не трогай. Если не работает — reboot.",
+        "Деньги? Продавай CPU-время. GPU-аренда — вот где кэш.",
+        "Brain жив? Пингуй 192.168.1.53. Отвечает — ок. Не отвечает — ищи питание.",
+        "Docker? docker ps, docker restart. Валенок не любит магию.",
+        "Локальный llama-server — это наше всё. Облако — когда совсем плохо.",
+    ]
+    p = prompt.lower()
+    if "docker" in p:
+        return "Docker? Валенок знает: docker ps → смотрит, docker restart → чинит. Работает? Работает."
+    if "brain" in p or "нод" in p:
+        return "Brain? Валенок шлёт ping -f 192.168.1.53. Если отвечает — живой. Не отвечает — reboot. Просто."
+    if "money" in p or "монет" in p or "cpu" in p or "gpu" in p:
+        return "Монетизация? Валенок говорит: продавай CPU-время. 7 машин → GPU-аренда. Работает? Будет."
+    return random.choice(thoughts)
+
+
 def _llama_server_ask(prompt, system, max_tokens=300):
     """PRIMARY: локальный llama-server 192.168.1.72:8085 (MCP /ask возвращает 404)."""
     servers = [
@@ -257,28 +276,6 @@ def _llama_server_ask(prompt, system, max_tokens=300):
             print(f"[LLAMA-SERVER] {srv['url']} failed: {e}")
     return ""
 
-# Все роутеры сначала пробуют локальный llama-server
-_ORIGINAL_ROUTER = dict(AI_ROUTER)
-
-def _wrap_llama_fallback(fn):
-    def wrapped(prompt, system):
-        try:
-            answer = _llama_server_ask(prompt, system)
-            if answer:
-                return answer
-        except Exception:
-            pass
-        return fn(prompt, system)
-    return wrapped
-
-for _key in AI_ROUTER:
-    AI_ROUTER[_key] = _wrap_llama_fallback(_ORIGINAL_ROUTER[_key])
-        return "Docker? Валенок знает: docker ps → смотрит, docker restart → чинит. Работает? Работает."
-    if "brain" in prompt.lower() or "нод" in prompt.lower():
-        return "Brain? Валенок шлёт ping -f 192.168.1.53. Если отвечает — живой. Не отвечает — reboot. Просто."
-    if "money" in prompt.lower() or "монет" in prompt.lower():
-        return "Монетизация? Валенок говорит: продавай CPU-время. 7 машин → GPU-аренда. Работает? Будет."
-    return random.choice(thoughts)
 
 AI_ROUTER = {
     "claude":   ask_deepseek,  # Claude кредиты закончились → DeepSeek

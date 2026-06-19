@@ -39,7 +39,7 @@ done
 # ── 4. Aliases ─────────────────────────────────────────────────────────────
 echo "[4/5] Aliases..."
 cat > "$HOME/.bashrc_argos" << 'EOF'
-# ARGOS Mobile v3.0 (root-safe)
+# ARGOS Mobile v4.0 (root-safe)
 alias ll='ls -lah'
 alias ..='cd ..'
 alias root='su'

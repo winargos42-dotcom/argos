@@ -6,20 +6,27 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
+
+# Allow running as `python src/tools/obsidian_embedder.py`
+if __name__ == "__main__":
+    repo_root = Path(__file__).resolve().parents[2]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
 
 import aiohttp
 import numpy as np
 
 from src.utils.v100_utils import GPUStat, get_gpu_stats, get_llama_server_processes
 
-
-DEFAULT_MAX_CHARS = 8192
+DEFAULT_MAX_CHARS = 1500
 DEFAULT_MAX_FILE_SIZE = 1_000_000
 DEFAULT_BATCH_SIZE = 16
 DEFAULT_TIMEOUT = 60
+DEFAULT_MAX_TOKENS_PER_DOC=1500  # keep well below llama-server default n_ctx 2048
 
 
 @dataclass
@@ -34,6 +41,28 @@ class EmbedderConfig:
     timeout: int = DEFAULT_TIMEOUT
     max_vram_mb: float = 15_360  # 95% of 16 GB V100
     max_gpu_util: int = 90
+
+
+def estimate_tokens(text: str) -> int:
+    """Очень грубкая оценка токенов: ~4 chars/token для английского, ~2 для русского."""
+    if not text:
+        return 0
+    non_ascii = sum(1 for ch in text if ord(ch) > 127)
+    ascii_toks = (len(text) - non_ascii) // 4
+    cyr_toks = non_ascii // 2
+    return ascii_toks + cyr_toks
+
+
+def chunk_text(text: str, max_tokens: int = DEFAULT_MAX_TOKENS_PER_DOC) -> List[str]:
+    """Разбить длинный документ на chunks по приблизительному лимиту токенов."""
+    if estimate_tokens(text) <= max_tokens:
+        return [text[:DEFAULT_MAX_CHARS]]
+    # Conservative: ~1 char per token for mixed/cyrillic text; never exceed the server context.
+    chars_per_chunk = min(int(max_tokens * 1.2), DEFAULT_MAX_CHARS)
+    chunks: List[str] = []
+    for i in range(0, len(text), chars_per_chunk):
+        chunks.append(text[i : i + chars_per_chunk])
+    return chunks
 
 
 def safe_read_text(path: Path, max_file_size: int = DEFAULT_MAX_FILE_SIZE) -> Optional[str]:
@@ -69,44 +98,51 @@ async def embed_batch(
     if not texts:
         return np.zeros((0, 0), dtype=np.float32)
 
-    truncated = [t[: cfg.max_chars] for t in texts]
-    payload = {"input": truncated, "model": cfg.model}
+    max_chars_for_attempt = cfg.max_chars
 
     for attempt in range(retries):
+        # Always truncate to current max_chars first
+        truncated = [t[:max_chars_for_attempt] for t in texts]
+        payload = {"input": truncated, "model": cfg.model}
+
         try:
             async with session.post(
                 cfg.embed_url,
                 json=payload,
                 timeout=aiohttp.ClientTimeout(total=cfg.timeout),
             ) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    print(f"[RETRY {attempt + 1}] HTTP {resp.status}: {body[:200]}")
-                    await asyncio.sleep(2**attempt)
+                if resp.status == 200:
+                    data = await resp.json()
+                    if "data" not in data or not data["data"]:
+                        print(f"[ERROR] пустой embedding ответ: {json.dumps(data)[:200]}")
+                        return np.zeros((0, 0), dtype=np.float32)
+
+                    items = sorted(data["data"], key=lambda x: x.get("index", 0))
+                    embeddings = np.array([item["embedding"] for item in items], dtype=np.float32)
+                    if embeddings.shape[0] != len(truncated):
+                        print(
+                            f"[WARN] размер батча не совпал: "
+                            f"{embeddings.shape[0]} vs {len(truncated)}"
+                        )
+                    return embeddings
+
+                body = await resp.text()
+                print(f"[RETRY {attempt + 1}] HTTP {resp.status}: {body[:200]}")
+                # If context size exceeded, reduce chars and retry immediately
+                if resp.status == 400 and "exceed_context_size_error" in body:
+                    max_chars_for_attempt = max(256, max_chars_for_attempt // 2)
+                    print(f"[FALLBACK] снижаю max_chars до {max_chars_for_attempt}")
                     continue
-
-                data = await resp.json()
-                if "data" not in data or not data["data"]:
-                    print(f"[ERROR] пустой embedding ответ: {json.dumps(data)[:200]}")
-                    return np.zeros((0, 0), dtype=np.float32)
-
-                items = sorted(data["data"], key=lambda x: x.get("index", 0))
-                embeddings = np.array([item["embedding"] for item in items], dtype=np.float32)
-                if embeddings.shape[0] != len(texts):
-                    print(
-                        f"[WARN] размер батча не совпал: "
-                        f"{embeddings.shape[0]} vs {len(texts)}"
-                    )
-                return embeddings
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             print(f"[RETRY {attempt + 1}] сетевая ошибка: {e}")
-            await asyncio.sleep(2**attempt)
+
+        await asyncio.sleep(2**attempt)
 
     print(f"[ERROR] батч из {len(texts)} текстов не удалось обработать")
     return np.zeros((0, 0), dtype=np.float32)
 
 
-async def process_vault(cfg: EmbedderConfig) -> Tuple[List[Path], np.ndarray]:
+async def process_vault(cfg: EmbedderConfig, max_files: int = 0) -> Tuple[List[Path], np.ndarray]:
     """Главная функция: .md -> эмбеддинги -> .npz индекс."""
     # GPU check
     try:
@@ -121,6 +157,8 @@ async def process_vault(cfg: EmbedderConfig) -> Tuple[List[Path], np.ndarray]:
 
     # Read files
     files = [p for p in cfg.vault_path.rglob("*.md") if p.is_file()]
+    if max_files > 0:
+        files = files[:max_files]
     print(f"[VAULT] найдено {len(files)} .md файлов")
 
     docs: List[Tuple[Path, str]] = []
@@ -187,6 +225,8 @@ if __name__ == "__main__":
     parser.add_argument("--model", default="nomic-embed-text")
     parser.add_argument("--output", type=Path, default=Path("data/vault_index.npz"))
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
+    parser.add_argument("--max-files", type=int, default=0, help="Limit number of files for testing (0 = all)")
+    parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS, help="Max characters per document chunk")
     args = parser.parse_args()
 
     cfg = EmbedderConfig(
@@ -195,7 +235,9 @@ if __name__ == "__main__":
         model=args.model,
         index_path=args.output,
         batch_size=args.batch_size,
+        max_chars=args.max_chars,
     )
 
     print("llama-server процессы:", get_llama_server_processes())
-    asyncio.run(process_vault(cfg))
+    paths, matrix = asyncio.run(process_vault(cfg, max_files=args.max_files))
+    print(f"DONE: {len(paths)} docs, shape {matrix.shape}")

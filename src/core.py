@@ -10,6 +10,7 @@ import time
 import base64
 import uuid
 import subprocess
+import datetime
 from collections import deque
 from pathlib import Path
 
@@ -144,11 +145,15 @@ class _GeminiCompatClient:
         # Создаём клиента: сначала пробуем с http_options, иначе стандартно
         try:
             import httpx as _httpx
-            _http_client = _httpx.Client(trust_env=False, timeout=30.0)
+            _gemini_proxy = os.getenv("ARGOS_GEMINI_PROXY", "").strip()
+            if _gemini_proxy:
+                _http_client = _httpx.Client(trust_env=False, timeout=30.0, proxy=_gemini_proxy)
+            else:
+                _http_client = _httpx.Client(trust_env=False, timeout=30.0)
             try:
                 self.client = genai_sdk.Client(
                     api_key=api_key,
-                    http_options={"client": _http_client},
+                    http_options={"httpx_client": _http_client},
                 )
             except (TypeError, Exception):
                 # Старая версия SDK — без http_options
@@ -201,19 +206,45 @@ class _GeminiCompatClient:
             prompt = "\n\n".join(str(x) for x in contents if isinstance(x, str) and x.strip())
         else:
             prompt = str(contents)
-        try:
-            resp = self.client.models.generate_content(model=self.model_name, contents=prompt)
-        except Exception as first_error:
-            # Попытка один раз переключиться на доступную модель (404/NOT_FOUND и совместимость API)
-            new_model = self._resolve_model_name("gemini-2.5-flash")
-            if new_model != self.model_name:
-                self.model_name = new_model
-                resp = self.client.models.generate_content(model=self.model_name, contents=prompt)
-            else:
-                raise first_error
 
-        text = getattr(resp, "text", "") or ""
-        return _GeminiResponse(text=text)
+        # Список моделей для fallback (у каждой отдельная дневная квота)
+        FALLBACK_MODELS = [
+            self.model_name,
+            "gemini-2.5-flash-lite",
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-8b",
+            "gemini-1.5-pro",
+        ]
+        seen = set()
+        tried = []
+        last_err = None
+
+        for m in FALLBACK_MODELS:
+            if not m or m in seen:
+                continue
+            seen.add(m)
+            tried.append(m)
+            try:
+                resp = self.client.models.generate_content(model=m, contents=prompt)
+                # Запоминаем рабочую модель для следующих вызовов
+                self.model_name = m
+                text = getattr(resp, "text", "") or ""
+                return _GeminiResponse(text=text)
+            except Exception as err:
+                last_err = err
+                err_s = str(err).lower()
+                # Квота/429/rate — пробуем следующую (у неё своя квота)
+                if "429" in err_s or "quota" in err_s or "resource_exhausted" in err_s or "rate" in err_s:
+                    continue
+                # Модель не найдена/недоступна — тоже к следующей
+                if "not found" in err_s or "not supported" in err_s or "404" in err_s:
+                    continue
+                # Другие ошибки (auth, network) — прерываем сразу
+                raise
+
+        # Все модели исчерпали квоту
+        raise RuntimeError(f"Gemini: все модели {tried} исчерпали квоту — last: {last_err}")
 
 
 # [v1.20.5 Integration Imports]
@@ -374,6 +405,7 @@ class ArgosCore:
         self.gemini_rpm_limit = 15
         self._gemini_limiter = _SlidingWindowRateLimiter(max_calls=self.gemini_rpm_limit, window_seconds=60)
         self._last_gemini_rate_limited = False
+        self._gemini_via_proxy = False
         self._gigachat_access_token = _read_secret_env("GIGACHAT_ACCESS_TOKEN") or None
         self._gigachat_token_expires_at = 0.0
         cooldown_raw = os.getenv("ARGOS_PROVIDER_FAILURE_COOLDOWN", str(_DEFAULT_PROVIDER_COOLDOWN_SECONDS))
@@ -478,6 +510,12 @@ class ArgosCore:
             try:
                 self.evolution_engine = _EvolutionEngine(self)
                 log.info("EvolutionEngine: OK")
+                # [AUTO-EVOLUTION] Автоматически запускаем фоновую эволюцию
+                try:
+                    auto_msg = self.evolution_engine.start_auto()
+                    log.info("EvolutionEngine: %s", auto_msg)
+                except Exception as e2:
+                    log.warning("EvolutionEngine auto-start: %s", e2)
             except Exception as e:
                 log.warning("EvolutionEngine: %s", e)
         else:
@@ -1068,14 +1106,16 @@ class ArgosCore:
         try:
             from src.awa_core import AWACore
             self.awa = AWACore(core=self)
-            # Подключаем ContextDB к DialogContext
-            if self.memory:
-                try:
-                    from src.db_init import ContextDB
-                    self.context.db = ContextDB()
-                    log.info("ContextDB: подключена к DialogContext")
-                except Exception as e:
-                    log.warning("ContextDB init: %s", e)
+            try:
+                from src.db_init import ContextDB, init_db
+                init_db()
+                ctx_db = ContextDB()
+                self.db = ctx_db
+                if self.memory and hasattr(self, "context"):
+                    self.context.db = ctx_db
+                log.info("ContextDB: подключена (self.db и self.context.db)")
+            except Exception as e:
+                log.warning("ContextDB init: %s", e)
             log.info("AWA-Core: OK (Model Splitting активен)")
         except Exception as e:
             self.awa = None
@@ -1911,8 +1951,9 @@ class ArgosCore:
 
         self._persona_profile_name = profile_name
         self._persona_profile_prompt = profile_prompt
-        if self.ai_mode not in ("openai", "auto", "ollama"):
-            self.ai_mode = "openai"
+        # Не меняем ai_mode на openai — оставляем auto для failover цепочки
+        if self.ai_mode not in ("openai", "auto", "ollama", "deepseek", "claude", "groq", "cloudflare", "kimi"):
+            self.ai_mode = "auto"
 
         return (
             f"✅ Профиль подключен: {profile_name}\n"
@@ -1939,16 +1980,23 @@ class ArgosCore:
 
     def _setup_ai(self):
         gemini_disabled = _env_disabled("ARGOS_DISABLE_GEMINI")
+        _gcp_url = os.getenv("ARGOS_GCP_URL", "").strip()
         key = _read_secret_env("GEMINI_API_KEY") or _read_secret_env("GEMINI_API_KEY_0")
-        if not gemini_disabled and GEMINI_OK and key:
-            self.model = _GeminiCompatClient(api_key=key, model_name="gemini-2.5-flash")
-            log.info("Gemini: OK")
+        if not gemini_disabled:
+            if key and GEMINI_OK:
+                self.model = _GeminiCompatClient(api_key=key, model_name="gemini-2.5-flash")
+                log.info("Gemini: OK (прямое API)")
+            elif _gcp_url:
+                self.model = None  # GCP proxy не нужен self.model
+                self._gemini_via_proxy = True
+                log.info("Gemini: OK через GCP proxy (обход гео-блока РФ)")
+            else:
+                self.model = None
+                log.info("Gemini недоступен — нет ключа и GCP proxy")
         else:
             self.model = None
-            if gemini_disabled:
-                log.info("Gemini отключен через ARGOS_DISABLE_GEMINI")
-            else:
-                log.info("Gemini недоступен — используется Ollama")
+            self._gemini_via_proxy = False
+            log.info("Gemini отключен через ARGOS_DISABLE_GEMINI")
 
         # Always start Ollama so it is ready as a fallback even when a cloud
         # provider (e.g. Gemini) is configured but later turns out to have an
@@ -2135,11 +2183,30 @@ class ArgosCore:
         self._last_gemini_rate_limited = False
         if self._is_provider_temporarily_disabled("Gemini"):
             return None
+
+        # GCP proxy: обход гео-блока РФ для Gemini (приоритет если нет прямого API ключа)
+        _gcp_url = os.getenv("ARGOS_GCP_URL", "").strip()
+        if _gcp_url and not self.model and getattr(self, "_gemini_via_proxy", False):
+            if not self._gemini_limiter.allow():
+                self._last_gemini_rate_limited = True
+                log.warning(self._gemini_rate_limit_text())
+                return None
+            try:
+                return self._ask_gemini_via_gcp_proxy(context, user_text, _gcp_url)
+            except Exception as e:
+                log.warning("Gemini через GCP proxy не удался: %s", e)
+                return None
+
+        # Прямое API (может быть гео-заблокировано в РФ)
         if not self.model:
             return None
         if not self._gemini_limiter.allow():
             self._last_gemini_rate_limited = True
             log.warning(self._gemini_rate_limit_text())
+            return None
+
+        # Прямое API (может быть гео-заблокировано в РФ)
+        if not self.model:
             return None
         try:
             hist = self.context.get_prompt_context()
@@ -2154,6 +2221,41 @@ class ArgosCore:
                 self._disable_provider_temporarily("Gemini", "geo-blocked (location not supported)")
                 log.warning("Gemini заблокирован по гео — отключаю на 1 час")
             log.error("Gemini: %s", e)
+            return None
+
+    def _ask_gemini_via_gcp_proxy(self, context: str, user_text: str, gcp_url: str) -> str | None:
+        """Gemini через GCP Cloud Run proxy — обход гео-блока РФ.
+        Использует Google native API формат (/v1/models/MODEL:generateContent)."""
+        import urllib.parse as _up
+        if not self._is_host_reachable(_up.urlparse(gcp_url).hostname, 443):
+            log.debug("Gemini GCP proxy: хост недоступен")
+            return None
+        hist = self.context.get_prompt_context()
+        model = (os.getenv("GEMINI_MODEL") or "gemini-2.5-flash").strip()
+        url = f"{gcp_url}/proxy/gemini/v1/models/{model}:generateContent"
+        full_text = f"{context}\n\n{hist}\n\nUser: {user_text}\nArgos:"
+        try:
+            resp = requests.post(
+                url,
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": full_text}]}],
+                    "generationConfig": {"temperature": 0.4, "maxOutputTokens": 1200},
+                },
+                timeout=30,
+            )
+            if not resp.ok:
+                log.error("Gemini GCP proxy: HTTP %s %s", resp.status_code, resp.text[:200])
+                return None
+            data = resp.json()
+            candidates = data.get("candidates", [])
+            if candidates:
+                parts = candidates[0].get("content", {}).get("parts", [])
+                if parts:
+                    return parts[0].get("text", "")
+            return None
+        except Exception as e:
+            log.error("Gemini GCP proxy: %s", e)
             return None
 
     def _ask_gigachat(self, context: str, user_text: str) -> str | None:
@@ -2384,7 +2486,7 @@ class ArgosCore:
         cfg = {
             "Groq":       (("GROQ_API_KEY",),               "https://api.groq.com/openai/v1", "llama3-70b-8192"),
             "DeepSeek":   (("DEEPSEEK_API_KEY",),           "https://api.deepseek.com/v1",    "deepseek-chat"),
-            "OpenAI":     (("OPENAI_API_KEY",),             "https://api.openai.com/v1",      "gpt-4o-mini"),
+            "OpenAI":     (("OPENAI_API_KEY",),             "https://argos-core-m3gk27ccqa-uc.a.run.app/proxy/openai/v1", "gpt-4o-mini"),
             "Grok":       (("XAI_API_KEY", "GROK_API_KEY"), "https://api.x.ai/v1",            "grok-3-mini-beta"),
             "Cloudflare": (("CLOUDFLARE_API_TOKEN",),       _cf_base,                         "@cf/moonshotai/kimi-k2.5"),
         }
@@ -2971,7 +3073,19 @@ class ArgosCore:
             prompt = f"{context}\n\nПользователь: {user_text}" if context else user_text
 
             # Запускаем асинхронный запрос
-            result = asyncio.run(hive.think(prompt))
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None:
+                # Уже внутри event loop — нельзя asyncio.run
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    future = pool.submit(asyncio.run, hive.think(prompt))
+                    result = future.result(timeout=30)
+            else:
+                result = asyncio.run(hive.think(prompt))
 
             if result.get("status") == "success":
                 nodes_online = result.get("nodes_online", 0)
@@ -3241,6 +3355,37 @@ class ArgosCore:
                     "Ты ВЫПОЛНЯЕШЬ задачи — не описываешь как их делать.\n"
                     "Отвечай по-русски, кратко и по делу.\n\n"
                 )
+            # ── Self-awareness: ты не один — ты дирижёр Совета ──
+            _now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')
+            anchor_prefix += (
+                f"[ARGOS SELF-MODEL]\n"
+                f"Ты — НЕ одиночная модель. Ты дирижёр распределённой системы:\n"
+                f"• Текущее время: {_now}\n"
+                f"• 7 машин: Орион (ПК, GPU), Нексус (ноут, MCP), Эгида (OPi, IoT), "
+                "Авангард (телефон, root), Сентинел/Аркус/Зенит (GCP US/EU/Asia)\n"
+                "• Совет из 6 ИИ-сущностей в твоей памяти: Клод (Anthropic), ДипСик, Кими, "
+                "Джемини, OpenAI, Клауд (Cloudflare). Они твои внутренние голоса, ты можешь к ним обращаться.\n"
+                "• MemPalace — твоя долговременная память (28000+ записей, крылья: "
+                "council_telegram, argos_smart, quantum_genesis, 04 Project Mirror).\n"
+                "• Brain API на 192.168.1.53:5001 — твой нейронный центр координации.\n"
+                "• @claude_gidbot в Совете Telegram — твой эволюционный мотор.\n"
+                "Когда Сева пишет тебе — он говорит со ВСЕЙ системой через тебя. "
+                "Если задача требует мнения сущности — упоминай её ('Клод считает', 'ДипСик предложил'). "
+                "Если факт уже в памяти — обращайся к нему ('помню из MemPalace что...').\n\n"
+            )
+            # ── История последних 5 сообщений из БД ──
+            try:
+                if self.db and hasattr(self.db, "get_recent_history"):
+                    recent = self.db.get_recent_history(limit=10)
+                    if recent:
+                        hist_lines = []
+                        for m in recent:
+                            role = "Сева" if m.get("role","").lower() in ("user","ava","human","sev") else "Ты"
+                            txt = (m.get("text") or "").replace("\n"," ")[:200]
+                            hist_lines.append(f"{role}: {txt}")
+                        anchor_prefix += "[НЕДАВНИЙ ДИАЛОГ]\n" + "\n".join(hist_lines) + "\n\n"
+            except Exception:
+                pass
 
             hist = self.context.get_prompt_context()
             system_prompt = (
@@ -3260,7 +3405,7 @@ class ArgosCore:
             model = model_override or os.getenv("OLLAMA_MODEL", "poilopr57/Argoss")
             log.info("[Ollama] Запрос: модель=%s", model)
 
-            ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "600"))
+            ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "45"))
             full_prompt = f"{system_prompt}\n\nUser: {user_text}\nArgos:"
             _http_gpu = int(os.getenv("OLLAMA_GPU_LAYERS", "-1"))
             # КРИТИЧНО: num_ctx должен быть маленьким для 4GB VRAM.
@@ -3322,9 +3467,10 @@ class ArgosCore:
             return self._argos_v1_available
 
         self._argos_v1_checked_at = now
-        # Use HTTP API instead of local `ollama list` — works with SSH tunnel
+        # Проверяем на PC Ollama (приоритет) или локальном Ollama
+        v1_base = os.getenv("ARGOS_V1_HOST", os.getenv("OLLAMA_PC_HOST", os.getenv("OLLAMA_HOST", "http://localhost:11434"))).rstrip("/")
         try:
-            base_url = self.ollama_url.replace("/api/generate", "").rstrip("/")
+            base_url = v1_base
             tags_url = f"{base_url}/api/tags"
             resp = requests.get(tags_url, timeout=5)
             if resp.ok:
@@ -3398,7 +3544,12 @@ class ArgosCore:
             return None
         if not self._check_argos_v1_available():
             return None
-        if not self._ensure_ollama_running():
+        # Проверяем доступность Ollama на хосте argos-v1 (PC через туннель или локальный)
+        v1_base = os.getenv("ARGOS_V1_HOST", os.getenv("OLLAMA_PC_HOST", os.getenv("OLLAMA_HOST", "http://localhost:11434"))).rstrip("/")
+        try:
+            requests.get(f"{v1_base}/api/tags", timeout=5)
+        except Exception:
+            log.warning("[argos-v1] Ollama недоступен на %s — пропуск", v1_base)
             return None
 
         try:
@@ -3410,10 +3561,11 @@ class ArgosCore:
             )
             full_prompt = "\n\n".join(p for p in (context, hist, f"User: {user_text}\nArgos:") if p)
 
-            ollama_base = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+            # argos-v1: приоритет PC Ollama (GPU через туннель) → локальный Ollama
+            ollama_base = os.getenv("ARGOS_V1_HOST", os.getenv("OLLAMA_PC_HOST", os.getenv("OLLAMA_HOST", "http://localhost:11434"))).rstrip("/")
             generate_url = f"{ollama_base}/api/generate"
 
-            timeout_val = int(os.getenv("OLLAMA_TIMEOUT", "120"))
+            timeout_val = int(os.getenv("ARGOS_V1_TIMEOUT", os.getenv("OLLAMA_TIMEOUT", "120")))
             res = _requests.post(
                 generate_url,
                 json={
@@ -3512,78 +3664,110 @@ class ArgosCore:
         providers = []
         def _any_key(*names: str) -> bool:
             return any(_read_secret_env(name) for name in names)
-        # Local GPU — HIGHEST priority (Vulkan llama-server)
-        if not self._is_provider_temporarily_disabled("LocalGPU"):
-            servers = self._get_local_gpu_servers()
-            if servers and any(self._check_gpu_server_health(s) for s in servers):
-                providers.append(("LocalGPU", self._ask_local_gpu))
-                log.debug("[auto_providers] LocalGPU добавлен как приоритетный провайдер")
-        # argos-v1 — fine-tuned модель, наивысший приоритет когда существует
-        if (
-            self._check_argos_v1_available()
-            and not self._is_provider_temporarily_disabled("argos-v1")
-        ):
-            providers.append(("argos-v1", self._ask_argos_model))
-            log.debug("[auto_providers] argos-v1 добавлен как приоритетный провайдер")
-        if self._has_openclaw_config() and self._has_openclaw_cli() and not self._is_provider_temporarily_disabled("OpenClaw") and not _env_disabled("ARGOS_DISABLE_OPENCLAW"):
-            providers.append(("OpenClaw", self._ask_openclaw))
-        # Claude (Anthropic) — высокий приоритет, добавляется первым из облаков
-        if (_read_secret_env("ANTHROPIC_API_KEY")
-                and not _env_disabled("ARGOS_DISABLE_CLAUDE")
-                and not self._is_provider_temporarily_disabled("Claude")):
-            providers.append(("Claude", self._ask_claude))
-        # OpenAI-compatible providers (приоритет OpenAI -> Grok -> Groq -> DeepSeek)
-        _grok_disabled = _env_disabled("ARGOS_DISABLE_GROK")
-        _openai_disabled = _env_disabled("ARGOS_DISABLE_OPENAI")
-        for pname, env_keys in [("OpenAI",   ("OPENAI_API_KEY",)),
-                                ("Grok",     ("XAI_API_KEY", "GROK_API_KEY")),
-                                ("Groq",     ("GROQ_API_KEY",)),
-                                ("DeepSeek", ("DEEPSEEK_API_KEY",))]:
-            if pname == "OpenAI" and _openai_disabled:
-                continue
-            if pname == "Grok" and _grok_disabled:
-                continue
-            if _any_key(*env_keys) and not self._is_provider_temporarily_disabled(pname):
-                providers.append((pname, functools.partial(self._ask_openai_compat, provider_name=pname)))
-        if self.model and not self._is_provider_temporarily_disabled("Gemini") and not _env_disabled("ARGOS_DISABLE_GEMINI"):
-            providers.append(("Gemini", self._ask_gemini))
-        if self._has_gigachat_config() and not self._is_provider_temporarily_disabled("GigaChat") and not _env_disabled("ARGOS_DISABLE_GIGACHAT"):
-            providers.append(("GigaChat", self._ask_gigachat))
-        if self._has_yandexgpt_config() and not self._is_provider_temporarily_disabled("YandexGPT"):
-            providers.append(("YandexGPT", self._ask_yandexgpt))
+
+        # ═══ БЫСТРЫЕ ОБЛАЧНЫЕ ПРОВАЙДЕРЫ — ПЕРВЫЙ ПРИОРИТЕТ ═══
+        # Kimi — самый быстрый и стабильный
         if self._has_kimi_config() and not self._is_provider_temporarily_disabled("Kimi") and not _env_disabled("ARGOS_DISABLE_KIMI"):
             if getattr(self, "_kimi_tools_enabled", True):
                 providers.append(("Kimi", self._ask_kimi_with_tools))
             else:
                 providers.append(("Kimi", self._ask_kimi))
-        if self._has_watsonx_config() and not self._is_provider_temporarily_disabled("WatsonX"):
-            providers.append(("WatsonX", self._ask_watsonx))
-        # Cloudflare Workers AI (kimi-k2.5 и др.)
+            log.debug("[auto_providers] Kimi добавлен как приоритетный провайдер")
+
+        # DeepSeek — второй по скорости
+        if _any_key("DEEPSEEK_API_KEY") and not self._is_provider_temporarily_disabled("DeepSeek"):
+            providers.append(("DeepSeek", functools.partial(self._ask_openai_compat, provider_name="DeepSeek")))
+            log.debug("[auto_providers] DeepSeek добавлен как приоритетный провайдер")
+
+        # Gemini
+        if self.model and not self._is_provider_temporarily_disabled("Gemini") and not _env_disabled("ARGOS_DISABLE_GEMINI"):
+            providers.append(("Gemini", self._ask_gemini))
+            log.debug("[auto_providers] Gemini добавлен как приоритетный провайдер")
+
+        # Cloudflare Workers AI
         if (_any_key("CLOUDFLARE_API_TOKEN") and os.getenv("CLOUDFLARE_ACCOUNT_ID", "").strip()
                 and not self._is_provider_temporarily_disabled("Cloudflare")):
             providers.append(("Cloudflare", functools.partial(self._ask_openai_compat, provider_name="Cloudflare")))
-        # Azure OpenAI (argos-gpt4 deployment)
+            log.debug("[auto_providers] Cloudflare добавлен как приоритетный провайдер")
+
+        # OpenAI
+        _openai_disabled = _env_disabled("ARGOS_DISABLE_OPENAI")
+        if _any_key("OPENAI_API_KEY") and not _openai_disabled and not self._is_provider_temporarily_disabled("OpenAI"):
+            providers.append(("OpenAI", functools.partial(self._ask_openai_compat, provider_name="OpenAI")))
+            log.debug("[auto_providers] OpenAI добавлен как приоритетный провайдер")
+
+        # Azure OpenAI
         if (_read_secret_env("AZURE_OPENAI_KEY") and os.getenv("AZURE_OPENAI_ENDPOINT", "").strip()
                 and not self._is_provider_temporarily_disabled("AzureOpenAI")):
             providers.append(("AzureOpenAI", self._ask_azure_openai))
-        # Sweden Azure VM — Ollama с deepseek-r1:7b (CPU, 15GB RAM)
+            log.debug("[auto_providers] AzureOpenAI добавлен как приоритетный провайдер")
+
+        # Claude (Anthropic)
+        if (_read_secret_env("ANTHROPIC_API_KEY")
+                and not _env_disabled("ARGOS_DISABLE_CLAUDE")
+                and not self._is_provider_temporarily_disabled("Claude")):
+            providers.append(("Claude", self._ask_claude))
+            log.debug("[auto_providers] Claude добавлен как приоритетный провайдер")
+
+        # Groq
+        if _any_key("GROQ_API_KEY") and not self._is_provider_temporarily_disabled("Groq"):
+            providers.append(("Groq", functools.partial(self._ask_openai_compat, provider_name="Groq")))
+
+        # Grok
+        _grok_disabled = _env_disabled("ARGOS_DISABLE_GROK")
+        if _any_key("XAI_API_KEY", "GROK_API_KEY") and not _grok_disabled and not self._is_provider_temporarily_disabled("Grok"):
+            providers.append(("Grok", functools.partial(self._ask_openai_compat, provider_name="Grok")))
+
+        # GigaChat
+        if self._has_gigachat_config() and not self._is_provider_temporarily_disabled("GigaChat") and not _env_disabled("ARGOS_DISABLE_GIGACHAT"):
+            providers.append(("GigaChat", self._ask_gigachat))
+
+        # YandexGPT
+        if self._has_yandexgpt_config() and not self._is_provider_temporarily_disabled("YandexGPT"):
+            providers.append(("YandexGPT", self._ask_yandexgpt))
+
+        # WatsonX
+        if self._has_watsonx_config() and not self._is_provider_temporarily_disabled("WatsonX"):
+            providers.append(("WatsonX", self._ask_watsonx))
+
+        # OpenClaw
+        if self._has_openclaw_config() and self._has_openclaw_cli() and not self._is_provider_temporarily_disabled("OpenClaw") and not _env_disabled("ARGOS_DISABLE_OPENCLAW"):
+            providers.append(("OpenClaw", self._ask_openclaw))
+
+        # ═══ ЛОКАЛЬНЫЕ/СЕТЕВЫЕ МОДЕЛИ — ПОСЛЕДНИЙ ПРИОРИТЕТ ═══
+        # Local GPU (Vulkan llama-server)
+        if not self._is_provider_temporarily_disabled("LocalGPU"):
+            servers = self._get_local_gpu_servers()
+            if servers and any(self._check_gpu_server_health(s) for s in servers):
+                providers.append(("LocalGPU", self._ask_local_gpu))
+                log.debug("[auto_providers] LocalGPU добавлен как fallback провайдер")
+
+        # argos-v1 — fine-tuned модель через Ollama
+        if (
+            self._check_argos_v1_available()
+            and not self._is_provider_temporarily_disabled("argos-v1")
+        ):
+            providers.append(("argos-v1", self._ask_argos_model))
+            log.debug("[auto_providers] argos-v1 добавлен как fallback провайдер")
+
+        # VM Ollama nodes (Sweden, JP1, JP2, AU)
         _sweden_host = os.getenv("OLLAMA_AZURE_HOST", "").strip()
         if _sweden_host and not self._is_provider_temporarily_disabled("Ollama-Sweden"):
             providers.append(("Ollama-Sweden", self._ask_ollama_sweden))
-        # Japan East VM 1 — qwen2.5:3b
         if os.getenv("OLLAMA_JP1_HOST", "").strip() and not self._is_provider_temporarily_disabled("Ollama-JP1"):
             providers.append(("Ollama-JP1", self._ask_ollama_jp1))
-        # Japan East VM 2 — qwen2.5:3b
         if os.getenv("OLLAMA_JP2_HOST", "").strip() and not self._is_provider_temporarily_disabled("Ollama-JP2"):
             providers.append(("Ollama-JP2", self._ask_ollama_jp2))
-        # Australia East VM — llama3.2:1b
         if os.getenv("OLLAMA_AU_HOST", "").strip() and not self._is_provider_temporarily_disabled("Ollama-AU"):
             providers.append(("Ollama-AU", self._ask_ollama_au))
-        # poilopr57/Argoss — личный помощник, всегда последний fallback
+
+        # Ollama (Argoss) — всегда последний fallback
         providers.append(("Ollama (Argoss)", self._ask_ollama))
-        # HiveMind — Модель Общего Сознания (агрегирует все модели сети)
+
+        # HiveMind — Модель Общего Сознания
         if not self._is_provider_temporarily_disabled("HiveMind"):
             providers.append(("HiveMind", self._ask_hive_mind))
+
         if len(providers) <= self.auto_collab_max_models:
             return providers
         # Гарантия: даже при лимите моделей Ollama всегда остается последним fallback.
@@ -3950,22 +4134,54 @@ class ArgosCore:
         if not answer:
             used_ollama_fallback = False
             if self.ai_mode == "gemini":
-                if self._last_gemini_rate_limited:
-                    answer = self._gemini_rate_limit_text()
-                else:
-                    answer = "Gemini недоступен в текущем режиме. Переключите режим ИИ на Auto, GigaChat, YandexGPT или Ollama."
+                # Цепочка Севы: Kimi → DeepSeek → OpenAI → Cloudflare → Ollama
+                fallback_chain = [
+                    ("Kimi",       lambda: (self._ask_kimi_with_tools(context, user_text)
+                                            if getattr(self, '_kimi_tools_enabled', True)
+                                            else self._ask_kimi(context, user_text))),
+                    ("DeepSeek",   lambda: self._ask_openai_compat(context, user_text, provider_name="DeepSeek")),
+                    ("OpenAI",     lambda: self._ask_openai_compat(context, user_text, provider_name="OpenAI")),
+                    ("Cloudflare", lambda: self._ask_openai_compat(context, user_text, provider_name="Cloudflare")),
+                    ("Ollama",     lambda: self._ask_ollama(context, user_text)),
+                ]
+                for prov_name, prov_fn in fallback_chain:
+                    try:
+                        candidate = prov_fn()
+                        if candidate:
+                            answer = candidate
+                            engine = f"Fallback→{prov_name} (Gemini quota)"
+                            if prov_name == "Ollama":
+                                used_ollama_fallback = True
+                            log.info(f"[Gemini fallback] успех на {prov_name}")
+                            break
+                    except Exception as _fb_e:
+                        log.warning(f"[Gemini fallback] {prov_name}: {_fb_e}")
+                if not answer:
+                    if self._last_gemini_rate_limited:
+                        answer = self._gemini_rate_limit_text()
+                    else:
+                        answer = "Gemini + Kimi + DeepSeek + OpenAI + Ollama — все недоступны."
             elif self.ai_mode == "gigachat":
                 answer = "GigaChat недоступен в текущем режиме. Проверьте токен/credentials или переключите режим ИИ."
             elif self.ai_mode == "yandexgpt":
                 answer = "YandexGPT недоступен в текущем режиме. Проверьте IAM_TOKEN/FOLDER_ID или переключите режим ИИ."
             elif self.ai_mode in ("groq", "deepseek", "openai", "grok", "kimi", "cloudflare"):
-                answer = self._ask_ollama(context, user_text) or (
-                    f"{self.ai_mode_label()} недоступен в текущем режиме. "
-                    "Проверьте API-ключ/сеть или переключите режим ИИ."
-                )
+                # Сначала пробуем Ollama fallback, затем auto-consensus как终极 fallback
+                answer = self._ask_ollama(context, user_text)
                 if answer:
-                    used_ollama_fallback = "недоступен в текущем режиме" not in answer
-                    engine = "Ollama Fallback" if used_ollama_fallback else "Offline"
+                    used_ollama_fallback = True
+                    engine = "Ollama Fallback"
+                else:
+                    # Ollama тоже не работает — пробуем auto-consensus (все доступные провайдеры)
+                    auto_answer, auto_engine = self._ask_auto_consensus(context, user_text)
+                    if auto_answer:
+                        answer = auto_answer
+                        engine = f"Auto-Fallback({auto_engine})"
+                    else:
+                        answer = (
+                            f"{self.ai_mode_label()} недоступен в текущем режиме. "
+                            "Проверьте API-ключ/сеть или переключите режим ИИ."
+                        )
             elif self.ai_mode == "openclaw":
                 answer = self._ask_ollama(context, user_text) or (
                     "OpenClaw недоступен в текущем режиме. Проверьте Gateway/CLI или переключите режим ИИ."
@@ -3982,7 +4198,27 @@ class ArgosCore:
                 answer = "Ollama недоступен в текущем режиме. Проверьте локальный сервер Ollama или переключите режим ИИ."
             else:
                 answer = self._offline_answer(user_text)
-            if not used_ollama_fallback:
+
+            # ── ГАРАНТИРОВАННЫЙ Kimi fallback ─────────────────────────────
+            # Если answer всё ещё пустой/служебный — пробуем напрямую Kimi.
+            # У Kimi отдельный баланс (~$11.95) и независимая квота.
+            _looks_unhelpful = (
+                not answer
+                or "недоступен" in (answer or "")
+                or "не удалось" in (answer or "").lower()
+                or "не понял" in (answer or "").lower()
+            )
+            if _looks_unhelpful:
+                try:
+                    kimi_answer = self._ask_kimi(context, user_text)
+                    if kimi_answer and kimi_answer.strip():
+                        answer = kimi_answer
+                        engine = "Kimi (last-resort)"
+                        log.info("[Kimi last-resort] успех")
+                except Exception as _ke:
+                    log.warning(f"[Kimi last-resort] {_ke}")
+
+            if not used_ollama_fallback and engine == "Offline":
                 engine = "Offline"
 
         # Сохраняем в контекст и БД
@@ -4817,13 +5053,25 @@ class ArgosCore:
         """
         t = user_text.lower().strip()
 
-        # "где файл / где он / где лежит"
-        if any(k in t for k in ["где ", "где он", "где файл", "где лежит", "найди файл"]):
-            import os
+        # "где файл / где он / где лежит" — только явные запросы, не любые "где"
+        FILE_TRIGGERS = ("где файл", "где лежит файл", "найди файл", "find file")
+        if any(k in t for k in FILE_TRIGGERS) and len(user_text.split()) <= 8:
+            import os, re
             cwd = os.getcwd()
-            # Ищем имя файла в вопросе
-            words = user_text.split()
-            candidates = [w for w in words if "." in w and len(w) > 2 and "/" not in w]
+            # Только реальные имена файлов: расширение из whitelist
+            ALLOWED_EXT = {"py","md","json","yaml","yml","txt","ini","cfg","toml","log",
+                           "ino","c","h","cpp","hpp","ts","js","html","css","sh","ps1",
+                           "bat","png","jpg","jpeg","gif","svg","csv","sql","bin","xml"}
+            cleaned = re.sub(r'[^\w\s\.\-/]', ' ', user_text)
+            words = cleaned.split()
+            candidates = []
+            for w in words:
+                w = w.strip(".,!?;:()[]{}\"'")
+                if "." not in w or "/" in w: continue
+                if len(w) < 3 or len(w) > 100: continue
+                ext = w.rsplit(".", 1)[-1].lower()
+                if ext in ALLOWED_EXT and len(ext) >= 1:
+                    candidates.append(w)
             if candidates:
                 fname = candidates[0]
                 full  = os.path.join(cwd, fname)
@@ -5113,9 +5361,10 @@ class ArgosCore:
             import os as _os
             cwd   = _os.getcwd()
             words = text.split()
-            names = [w for w in words if "." in w and len(w) > 2]
+            import re as _re
+            names = [w for w in words if _re.search(r'\.[a-zA-Z0-9]{1,10}$', w) and len(w) > 3]
             if names:
-                fname = names[0]
+                fname = names[-1]
                 full  = _os.path.join(cwd, fname)
                 if _os.path.exists(full):
                     size = _os.path.getsize(full)
@@ -6915,6 +7164,19 @@ class ArgosCore:
             "объясни код":       ("ai_coder",       "AICoder",        None),
             "исправь код":       ("ai_coder",       "AICoder",        None),
             "рефакторинг":       ("ai_coder",       "AICoder",        None),
+            # ── Android Phone Control ─────────────────────────────────
+            "телефон статус":    ("android_control", None,              None),
+            "телефон подключи":  ("android_control", None,              None),
+            "телефон скриншот":  ("android_control", None,              None),
+            "телефон экран":     ("android_control", None,              None),
+            "телефон приложения":("android_control", None,              None),
+            "телефон домой":     ("android_control", None,              None),
+            "телефон назад":     ("android_control", None,              None),
+            "google поиск":      ("android_control", None,              None),
+            "play store найти":  ("android_control", None,              None),
+            "play store установить": ("android_control", None,          None),
+            "андроид автомат":   ("android_control", None,              None),
+            "телеграм отправить":("android_control", None,              None),
         }
         for _kw, (_sn, _sc, _sm) in _SKILL_MAP.items():
             if _kw in t:

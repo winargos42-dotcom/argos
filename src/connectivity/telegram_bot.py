@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import datetime
 import io
 import os
 import random
@@ -38,7 +39,11 @@ import requests
 from urllib.parse import urlparse
 from typing import Optional
 
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, InputFile, Message
+from telegram import (
+    Update, ReplyKeyboardMarkup, KeyboardButton,
+    InputFile, Message, InlineKeyboardButton, InlineKeyboardMarkup,
+    WebAppInfo,
+)
 from telegram.error import InvalidToken, TelegramError, TimedOut, NetworkError
 from telegram.ext import (
     Application, MessageHandler, CommandHandler,
@@ -75,6 +80,109 @@ HF_IMAGE_SPACE_LIST = [
 HF_SPACE_FAIL_COOLDOWN_SECONDS = int(os.getenv("HF_SPACE_FAIL_COOLDOWN_SECONDS", "900") or "900")
 HF_SPACE_FAIL_BACKOFF_MAX = int(os.getenv("HF_SPACE_FAIL_BACKOFF_MAX", "4") or "4")
 _HF_SPACE_ERROR_CACHE: dict[str, dict] = {}
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ARGOS Brain + llama-server клиент
+# ═════════════════════════════════════════════════════════════════════════════
+
+class ArgosBrainClient:
+    """Клиент для Brain API и llama-server с авто-fallback."""
+
+    def __init__(self):
+        self.brain_urls = self._discover_brain_urls()
+        self.llama_host = os.getenv("LLAMA_SERVER_HOST", "http://192.168.1.53:8082")
+        self.llama_model = os.getenv("LLAMA_SERVER_MODEL", "qwen2.5-1.5b-instruct.Q4_K_M.gguf")
+        self.timeout_brain = int(os.getenv("BRAIN_TIMEOUT_SEC", "15") or "15")
+        self.timeout_llama = int(os.getenv("LLAMA_TIMEOUT_SEC", "30") or "30")
+
+    @staticmethod
+    def _discover_brain_urls() -> list[str]:
+        """Возвращает список Brain URL для попыток (env → localhost)."""
+        urls: list[str] = []
+        for key in ("ARGOS_BRAIN_API_URL", "BRAIN_API_URL"):
+            val = (os.getenv(key) or "").strip()
+            if val and val not in urls:
+                urls.append(val)
+        if "http://localhost:5001" not in urls and "http://127.0.0.1:5001" not in urls:
+            urls.append("http://localhost:5001")
+        return urls
+
+    def ask_brain(self, query: str, context: dict | None = None) -> str | None:
+        """POST /ask к Brain API. Возвращает текст ответа или None."""
+        payload = {"query": query}
+        if context:
+            payload["context"] = context
+        for url in self.brain_urls:
+            try:
+                resp = requests.post(
+                    f"{url}/ask",
+                    json=payload,
+                    timeout=self.timeout_brain,
+                    headers={"Content-Type": "application/json"},
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    response = data.get("response") or data.get("answer") or data.get("text")
+                    if response:
+                        return str(response)
+                elif resp.status_code == 404:
+                    # Старый brain без /ask — пробуем /think
+                    resp2 = requests.post(
+                        f"{url}/think",
+                        json=payload,
+                        timeout=self.timeout_brain,
+                        headers={"Content-Type": "application/json"},
+                    )
+                    if resp2.status_code == 200:
+                        data2 = resp2.json()
+                        response = data2.get("response") or data2.get("answer") or data2.get("text")
+                        if response:
+                            return str(response)
+            except Exception:
+                continue
+        return None
+
+    def ask_llama(self, query: str, system: str = "") -> str | None:
+        """OpenAI-compatible fallback к llama-server."""
+        try:
+            messages = []
+            if system:
+                messages.append({"role": "system", "content": system})
+            messages.append({"role": "user", "content": query})
+            resp = requests.post(
+                f"{self.llama_host}/v1/chat/completions",
+                json={
+                    "model": self.llama_model,
+                    "messages": messages,
+                    "max_tokens": 800,
+                    "temperature": 0.7,
+                },
+                timeout=self.timeout_llama,
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code == 200:
+                choices = resp.json().get("choices", [])
+                if choices:
+                    return choices[0].get("message", {}).get("content")
+        except Exception:
+            pass
+        return None
+
+    def ask(self, query: str, system: str = "", context: dict | None = None) -> str | None:
+        """Brain → llama-server fallback."""
+        answer = self.ask_brain(query, context)
+        if answer:
+            return answer
+        if not system:
+            system = (
+                "Ты ARGOS Universal OS — AI-ассистент распределённой системы. "
+                "Отвечай кратко на русском."
+            )
+        return self.ask_llama(query, system)
+
+
+_BRAIN_CLIENT = ArgosBrainClient()
 
 
 def _resolve_hf_token() -> str:
@@ -682,6 +790,8 @@ class ArgosTelegram:
         self.tg_webhook_url = os.getenv("TG_WEBHOOK_URL", "").strip() or None
         self.tg_webhook_port = int(os.getenv("TG_WEBHOOK_PORT", "8001") or "8001")
         self.tg_webhook_path = os.getenv("TG_WEBHOOK_PATH", "/telegram").strip() or "/telegram"
+        # WebApp URL для команды /ai_edit
+        self.ai_edit_webapp_url = os.getenv("ARGOS_AI_EDIT_WEBAPP_URL", "").strip() or None
 
     # ── АВТОРИЗАЦИЯ ───────────────────────────────────────────────────────────
 
@@ -728,10 +838,12 @@ class ArgosTelegram:
         _, secret = token.split(":", 1)
         if len(secret) < 30:
             return False, "Неверный формат токена (секрет слишком короткий)"
-        # Проверка USER_ID
+        # Проверка USER_ID / USER_IDS / ADMIN_IDS
         user_id = (getattr(self, "user_id", "") or "").strip()
         allowed = getattr(self, "allowed_ids", set()) or set()
-        if not user_id and not allowed:
+        user_ids = getattr(self, "user_ids", set()) or set()
+        admin_ids = getattr(self, "admin_ids", set()) or set()
+        if not user_id and not allowed and not user_ids and not admin_ids:
             return False, "USER_ID не задан"
         return True, "ok"
 
@@ -1106,8 +1218,30 @@ class ArgosTelegram:
                 self.app.add_handler(CommandHandler("smart", self.cmd_smart))
                 self.app.add_handler(CommandHandler("iot", self.cmd_iot))
                 self.app.add_handler(CommandHandler("apk", self.cmd_apk))
+                self.app.add_handler(CommandHandler("reasoning", self.cmd_reasoning))
+                self.app.add_handler(CommandHandler("coding_agent", self.cmd_coding_agent))
+                self.app.add_handler(CommandHandler("commands", self.cmd_help))
+                self.app.add_handler(CommandHandler("think", self.cmd_reasoning))
+                self.app.add_handler(CommandHandler("model", self.cmd_providers))
+                self.app.add_handler(CommandHandler("models", self.cmd_providers))
+                self.app.add_handler(CommandHandler("taskflow", self.cmd_smart))
+                self.app.add_handler(CommandHandler("subagents", self.cmd_agents))
+                self.app.add_handler(CommandHandler("tts", self.cmd_voice_on))
+                self.app.add_handler(CommandHandler("context", self.cmd_memory))
+                self.app.add_handler(CommandHandler("session", self.cmd_status))
+                self.app.add_handler(CommandHandler("compact", self.cmd_memory))
+                self.app.add_handler(CommandHandler("reset", self.cmd_start))
+                self.app.add_handler(CommandHandler("github", self.cmd_network))
+                self.app.add_handler(CommandHandler("whoami", self.cmd_roles))
+                self.app.add_handler(CommandHandler("verbose", self.cmd_status))
+                self.app.add_handler(CommandHandler("fast", self.cmd_status))
+                self.app.add_handler(CommandHandler("skill", self.cmd_skills))
                 self.app.add_handler(CommandHandler("help", self.cmd_help))
                 self.app.add_handler(CommandHandler(["tghealth", "tg_health"], self.cmd_tg_health))
+                self.app.add_handler(CommandHandler("batch_create", self.cmd_batch_create))
+                self.app.add_handler(CommandHandler("batch_status", self.cmd_batch_status))
+                self.app.add_handler(CommandHandler("ask", self.cmd_ask))
+                self.app.add_handler(CommandHandler("ai_edit", self.cmd_ai_edit))
 
                 # Сообщения
                 self.app.add_handler(MessageHandler(filters.VOICE, self.handle_voice))
@@ -1115,6 +1249,13 @@ class ArgosTelegram:
                 self.app.add_handler(MessageHandler(filters.AUDIO, self.handle_audio))
                 self.app.add_handler(MessageHandler(filters.Document.ALL, self.handle_document))
                 self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
+                # Inline mode (гостевой режим — @Argosssbot в любом чате)
+                try:
+                    from telegram.ext import InlineQueryHandler
+                    self.app.add_handler(InlineQueryHandler(self._handle_inline_query))
+                except Exception:
+                    pass
+                # Bot-to-bot (новый Telegram 7 мая 2026)
                 self.app.add_error_handler(self._handle_telegram_error)
 
                 if self.tg_webhook_url:
@@ -1152,6 +1293,39 @@ class ArgosTelegram:
                 print(f"[TG] Неожиданная ошибка polling (retry={retries}): {e}")
                 time.sleep(retry_delay)
 
+    async def _handle_inline_query(self, update, context):
+        """Гостевой режим — ARGOS отвечает при @упоминании в любом чате (Telegram 7 мая 2026)."""
+        try:
+            from telegram import InlineQueryResultArticle, InputTextMessageContent
+            import uuid
+            query = update.inline_query.query.strip() if update.inline_query else ""
+            if not query:
+                query = "статус системы ARGOS"
+
+            # Быстрый ответ через AI
+            import asyncio
+            from src.ai_router import AIRouter
+            router = AIRouter()
+            answer = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(None,
+                    lambda: router.ask(query, system="Ты ARGOS Universal OS. Отвечай кратко на русском.")),
+                timeout=10.0
+            )
+            if not answer:
+                answer = f"🤖 ARGOS: {query}"
+
+            results = [InlineQueryResultArticle(
+                id=str(uuid.uuid4()),
+                title=f"🤖 ARGOS отвечает",
+                description=answer[:100],
+                input_message_content=InputTextMessageContent(
+                    f"🤖 ARGOS: {answer[:500]}"
+                )
+            )]
+            await update.inline_query.answer(results, cache_time=30)
+        except Exception as e:
+            pass
+
     async def _handle_telegram_error(self, update, context):
         error = getattr(context, "error", None)
         text = str(error or "")
@@ -1161,17 +1335,7 @@ class ArgosTelegram:
             if getattr(self, "_conflict_notified", False):
                 return
             self._conflict_notified = True
-            print("[TG-BRIDGE]: Конфликт polling — другой экземпляр бота уже использует getUpdates.")
-            try:
-                updater = getattr(context.application, "updater", None)
-                if updater is not None:
-                    await updater.stop()
-            except Exception:
-                pass
-            try:
-                await context.application.stop()
-            except Exception:
-                pass
+            print("[TG-BRIDGE]: Конфликт polling — другой экземпляр бота уже использует getUpdates. Оставляю PTB переподключиться.")
             return
         print(f"[TG-BRIDGE]: Error handler caught: {text}")
 
@@ -1596,6 +1760,235 @@ class ArgosTelegram:
         except Exception as e:
             await update.message.reply_text(f"❌ Не удалось отправить APK: {e}")
 
+    async def cmd_ask(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        """Роутинг вопроса в Brain API с fallback на llama-server."""
+        if not self._auth(update):
+            return await self._deny(update)
+        query = " ".join(ctx.args) if ctx.args else ""
+        if not query:
+            await update.message.reply_text(
+                "🧠 Использование: /ask \u003cвопрос\u003e\n"
+                "Например: /ask какая погода в Москве?"
+            )
+            return
+        await update.message.reply_text("🧠 Запрашиваю Brain API...")
+        try:
+            answer = await asyncio.to_thread(_BRAIN_CLIENT.ask, query)
+            if answer:
+                source = "Brain" if _BRAIN_CLIENT.ask_brain(query) else "llama-server"
+                await self._safe_reply_text(
+                    update.message,
+                    f"👁️ *ARGOS* `[{source}]`\n\n{answer[:4000]}",
+                    markdown=True,
+                )
+            else:
+                await update.message.reply_text(
+                    "⚡ Brain API и llama-server недоступны. Попробуйте позже."
+                )
+        except Exception as e:
+            await update.message.reply_text(f"❌ Ошибка Brain API: {e}")
+
+    async def cmd_ai_edit(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        """Открыть Join Guard WebApp для редактирования через AI."""
+        if not self._auth(update):
+            return await self._deny(update)
+        url = self.ai_edit_webapp_url
+        if not url:
+            await update.message.reply_text(
+                "⚠️ WebApp для AI-редактора не настроен. "
+                "Установите ARGOS_AI_EDIT_WEBAPP_URL в .env"
+            )
+            return
+        button = InlineKeyboardButton(
+            text="🛡️ Открыть AI редактор",
+            web_app=WebAppInfo(url=url),
+        )
+        await update.message.reply_text(
+            "Нажмите кнопку, чтобы открыть AI-редактор в WebApp:",
+            reply_markup=InlineKeyboardMarkup([[button]]),
+        )
+
+    async def cmd_reasoning(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        """Режим глубокого мышления через Claude API."""
+        if not self._check_access(update):
+            return
+        query = " ".join(ctx.args) if ctx.args else "Проанализируй текущее состояние ARGOS и предложи 3 улучшения"
+        await update.message.reply_text(f"🧠 Reasoning: {query[:50]}...")
+        try:
+            import urllib.request as _ur, json as _js, os as _os
+            _key = _os.getenv("ANTHROPIC_API_KEY","").strip()
+            _body = _js.dumps({"model":"claude-haiku-4-5-20251001","max_tokens":800,
+                "system":"Ты ARGOS — аналитик распределённой AI-системы. Думай глубоко, отвечай конкретно.",
+                "messages":[{"role":"user","content":query}]}).encode()
+            _req = _ur.Request("https://api.anthropic.com/v1/messages",data=_body,
+                headers={"x-api-key":_key,"anthropic-version":"2023-06-01","content-type":"application/json"})
+            with _ur.urlopen(_req,timeout=20) as _r:
+                answer = _js.loads(_r.read())["content"][0]["text"]
+        except Exception as e:
+            answer = f"🧠 Reasoning error: {e}"
+        await update.message.reply_text(f"🧠 {answer[:3000]}")
+
+    async def cmd_coding_agent(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        """AI программист — DeepSeek + Claude для кода."""
+        if not self._check_access(update):
+            return
+        task = " ".join(ctx.args) if ctx.args else ""
+        if not task:
+            await update.message.reply_text("Укажи задачу: /coding_agent написать функцию сортировки")
+            return
+        await update.message.reply_text(f"💻 Coding Agent работает над: {task}")
+        try:
+            import asyncio as _aio
+            from src.ai_router import AIRouter
+            router = AIRouter()
+            system = ("Ты опытный Python/JavaScript разработчик. "
+                     "Пиши чистый, рабочий код. Объясняй кратко.")
+            answer = await _aio.wait_for(
+                _aio.get_event_loop().run_in_executor(None,
+                    lambda: router.ask(task, system=system)),
+                timeout=30.0
+            )
+            await update.message.reply_text(answer[:3000] if answer else "❌ Нет ответа")
+        except Exception as e:
+            await update.message.reply_text(f"❌ Ошибка: {e}")
+
+    async def cmd_batch_create(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        """Create a Gemini batch job for Veto audit or training data."""
+        if not self._auth(update): return await self._deny(update)
+        args = ctx.args
+        mode = args[0] if args else "help"
+        if mode == "help":
+            await update.message.reply_text(
+                "🎰 <b>Batch Creator</b>\n"
+                "Usage:\n"
+                "• /batch_create audit — Veto evidence audit\n"
+                "• /batch_create train — Training data generation",
+                parse_mode="HTML",
+            )
+            return
+
+        try:
+            import asyncio as _aio
+            from src.gemini_batch import (
+                GeminiBatchClient, BatchRequest,
+                build_veto_audit_requests, build_training_requests,
+            )
+            client = GeminiBatchClient()
+
+            if mode == "audit":
+                # Demo evidence list
+                evidence = [
+                    {
+                        "id": "ev_demo_001",
+                        "node_id": "spr2801mc-001",
+                        "reason": "unauthorized_access_attempt",
+                        "source_path": "/var/log/spr2801/auth.log",
+                        "sha256": "aabbccdd0011",
+                        "confidence": 0.85,
+                        "summary": "Multiple failed JTAG auth attempts from unknown host",
+                    },
+                ]
+                requests = build_veto_audit_requests(evidence)
+                await update.message.reply_text(
+                    f"🎰 Creating <b>Veto Audit</b> batch ({len(requests)} requests)...",
+                    parse_mode="HTML",
+                )
+                job = await _aio.get_event_loop().run_in_executor(
+                    None, lambda: client.create_batch_from_inline(requests)
+                )
+                await update.message.reply_text(
+                    f"✅ Batch created:\n"
+                    f"• Job: <code>{job.get('name')}</code>\n"
+                    f"• State: <code>{job.get('state')}</code>",
+                    parse_mode="HTML",
+                )
+
+            elif mode == "train":
+                templates = [
+                    {
+                        "id": "train_001",
+                        "instruction": "Analyze FPGA JTAG security posture",
+                        "context": "SPR2801MCB board, SEGGER J-Link programmer",
+                        "expected_format": "JSON",
+                    },
+                ]
+                requests = build_training_requests(templates)
+                await update.message.reply_text(
+                    f"🎰 Creating <b>Training Data</b> batch ({len(requests)} requests)...",
+                    parse_mode="HTML",
+                )
+                job = await _aio.get_event_loop().run_in_executor(
+                    None, lambda: client.create_batch_from_inline(requests)
+                )
+                await update.message.reply_text(
+                    f"✅ Batch created:\n"
+                    f"• Job: <code>{job.get('name')}</code>\n"
+                    f"• State: <code>{job.get('state')}</code>",
+                    parse_mode="HTML",
+                )
+            else:
+                await update.message.reply_text(
+                    f"❌ Unknown mode: {mode}. Use /batch_create help"
+                )
+        except Exception as e:
+            await update.message.reply_text(f"❌ Batch create error: {e}")
+
+    async def cmd_batch_status(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+        """Check Gemini batch job status."""
+        if not self._auth(update): return await self._deny(update)
+        args = ctx.args
+        if not args:
+            try:
+                import asyncio as _aio
+                from src.gemini_batch import GeminiBatchClient
+                client = GeminiBatchClient()
+                jobs = await _aio.get_event_loop().run_in_executor(
+                    None, lambda: client.list_jobs()
+                )
+                if not jobs:
+                    await update.message.reply_text("🎰 Нет активных batch jobs")
+                    return
+                lines = ["🎰 <b>Active Batch Jobs</b>"]
+                for j in jobs[:10]:
+                    state = j.get("state", "UNKNOWN")
+                    emoji = {"JOB_STATE_SUCCEEDED": "✅", "JOB_STATE_RUNNING": "🔄", "JOB_STATE_FAILED": "❌"}.get(state, "⏳")
+                    lines.append(
+                        f"\n{emoji} <code>{j.get('name', '?')}</code>\n"
+                        f"  State: <code>{state}</code> | Model: <code>{j.get('model', '?')}</code>\n"
+                        f"  Total: {j.get('total_count', 0)} | OK: {j.get('successful_count', 0)} | Err: {j.get('failed_count', 0)}"
+                    )
+                await update.message.reply_text("\n".join(lines), parse_mode="HTML")
+            except Exception as e:
+                await update.message.reply_text(f"❌ Batch list error: {e}")
+            return
+
+        job_name = args[0]
+        try:
+            import asyncio as _aio
+            from src.gemini_batch import GeminiBatchClient
+            client = GeminiBatchClient()
+            job = await _aio.get_event_loop().run_in_executor(
+                None, lambda: client.get_job(job_name)
+            )
+            state = job.get("state", "UNKNOWN")
+            emoji = {"JOB_STATE_SUCCEEDED": "✅", "JOB_STATE_RUNNING": "🔄", "JOB_STATE_FAILED": "❌"}.get(state, "⏳")
+            msg = (
+                f"{emoji} <b>Batch Job</b>\n"
+                f"Name: <code>{job.get('name')}</code>\n"
+                f"State: <code>{state}</code>\n"
+                f"Model: <code>{job.get('model')}</code>\n"
+                f"Total: {job.get('total_count', 0)}\n"
+                f"Completed: {job.get('completed_count', 0)}\n"
+                f"Successful: {job.get('successful_count', 0)}\n"
+                f"Failed: {job.get('failed_count', 0)}\n"
+                f"Created: {job.get('create_time', '?')[:19]}"
+            )
+            if state == "JOB_STATE_SUCCEEDED" and job.get("dest"):
+                msg += f"\n\n📥 <b>Results ready</b> — file: <code>{job.get('dest')}</code>"
+            await update.message.reply_text(msg, parse_mode="HTML")
+        except Exception as e:
+            await update.message.reply_text(f"❌ Batch status error: {e}")
+
     async def cmd_help(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         role = self._get_role(update)
         if role is ROLE_NONE:
@@ -1623,9 +2016,15 @@ class ArgosTelegram:
             "• `удали файл [путь]`\n"
             "• `консоль [команда]`\n\n"
             "*IoT / Smart:*\n"
-            "• `/smart` — умные системы\n"
-            "• `/iot` — IoT устройства\n\n"
+            "• /smart — умные системы\n"
+            "• /iot — IoT устройства\n\n"
+            "*Batch AI (Gemini):*\n"
+            "• /batch_create audit — Veto evidence audit\n"
+            "• /batch_create train — Training data generation\n"
+            "• /batch_status — list or check batch jobs\n\n"
             "*AI модели:*\n"
+            "• `/ask \u003cвопрос\u003e` — запрос к Brain API / llama-server\n"
+            "• `/ai_edit` — открыть AI-редактор в WebApp\n"
             "• `режим ии [gemini/ollama/groq/deepseek]`\n"
             "• `модель обучить` / `модель статус`\n"
             "• `модель квантовый статус`\n"
@@ -1651,6 +2050,8 @@ class ArgosTelegram:
         return (
             "👁️ *АРГОС — ПОЛЬЗОВАТЕЛЬ*\n\n"
             "• `/status` — состояние системы\n"
+            "• `/ask \u003cвопрос\u003e` — запрос к Brain API / llama-server\n"
+            "• `/ai_edit` — открыть AI-редактор в WebApp\n"
             "• `/crypto` — курсы криптовалют\n"
             "• `/memory` — ваши записи\n"
             "• `/smart` — умные системы\n"
@@ -2520,6 +2921,39 @@ class ArgosTelegram:
 
         return ""
 
+    async def _handle_mcp(self, update: Update, text: str):
+        """Пересылает /mcp сообщение на локальный MCP endpoint."""
+        mcp_url = os.getenv("MCP_LOCAL_URL", "http://localhost:8002/mcp").strip()
+        if not mcp_url:
+            await update.message.reply_text("❌ MCP_LOCAL_URL не задан.")
+            return
+        # Убираем префикс /mcp
+        payload_text = text[4:].strip() if text.startswith("/mcp") else text
+        try:
+            resp = requests.post(
+                mcp_url,
+                json={"query": payload_text, "source": "telegram", "user_id": str(update.effective_user.id)},
+                timeout=15,
+                headers={"Content-Type": "application/json"},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                answer = data.get("response") or data.get("result") or data.get("answer") or data.get("text")
+                if answer:
+                    await self._safe_reply_text(
+                        update.message,
+                        f"👁️ *ARGOS* `[MCP]`\n\n{str(answer)[:4000]}",
+                        markdown=True,
+                    )
+                else:
+                    await update.message.reply_text(f"🤖 MCP ответ: {data}")
+            else:
+                await update.message.reply_text(
+                    f"❌ MCP ошибка HTTP {resp.status_code}: {resp.text[:300]}"
+                )
+        except Exception as e:
+            await update.message.reply_text(f"❌ MCP недоступен: {e}")
+
     async def handle_message(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         role = self._get_role(update)
         if role is ROLE_NONE:
@@ -2546,6 +2980,11 @@ class ArgosTelegram:
                 f"👁️ ARGOS [Direct]\n\n{hf_token_answer}",
                 markdown=False,
             )
+            return
+
+        # ── MCP context forwarding ──
+        if lt.startswith("/mcp"):
+            await self._handle_mcp(update, user_text)
             return
 
         # Погода: жёсткий direct-роутинг, чтобы не уходить в Analytic-заглушки.
@@ -2883,6 +3322,7 @@ class ArgosTelegram:
             "свет", "розетку", "термостат", "температуру установи",
             "отчёт с", "отчет с", "obsidian", "обсидиан",
             "p2p запусти", "сканируй", "обнови прошивку",
+            "телефон", "phone", "android",
         )
         _lt = user_text.lower()
         _is_command = any(kw in _lt for kw in _CMD_KEYWORDS)
@@ -2896,7 +3336,8 @@ class ArgosTelegram:
                 _SYSTEM_RU = (
                     "Ты ARGOS Universal OS — AI-ассистент системы из 5 машин. "
                     "Отвечай только на РУССКОМ языке. Кратко и точно. "
-                    "Если вопрос о системе — давай конкретные данные, не выдумывай."
+                    "Если вопрос о системе — давай конкретные данные, не выдумывай. "
+                    f"Текущее время: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}."
                 )
                 def _ask_ru(text):
                     return _router.ask(text, system=_SYSTEM_RU)
@@ -2906,6 +3347,49 @@ class ArgosTelegram:
                 )
             except Exception:
                 _ai_router_answer = None
+
+
+        # -- Colibri Phone Control --
+        _lt2 = user_text.lower().strip()
+        if any(_lt2.startswith(p) for p in ("колибри", "colibri ")):
+            try:
+                import socket as _sk, json as _jj, time as _tt
+                _cmd = _lt2.replace("колибри","").replace("colibri","").strip()
+                _sock = _sk.socket(_sk.AF_INET, _sk.SOCK_DGRAM)
+                _sock.setsockopt(_sk.SOL_SOCKET, _sk.SO_BROADCAST, 1)
+                _sock.settimeout(8)
+                _sock.bind(("0.0.0.0", 5024))
+                _msg = json.dumps({"proto":1,"node_id":"tg-bot","type":2,"code":_cmd or "status"}).encode()
+                _sock.sendto(_msg, ("192.168.1.149", 5021))
+                _ans = "нет ответа"
+                try:
+                    _d, _ = _sock.recvfrom(8192)
+                    _m = _jj.loads(_d.decode())
+                    if "result" in _m: _ans = _m["result"]
+                    elif "status" in _m: _ans = str(_m["status"])
+                except: pass
+                _sock.close()
+                answer = f"🐦 Colibri → {_cmd or 'status'}:\n{_ans}"
+                state = "ARGOS"
+                await update.message.reply_text(answer)
+                return
+            except Exception as _ce:
+                pass
+
+        # -- Phone Control (обрабатываем здесь чтобы не ждать core) --
+        _lt2 = user_text.lower().strip()
+        if any(_lt2.startswith(p) for p in ("телефон", "phone ", "android ")):
+            try:
+                from src.skills.phone_control import PhoneControl as _PC
+                _pc = _PC(self.core)
+                _phone_result = _pc.handle(user_text)
+                if _phone_result:
+                    answer = _phone_result
+                    state = "ARGOS"
+                    await update.message.reply_text(answer)
+                    return
+            except Exception as _pe:
+                pass
 
         if _ai_router_answer and not _is_command:
             answer = _ai_router_answer
@@ -2935,6 +3419,16 @@ class ArgosTelegram:
                 else:
                     answer = f"⚠️ Ошибка: {type(_exc).__name__}"
                     state = "Error"
+
+        # Сохраняем пару (user, assistant) в БД для /history и контекста
+        try:
+            db = getattr(self.core, "db", None) or getattr(getattr(self.core, "context", None), "db", None)
+            if db is not None and hasattr(db, "add_message"):
+                db.add_message("user", user_text, "tg")
+                if answer:
+                    db.add_message("argos", str(answer), str(state) if state else "ai")
+        except Exception:
+            pass
 
         if answer:
             full_reply = 'ARGOS [' + str(state) + ']\n\n' + str(answer)

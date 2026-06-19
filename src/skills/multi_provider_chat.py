@@ -137,7 +137,7 @@ class MultiProviderChat:
                 pass
             # Fallback: Brain API
             import requests as _req
-            brain = os.getenv("ARGOS_BRAIN_API_URL", "http://192.168.1.66:5010")
+            brain = os.getenv("ARGOS_BRAIN_API_URL", "http://192.168.1.53:5001")
             try:
                 r = _req.post(f"{brain}/think", json={"query": prompt}, timeout=20)
                 d = r.json()

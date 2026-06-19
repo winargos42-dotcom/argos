@@ -1,56 +1,82 @@
 #!/usr/bin/env python3
 """
-FNIRSI Oscilloscope interface for ARGOS Multi-Tool
-USB HID or Serial interface to FNIRSI-1013D / FNIRSI-DSO
+FNIRSI Scope Bridge v4.0 for ARGOS Multi-Tool
+USB capture + ASCII waveform plot + CSV export
 """
-import sys
-import struct
-import usb.core
-import usb.util
+import sys, os, time, struct, csv
+try:
+    import usb.core, usb.util
+    HAS_USB = True
+except ImportError:
+    HAS_USB = False
 from rich.console import Console
-import time
 
 console = Console()
-FNIRSI_VID = 0x1D50  # Example VID, may vary
-FNIRSI_PID = 0x6089  # Example PID
+CAPTURE_DIR = os.path.expanduser("~/argos-mobile/captures")
+FNIRSI_DEVICES = [(0x1D50, 0x6089), (0x1D50, 0x604B)]
 
 
 def find_fnirsi():
-    dev = usb.core.find(idVendor=FNIRSI_VID, idProduct=FNIRSI_PID)
-    if dev is None:
-        console.print("[red]FNIRSI device not found. Check USB OTG connection.[/red]")
-        return None
-    return dev
+    if not HAS_USB: return None
+    for vid, pid in FNIRSI_DEVICES:
+        dev = usb.core.find(idVendor=vid, idProduct=pid)
+        if dev: return dev
+    return None
 
 
-def capture_waveform(n_samples=1024):
-    dev = find_fnirsi()
-    if not dev:
-        return None
-    console.print(f"[blue]Capturing {n_samples} samples from FNIRSI...[/blue]")
-    # Placeholder: actual protocol depends on model
-    # Some FNIRSI use bulk transfer, some use HID report
-    data = []
-    for i in range(n_samples):
-        # Simulated reading
-        val = 0x80 + (i % 64 - 32)
-        data.append(val)
-        if i % 64 == 0:
-            console.print(f"[dim]Sample {i}/{n_samples}[/dim]", end="\r")
-    console.print(f"\n[green]✓ Captured {n_samples} samples[/green]")
-    return data
+def capture_via_usb(dev, n_samples=2048):
+    try:
+        if dev.is_kernel_driver_active(0): dev.detach_kernel_driver(0)
+        dev.set_configuration()
+        for ep_in in [0x81, 0x82, 0x83]:
+            try:
+                return dev.read(ep_in, n_samples * 2, timeout=3000)
+            except: continue
+    except Exception as e:
+        console.print(f"[yellow]USB: {e}[/yellow]")
+    return None
 
 
-def save_csv(data, filename="fnirsi_capture.csv"):
-    with open(filename, "w") as f:
-        f.write("sample,value\n")
-        for i, v in enumerate(data):
-            f.write(f"{i},{v}\n")
-    console.print(f"[green]Saved to {filename}[/green]")
+def save_csv(samples, filename=None):
+    if filename is None:
+        filename = os.path.join(CAPTURE_DIR, f"fnirsi_{int(time.time())}.csv")
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, 'w', newline='') as f:
+        w = csv.writer(f)
+        w.writerow(["idx", "value"])
+        for i, v in enumerate(samples): w.writerow([i, v])
+    console.print(f"[green]✓ CSV: {filename} ({len(samples)} samples)[/green]")
+    return filename
+
+
+def ascii_plot(samples, width=60, height=12):
+    if not samples: return
+    mn, mx = min(samples), max(samples)
+    rng = mx - mn or 1
+    lines = [[' '] * width for _ in range(height)]
+    step = max(1, len(samples) // width)
+    for i in range(min(width, len(samples) // step)):
+        v = samples[i * step]
+        y = int((1 - (v - mn) / rng) * (height - 1))
+        y = max(0, min(height - 1, y))
+        lines[y][i] = '█'
+    for row in lines:
+        print(''.join(row))
 
 
 if __name__ == "__main__":
-    samples = int(sys.argv[1]) if len(sys.argv) > 1 else 1024
-    wav = capture_waveform(samples)
-    if wav:
-        save_csv(wav)
+    console.print("[bold blue]ARGOS FNIRSI Scope v4.0[/bold blue]")
+    dev = find_fnirsi()
+    if dev is None:
+        console.print("[red]FNIRSI not found. Connect via USB OTG.[/red]")
+        sys.exit(1)
+    console.print("[green]FNIRSI found[/green]")
+    n = int(sys.argv[1]) if len(sys.argv) > 1 else 2048
+    raw = capture_via_usb(dev, n)
+    if raw:
+        samples = [b for b in raw] if len(raw) == n else [struct.unpack('<h', raw[i:i+2])[0] for i in range(0, len(raw), 2)]
+        console.print(f"[green]Captured {len(samples)} samples[/green]")
+        ascii_plot(samples)
+        save_csv(samples)
+    else:
+        console.print("[yellow]USB capture failed. Use sigrok/PulseView on PC.[/yellow]")

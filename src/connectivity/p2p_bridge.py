@@ -5,6 +5,7 @@ p2p_bridge.py — P2P Сеть Аргоса
   Задачи распределяются по мощности и возрасту ноды.
 """
 
+import hmac
 import os
 import json
 import socket
@@ -421,17 +422,20 @@ class ArgosBridge:
         """ГОСТ HMAC-Стрибог-256 подпись (замена SHA-256)."""
         if self._gost:
             return self._gost.sign(data)
-        # Fallback: SHA-256 если ГОСТ недоступен
-        raw = json.dumps(data, sort_keys=True) + NETWORK_SECRET
-        return hashlib.sha256(raw.encode()).hexdigest()[:16]
+        # Fallback: HMAC-SHA256 (256 bit) если ГОСТ недоступен
+        raw = json.dumps(data, sort_keys=True)
+        key = NETWORK_SECRET.encode("utf-8")
+        return hmac.new(key, raw.encode("utf-8"), hashlib.sha256).hexdigest()
 
     def _verify_sign(self, data: dict, signature: str) -> bool:
         """Проверяет ГОСТ HMAC-Стрибог-256 подпись."""
         if self._gost:
             return self._gost.verify(data, signature)
-        # Fallback: воссоздаём SHA-256
-        raw = json.dumps(data, sort_keys=True) + NETWORK_SECRET
-        return hashlib.sha256(raw.encode()).hexdigest()[:16] == signature
+        # Fallback: HMAC-SHA256
+        raw = json.dumps(data, sort_keys=True)
+        key = NETWORK_SECRET.encode("utf-8")
+        expected = hmac.new(key, raw.encode("utf-8"), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(expected, signature)
 
     def start(self) -> str:
         self._running = True

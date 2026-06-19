@@ -8,6 +8,7 @@ REST API для управления интеллектуальными аген
   GET  /agents                — список агентов
   POST /agents                — создать агента
   GET  /agents/<id>           — информация об агенте
+  POST /ask                   — упрощённый запрос к ArgosCore / ARGOSBrain / llama-server
   POST /think                 — запрос к ArgosCore (с fallback на ARGOSBrain)
   POST /coordinate            — координация агентов
   POST /analyze               — анализ данных
@@ -21,6 +22,8 @@ REST API для управления интеллектуальными аген
   GET  /brain/nodes           — список P2P-узлов
   DELETE /brain/nodes/<id>    — удалить узел
   GET  /dashboard             — HTML-дашборд
+  GET  /webapp               — Telegram WebApp JSON metadata + validate URL
+  POST /webapp               — Telegram WebApp static manifest endpoint
   POST /brain/start           — запустить brain
   POST /brain/stop            — остановить brain
   POST /brain/reset           — сбросить brain
@@ -39,9 +42,10 @@ import logging
 import os as _os
 import subprocess
 import shutil
+import requests
 from datetime import datetime
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
@@ -92,6 +96,77 @@ def _get_core() -> Optional[Any]:
         logger.warning("[BrainAPI] ArgosCore недоступен: %s", e)
         _core = None
     return _core
+
+
+def _llama_servers() -> List[Dict[str, Any]]:
+    """Возвращает приоритизированный список локальных llama-server."""
+    env = _os.getenv("ARGOS_MODEL_ROUTER", "")
+    if env:
+        servers = []
+        for part in env.split(","):
+            if not part.strip():
+                continue
+            pieces = part.strip().split("|")
+            url = pieces[0].strip()
+            model = pieces[1].strip() if len(pieces) > 1 else ""
+            priority = int(pieces[2].strip()) if len(pieces) > 2 and pieces[2].strip().isdigit() else 0
+            servers.append({"url": url, "model": model, "priority": priority})
+        return sorted(servers, key=lambda s: s["priority"], reverse=True)
+    # умолчания: приоритет 8085 (DeepSeek/Mistral) → 8082 (Qwen 1.5B)
+    return [
+        {"url": "http://192.168.1.72:8083", "model": "argos-qwen2.5-7b-v1.Q4_K_M.gguf", "priority": 110},
+        {"url": "http://192.168.1.72:8085", "model": "mistral-nemo-instruct-2407.Q4_K_M.gguf", "priority": 100},
+        {"url": "http://192.168.1.72:8082", "model": "qwen2.5-1.5b-instruct.Q4_K_M.gguf", "priority": 90},
+    ]
+
+
+def _llama_server_ask(query: str, system: Optional[str] = None, max_tokens: int = 800, temperature: float = 0.7) -> Optional[str]:
+    """Пробует локальные llama-server по приоритету, возвращает первый успешный ответ.
+    Умеет fallback на /v1/completions и пропускает пустые/битые ответы (например, 8082 qwen 1.5b)."""
+    import requests
+    sys_prompt = system or "Ты ARGOS — AI-ассистент системы. Отвечай кратко на русском."
+    chat_payload = {
+        "messages": [
+            {"role": "system", "content": sys_prompt},
+            {"role": "user", "content": query},
+        ],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "stream": False,
+    }
+    for srv in _llama_servers():
+        url = srv["url"].rstrip("/")
+        model = srv["model"] or "default"
+        try:
+            # chat completions
+            resp = requests.post(
+                f"{url}/v1/chat/completions",
+                json={**chat_payload, "model": model},
+                timeout=45,
+            )
+            if resp.ok:
+                data = resp.json()
+                choices = data.get("choices", [])
+                text = choices[0].get("message", {}).get("content", "").strip() if choices else ""
+                if text:
+                    logger.info("[argos_model_router] ответ от %s (%s) len=%d", url, model, len(text))
+                    return text
+                logger.warning("[argos_model_router] %s вернул пустой chat-ответ, пробуем /v1/completions", url)
+                # fallback legacy completions
+                comp = requests.post(
+                    f"{url}/v1/completions",
+                    json={"model": model, "prompt": f"{sys_prompt}\n\nUser: {query}\nAssistant:", "max_tokens": max_tokens, "temperature": temperature},
+                    timeout=45,
+                )
+                if comp.ok:
+                    cdata = comp.json()
+                    cchoices = cdata.get("choices", [])
+                    ctext = cchoices[0].get("text", "").strip() if cchoices else ""
+                    if ctext:
+                        return ctext
+        except Exception as e:
+            logger.debug("[argos_model_router] %s недоступен: %s", srv["url"], e)
+    return None
 
 
 def _ollama_available() -> bool:
@@ -342,6 +417,17 @@ async def think():
         except Exception as e:
             logger.warning("[BrainAPI] ArgosCore.ask() ошибка: %s", e)
 
+    # Fallback на llama-server до ARGOSBrain
+    answer = _llama_server_ask(query, system="Ты ARGOS — AI-ассистент системы. Отвечай кратко на русском.", max_tokens=800, temperature=0.7)
+    if answer:
+        return jsonify({
+            'success': True,
+            'response': answer,
+            'source': 'llama-server',
+            'agent_id': 'local-llama',
+            'timestamp': datetime.now().isoformat(),
+        }), 200
+
     # Fallback на ARGOSBrain
     if brain is None:
         return jsonify({'error': 'Brain не инициализирован и ArgosCore недоступен'}), 500
@@ -370,6 +456,67 @@ async def think():
     except Exception as e:
         logger.error("Ошибка при запросе think: %s", e)
         return jsonify({'error': str(e)}), 400
+
+
+# /ask — упрощённый интерфейс для внешних клиентов (Telegram, CLI, MCP)
+# Принимает {"query": "...", "context": {...}, "role": "master"}
+# Возвращает {"response": "...", "source": "..."}
+@app.route('/ask', methods=['POST'])
+@async_route
+async def ask():
+    """Упрощённый запрос к мозгу — алиас на /think с упрощённым ответом."""
+    data = request.json or {}
+    query = data.get('query')
+    if not query:
+        return jsonify({'error': 'query обязателен'}), 400
+
+    # СНАЧАЛА локальный llama-server — не тратить облачные кредиты
+    answer = _llama_server_ask(query, system="Ты ARGOS — AI-ассистент системы. Отвечай кратко на русском.", max_tokens=800, temperature=0.7)
+    if answer:
+        return jsonify({
+            'response': answer,
+            'source': 'llama-server',
+            'status': 'ok',
+        }), 200
+
+    # Перенаправляем внутренне на /think
+    context_data = data.get('context', {})
+    context_str = json.dumps(context_data, ensure_ascii=False) if isinstance(context_data, dict) else str(context_data)
+
+    core = _get_core()
+    if core is not None:
+        try:
+            loop = asyncio.get_event_loop()
+            answer = await loop.run_in_executor(
+                None,
+                lambda: core.ask(user_text=query, context=context_str),
+            )
+            if answer:
+                return jsonify({
+                    'response': answer,
+                    'source': 'ArgosCore',
+                    'status': 'ok',
+                }), 200
+        except Exception as e:
+            logger.warning("[BrainAPI] /ask ArgosCore ошибка: %s", e)
+
+    if brain is not None:
+        try:
+            role = data.get('role', 'master')
+            try:
+                role_enum = AgentRole[role.upper()]
+            except KeyError:
+                role_enum = AgentRole.MASTER
+            result = await brain.think(query, role_enum, context_data)
+            return jsonify({
+                'response': result.get('response'),
+                'source': 'ARGOSBrain',
+                'status': 'ok',
+            }), 200
+        except Exception as e:
+            logger.warning("[BrainAPI] /ask ARGOSBrain ошибка: %s", e)
+
+    return jsonify({'error': 'Все AI-провайдеры недоступны'}), 503
 
 
 # ============================================================
@@ -687,8 +834,82 @@ def system_metrics():
     }), 200
 
 
+@app.route('/webapp', methods=['GET', 'POST'])
+def webapp_manifest():
+    """Telegram WebApp endpoint: manifest + validate initData URL.
+
+    GET  — returns JSON manifest / metadata for BotFather.
+    POST — accepts Telegram WebApp initData (form field `initData`) and
+           returns validation status + parsed user info.
+    """
+    from urllib.parse import parse_qs
+    from hmac import new as hmac_new
+    from hashlib import sha256
+
+    BOT_TOKEN = _os.getenv("ARGOS_TELEGRAM_BOT_TOKEN", "")
+    # Build a stable, publicly reachable URL for the WebApp.
+    # If ARGOS_WEBAPP_URL is not set, default to the API host plus /webapp.
+    host = request.host_url.rstrip('/')
+    webapp_url = _os.getenv("ARGOS_WEBAPP_URL", f"{host}/webapp")
+
+    if request.method == 'GET':
+        return jsonify({
+            'manifest': {
+                'name': 'ARGOS WebApp',
+                'short_name': 'ARGOS',
+                'start_url': webapp_url,
+                'display': 'standalone',
+                'background_color': '#0d1117',
+                'theme_color': '#58a6ff',
+            },
+            'telegram': {
+                'url': webapp_url,
+                'mode': 'inline',
+            },
+            'api': {
+                'health': f'{host}/health',
+                'nodes': f'{host}/brain/nodes',
+                'system': f'{host}/system/status',
+            }
+        }), 200
+
+    # POST — validate Telegram WebApp initData
+    init_data_raw = request.form.get('initData') or request.json.get('initData', '')
+    if not init_data_raw:
+        return jsonify({'valid': False, 'error': 'missing initData'}), 400
+
+    if not BOT_TOKEN:
+        return jsonify({'valid': False, 'error': 'server missing bot token'}), 500
+
+    data_check = parse_qs(init_data_raw)
+    hash_received = data_check.pop('hash', [None])[0]
+    if not hash_received:
+        return jsonify({'valid': False, 'error': 'missing hash'}), 400
+
+    # sort params by key
+    data_check_string = '\n'.join(
+        f'{k}={v[0]}' for k, v in sorted(data_check.items())
+    )
+    secret_key = sha256(BOT_TOKEN.encode()).digest()
+    expected_hash = hmac_new(secret_key, data_check_string.encode(), sha256).hexdigest()
+
+    valid = hmac.compare_digest(expected_hash, hash_received)
+    user = {}
+    if 'user' in data_check:
+        try:
+            user = json.loads(data_check['user'][0])
+        except Exception:
+            pass
+
+    return jsonify({
+        'valid': valid,
+        'user': user if valid else None,
+        'parsed': {k: v[0] for k, v in data_check.items()},
+    }), 200 if valid else 403
+
+
 # ============================================================
-# УПРАВЛЕНИЕ BRAIN
+# BRAIN CONTROL — /brain/start, /brain/stop, /brain/reset
 # ============================================================
 
 @app.route('/brain/start', methods=['POST'])
@@ -741,6 +962,7 @@ def api_docs():
             'GET  /agents':         'Список агентов',
             'POST /agents':         'Создать агента',
             'GET  /agents/<id>':    'Информация об агенте',
+            'POST /ask':            'Упрощённый запрос к ArgosCore / ARGOSBrain / llama-server',
             'POST /think':          'Запрос к ArgosCore / ARGOSBrain',
             'POST /coordinate':     'Координация агентов',
             'POST /analyze':        'Анализ данных',
@@ -754,11 +976,88 @@ def api_docs():
             'GET  /brain/nodes':    'Список P2P-узлов',
             'DELETE /brain/nodes/<id>': 'Удалить P2P-узел',
             'GET  /dashboard':      'HTML-дашборд',
+            'POST /swarm/broadcast': 'Broadcast команду в Рой через Gist',
+            'GET  /swarm/drones':   'Список активных Ghost Drones (по логам Gist)',
+            'GET  /swarm/status':   'Статус Master Core + GhostBus',
             'POST /brain/start':    'Запустить brain',
             'POST /brain/stop':     'Остановить brain',
             'POST /brain/reset':    'Сбросить brain',
         },
     }), 200
+
+
+# ============================================================
+# SWARM CONTROL — Ghost Bus C2
+# ============================================================
+
+from src.swarm import ArgosMasterCore
+
+_swarm_master: Optional[ArgosMasterCore] = None
+_swarm_init_attempted: bool = False
+
+def _get_swarm_master() -> Optional[ArgosMasterCore]:
+    global _swarm_master, _swarm_init_attempted
+    if _swarm_master is not None:
+        return _swarm_master
+    if _swarm_init_attempted:
+        return None
+    _swarm_init_attempted = True
+    try:
+        _swarm_master = ArgosMasterCore()
+        logger.info("[BrainAPI] Swarm Master Core инициализирован")
+    except Exception as e:
+        logger.warning("[BrainAPI] Swarm Master Core недоступен: %s", e)
+        _swarm_master = None
+    return _swarm_master
+
+
+@app.route('/swarm/broadcast', methods=['POST'])
+def swarm_broadcast():
+    """Broadcast shell/IoT команд всему Рою через Gist."""
+    data = request.json or {}
+    command = data.get('command')
+    label = data.get('label', 'DIRECTIVE')
+    if not command:
+        return jsonify({'error': 'command обязателен'}), 400
+    master = _get_swarm_master()
+    if master is None:
+        return jsonify({'error': 'Swarm Master Core не инициализирован'}), 500
+    result = master.ghost(command, label=label)
+    return jsonify({'status': 'broadcast', 'result': result}), 200
+
+
+@app.route('/swarm/status', methods=['GET'])
+def swarm_status():
+    """Статус Master Core и GhostBus."""
+    master = _get_swarm_master()
+    if master is None:
+        return jsonify({'error': 'Swarm Master Core не инициализирован'}), 500
+    return jsonify(master.status()), 200
+
+
+@app.route('/swarm/drones', methods=['GET'])
+def swarm_drones():
+    """Список последних отчётов дронов из Gist."""
+    master = _get_swarm_master()
+    if master is None:
+        return jsonify({'error': 'Swarm Master Core не инициализирован'}), 500
+    try:
+        # Сканируем файлы gist-а на префикс drone_
+        r = requests.get(
+            f"https://api.github.com/gists/{master.bus.gist_id}",
+            headers=master.bus.headers,
+            timeout=15,
+        )
+        r.raise_for_status()
+        files = r.json().get('files', {})
+        drones = {
+            name: files[name]['content'][:500]
+            for name in files
+            if name.startswith('drone_')
+        }
+        return jsonify({'drones': drones, 'count': len(drones)}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 # ============================================================
