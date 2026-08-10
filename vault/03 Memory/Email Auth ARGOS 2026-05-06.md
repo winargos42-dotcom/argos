@@ -2,25 +2,25 @@
 
 **Дата:** 2026-05-06  
 **Email:** winargos42@gmail.com  
-**Статус:** ✅ Успешно
+**Статус:** историческая запись; credential удалён
 
 ## Credentials
 - **SMTP_HOST:** smtp.gmail.com
 - **SMTP_PORT:** 465 (SSL)
 - **SMTP_USER:** winargos42@gmail.com
-- **SMTP_PASS:** sigtrip1464
+- **SMTP_PASS:** [REDACTED — never store credentials in Git]
 
 ## Примечания
-- Gmail требует App Password при включенном 2FA
-- Обычный пароль может не работать
-- Для создания App Password: https://myaccount.google.com/apppasswords
+- Использовать OAuth2 или отдельный App Password.
+- Секреты хранить только в runtime secret storage / environment variables.
+- Не записывать пароли и токены в Git, MemPalace, логи или примеры.
+- Credential, ранее опубликованный в этой заметке, следует считать раскрытым и заменить/отозвать.
 
-## Использование
-Через MCP: \отправь письмо\  
-Через Telegram: \отправь письмо на [email] [текст]\
+## Политика внешних сообщений
+ARGOS может читать входящие и готовить черновики. Автоматическая отправка писем внешним support/press/company адресатам запрещена без явного подтверждения владельца. Запрос получателя прекратить прямые обращения имеет приоритет и блокирует дальнейшие отправки по этому каналу.
 
 ---
-*Автоматическая запись ARGOS*
+*Автоматическая запись ARGOS; security redaction 2026-08-10*
 
 <!-- ARGOS_MEMORY_WEB:START -->
 ## Связи памяти
