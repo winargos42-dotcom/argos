@@ -38,6 +38,18 @@ jobs:
       - name: Install Chromium
         run: python -m playwright install --with-deps chromium
 
+      - name: Diagnose Python import path
+        run: |
+          pwd
+          ls -la integrations
+          python - <<'PY'
+          import os, sys
+          print("cwd=", os.getcwd())
+          print("sys.path=", sys.path)
+          import integrations
+          print("integrations=", integrations.__file__)
+          PY
+
       - name: Run Planeta MCP tests
         run: pytest tests/planeta_mcp -v
 
