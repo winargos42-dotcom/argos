@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import contextlib
 import hmac
+import html
 import os
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from .audit import AuditLogger
 from .browser import PlanetaBrowser
 from .config import PlanetaConfig
-from .security import ApprovalGate
+from .security import ApprovalError, ApprovalGate
 from .service import PlanetaCampaignService
 from .session_store import SessionStore
 from .store import CampaignStore
@@ -36,12 +37,30 @@ REGISTERED_TOOL_NAMES = (
 )
 
 
+def _public_base_url() -> str:
+    explicit = os.getenv("PLANETA_PUBLIC_URL", "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "").strip().rstrip("/")
+    if domain:
+        if domain.startswith(("https://", "http://")):
+            return domain
+        return f"https://{domain}"
+    return ""
+
+
+def _approval_location(request_id: str) -> tuple[str, str]:
+    path = f"/approve/{request_id}"
+    base = _public_base_url()
+    return path, f"{base}{path}" if base else path
+
+
 def build_default_service() -> PlanetaCampaignService:
     config = PlanetaConfig.from_env()
-    secret = os.environ.get("PLANETA_MCP_SECRET")
+    approval_secret = os.environ.get("PLANETA_APPROVAL_SECRET")
     session_key = os.environ.get("PLANETA_SESSION_KEY")
-    if not secret:
-        raise RuntimeError("PLANETA_MCP_SECRET is required")
+    if not approval_secret:
+        raise RuntimeError("PLANETA_APPROVAL_SECRET is required")
     if not session_key:
         raise RuntimeError("PLANETA_SESSION_KEY is required")
 
@@ -50,13 +69,17 @@ def build_default_service() -> PlanetaCampaignService:
     storage_state = session_store.load_storage_state()
     browser = PlanetaBrowser(
         base_url=config.base_url,
+        draft_url=config.draft_url,
         headless=config.headless,
         storage_state=storage_state,
     )
     return PlanetaCampaignService(
         store=CampaignStore(config.state_path),
         browser=browser,
-        approval_gate=ApprovalGate(secret, ttl_seconds=config.submit_ttl_seconds),
+        approval_gate=ApprovalGate(
+            approval_secret,
+            ttl_seconds=config.submit_ttl_seconds,
+        ),
         audit=AuditLogger(data_dir / "audit.jsonl"),
     )
 
@@ -113,24 +136,38 @@ def _register_tools(mcp: Any, service: PlanetaCampaignService | None) -> None:
 
     @mcp.tool(
         name="planeta_request_submit_approval",
-        description="FINAL-ACTION GATE: Validate current payload and return a short-lived one-time approval token bound to its digest.",
+        description=(
+            "FINAL-ACTION REQUEST: Create a short-lived pending moderation-submit request. "
+            "This does NOT approve or submit anything; the owner must open the returned approval URL "
+            "and press the confirmation button before submission can succeed."
+        ),
     )
     async def planeta_request_submit_approval() -> dict[str, Any]:
-        grant = await require_service().request_submit_approval()
+        approval_request = await require_service().request_submit_approval()
+        approval_path, approval_url = _approval_location(approval_request.request_id)
         return {
-            "approval_token": grant.token,
-            "campaign_digest": grant.campaign_digest,
-            "issued_at": grant.issued_at,
-            "expires_at": grant.expires_at,
-            "warning": "This token authorizes exactly one immediate moderation submission for this campaign digest.",
+            "request_id": approval_request.request_id,
+            "campaign_digest": approval_request.campaign_digest,
+            "issued_at": approval_request.issued_at,
+            "expires_at": approval_request.expires_at,
+            "approval_path": approval_path,
+            "approval_url": approval_url,
+            "status": "pending_human_confirmation",
+            "warning": (
+                "No submission is authorized yet. The owner must open approval_url and explicitly "
+                "press the confirmation button."
+            ),
         }
 
     @mcp.tool(
         name="planeta_submit_for_moderation",
-        description="FINAL WRITE: Submit the filled Planeta.ru project for moderation. Requires the one-time approval token generated immediately beforehand.",
+        description=(
+            "FINAL WRITE: Submit the filled Planeta.ru project for moderation. "
+            "Requires a request_id that has already been confirmed by the owner on the separate approval page."
+        ),
     )
-    async def planeta_submit_for_moderation(approval_token: str) -> dict[str, Any]:
-        result = await require_service().submit_for_moderation(approval_token)
+    async def planeta_submit_for_moderation(request_id: str) -> dict[str, Any]:
+        result = await require_service().submit_for_moderation(request_id)
         return result.safe_dict()
 
 
@@ -158,6 +195,54 @@ def _transport_security() -> Any:
         allowed_hosts=list(dict.fromkeys(hosts)),
         allowed_origins=list(dict.fromkeys(origins)),
     )
+
+
+def _approval_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-store, max-age=0",
+        "Pragma": "no-cache",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Content-Security-Policy": (
+            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
+            "frame-ancestors 'none'; base-uri 'none'"
+        ),
+    }
+
+
+def _approval_page(
+    request_id: str,
+    campaign_digest: str,
+    expires_at: float,
+    csrf_token: str,
+) -> str:
+    safe_request = html.escape(request_id, quote=True)
+    safe_digest = html.escape(campaign_digest, quote=True)
+    safe_csrf = html.escape(csrf_token, quote=True)
+    return f"""<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARGOS REBOOT — подтверждение</title>
+<style>
+body{{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 18px;line-height:1.5}}
+.card{{border:1px solid #8885;border-radius:16px;padding:22px}}
+code{{word-break:break-all}}button{{font-size:1.05rem;padding:12px 18px;margin-top:16px}}
+.warn{{font-weight:700}}
+</style>
+</head>
+<body><div class="card">
+<h1>ARGOS REBOOT</h1>
+<p class="warn">Подтвердить отправку на модерацию?</p>
+<p>Это разрешение одноразовое и действует только для текущей версии кампании.</p>
+<p>Digest: <code>{safe_digest}</code></p>
+<p>Истекает: <code>{expires_at:.0f}</code></p>
+<form method="post" action="/approve/{safe_request}">
+<input type="hidden" name="csrf_token" value="{safe_csrf}">
+<button type="submit">Подтвердить отправку на модерацию</button>
+</form>
+</div></body></html>"""
 
 
 def create_app(
@@ -190,6 +275,11 @@ def create_app(
     else:
         app = FastAPI(title="ARGOS Planeta MCP")
 
+    def require_http_service() -> PlanetaCampaignService:
+        if service is None:
+            raise HTTPException(status_code=503, detail="Planeta MCP service is not configured")
+        return service
+
     @app.get("/health")
     async def health() -> dict[str, Any]:
         return {
@@ -198,6 +288,42 @@ def create_app(
             "mcp_enabled": mcp_server is not None,
             "configured": service is not None,
         }
+
+    @app.get("/approve/{request_id}", response_class=HTMLResponse)
+    async def approval_form(request_id: str) -> HTMLResponse:
+        svc = require_http_service()
+        try:
+            challenge = svc.get_submit_approval_challenge(request_id)
+        except ApprovalError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return HTMLResponse(
+            _approval_page(
+                request_id=challenge.request_id,
+                campaign_digest=challenge.campaign_digest,
+                expires_at=challenge.expires_at,
+                csrf_token=challenge.csrf_token,
+            ),
+            headers=_approval_headers(),
+        )
+
+    @app.post("/approve/{request_id}", response_class=HTMLResponse)
+    async def approval_confirm(request_id: str, request: Request) -> HTMLResponse:
+        svc = require_http_service()
+        form = await request.form()
+        csrf_token = str(form.get("csrf_token", ""))
+        try:
+            challenge = svc.confirm_submit_approval(request_id, csrf_token)
+        except ApprovalError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        safe_digest = html.escape(challenge.campaign_digest, quote=True)
+        body = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARGOS REBOOT — подтверждено</title></head><body>
+<h1>Подтверждение принято</h1>
+<p>Одноразовое разрешение на отправку кампании с digest <code>{safe_digest}</code> активировано.</p>
+<p>Теперь можно выполнить инструмент <code>planeta_submit_for_moderation</code> с тем же request_id.</p>
+</body></html>"""
+        return HTMLResponse(body, headers=_approval_headers())
 
     if auth_secret:
         @app.middleware("http")
@@ -221,12 +347,16 @@ def create_app(
 
 
 def _module_app() -> FastAPI:
-    secret = os.environ.get("PLANETA_MCP_SECRET")
+    mcp_secret = os.environ.get("PLANETA_MCP_SECRET")
     try:
         service = build_default_service()
     except Exception:
         service = None
-    return create_app(service=service, enable_mcp=MCPServer is not None, auth_secret=secret)
+    return create_app(
+        service=service,
+        enable_mcp=MCPServer is not None,
+        auth_secret=mcp_secret,
+    )
 
 
 app = _module_app()
