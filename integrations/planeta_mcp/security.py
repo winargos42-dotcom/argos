@@ -17,19 +17,30 @@ class ApprovalError(RuntimeError):
 
 
 @dataclass(frozen=True, slots=True)
-class ApprovalGrant:
-    token: str
+class ApprovalRequest:
+    request_id: str
     campaign_digest: str
     issued_at: float
     expires_at: float
+
+
+@dataclass(frozen=True, slots=True)
+class ApprovalChallenge:
+    request_id: str
+    campaign_digest: str
+    issued_at: float
+    expires_at: float
+    csrf_token: str
+    approved_at: float | None
 
 
 @dataclass(slots=True)
 class _ApprovalRecord:
-    token_hash: str
+    request_hash: str
     campaign_digest: str
     issued_at: float
     expires_at: float
+    approved_at: float | None = None
     used: bool = False
 
 
@@ -44,6 +55,13 @@ def campaign_digest(payload: CampaignPayload) -> str:
 
 
 class ApprovalGate:
+    """One-time submit gate that requires a separate human confirmation step.
+
+    MCP callers may create an approval *request*, but only the non-MCP approval
+    page can obtain the CSRF challenge and confirm that request. Submission is
+    rejected until confirmation has happened, and every request is single-use.
+    """
+
     def __init__(
         self,
         secret: bytes | str,
@@ -66,49 +84,77 @@ class ApprovalGate:
         return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
 
     @staticmethod
-    def _token_hash(token: str) -> str:
-        return hashlib.sha256(token.encode("utf-8")).hexdigest()
+    def _request_hash(request_id: str) -> str:
+        return hashlib.sha256(request_id.encode("utf-8")).hexdigest()
 
-    def issue(self, payload: CampaignPayload) -> ApprovalGrant:
+    def _csrf_token(self, request_id: str, record: _ApprovalRecord) -> str:
+        message = (
+            f"human-confirm|{request_id}|{record.campaign_digest}|{record.expires_at:.6f}"
+        ).encode("utf-8")
+        return self._b64(hmac.new(self._secret, message, hashlib.sha256).digest())
+
+    def _get_record(self, request_id: str) -> _ApprovalRecord:
+        request_hash = self._request_hash(request_id)
+        record = self._records.get(request_hash)
+        if record is None:
+            raise ApprovalError("Unknown approval request")
+        if record.used:
+            raise ApprovalError("Approval request has already been used")
+        if float(self._clock()) > record.expires_at:
+            record.used = True
+            raise ApprovalError("Approval request has expired")
+        return record
+
+    def request(self, payload: CampaignPayload) -> ApprovalRequest:
         digest = campaign_digest(payload)
         issued_at = float(self._clock())
         expires_at = issued_at + self._ttl_seconds
-        nonce = secrets.token_urlsafe(24)
-        message = f"{nonce}|{digest}|{expires_at:.6f}".encode("utf-8")
-        signature = hmac.new(self._secret, message, hashlib.sha256).digest()
-        token = f"{nonce}.{self._b64(signature)}"
-        token_hash = self._token_hash(token)
-        self._records[token_hash] = _ApprovalRecord(
-            token_hash=token_hash,
+        request_id = secrets.token_urlsafe(32)
+        request_hash = self._request_hash(request_id)
+        self._records[request_hash] = _ApprovalRecord(
+            request_hash=request_hash,
             campaign_digest=digest,
             issued_at=issued_at,
             expires_at=expires_at,
-            used=False,
         )
-        return ApprovalGrant(
-            token=token,
+        return ApprovalRequest(
+            request_id=request_id,
             campaign_digest=digest,
             issued_at=issued_at,
             expires_at=expires_at,
         )
 
-    def consume(self, token: str, payload: CampaignPayload) -> ApprovalGrant:
-        token_hash = self._token_hash(token)
-        record = self._records.get(token_hash)
-        if record is None:
-            raise ApprovalError("Unknown approval token")
-        if record.used:
-            raise ApprovalError("Approval token has already been used")
-        now = float(self._clock())
-        if now > record.expires_at:
-            record.used = True
-            raise ApprovalError("Approval token has expired")
+    def challenge(self, request_id: str) -> ApprovalChallenge:
+        record = self._get_record(request_id)
+        return ApprovalChallenge(
+            request_id=request_id,
+            campaign_digest=record.campaign_digest,
+            issued_at=record.issued_at,
+            expires_at=record.expires_at,
+            csrf_token=self._csrf_token(request_id, record),
+            approved_at=record.approved_at,
+        )
+
+    def confirm(self, request_id: str, csrf_token: str) -> ApprovalChallenge:
+        record = self._get_record(request_id)
+        expected = self._csrf_token(request_id, record)
+        if not hmac.compare_digest(csrf_token, expected):
+            raise ApprovalError("Invalid human confirmation token")
+        if record.approved_at is None:
+            record.approved_at = float(self._clock())
+        return self.challenge(request_id)
+
+    def consume(self, request_id: str, payload: CampaignPayload) -> ApprovalRequest:
+        record = self._get_record(request_id)
+        if record.approved_at is None:
+            raise ApprovalError("Approval request requires human confirmation")
         digest = campaign_digest(payload)
         if digest != record.campaign_digest:
-            raise ApprovalError("Approval token does not match current campaign")
+            record.used = True
+            raise ApprovalError("Approval request does not match current campaign")
         record.used = True
-        return ApprovalGrant(
-            token=token,
+        return ApprovalRequest(
+            request_id=request_id,
             campaign_digest=record.campaign_digest,
             issued_at=record.issued_at,
             expires_at=record.expires_at,
