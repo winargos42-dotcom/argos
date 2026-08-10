@@ -134,7 +134,7 @@ class PlanetaCampaignService:
             campaign.id,
             "pending_human_confirmation",
             {
-                "request_id_hash": self.approval_gate._request_hash(request.request_id),
+                "request_fingerprint": self.approval_gate.request_fingerprint(request.request_id),
                 "campaign_digest": request.campaign_digest,
                 "issued_at": request.issued_at,
                 "expires_at": request.expires_at,
@@ -153,7 +153,7 @@ class PlanetaCampaignService:
             campaign.id,
             "human_confirmed",
             {
-                "request_id_hash": self.approval_gate._request_hash(request_id),
+                "request_fingerprint": self.approval_gate.request_fingerprint(request_id),
                 "campaign_digest": challenge.campaign_digest,
                 "approved_at": challenge.approved_at,
                 "expires_at": challenge.expires_at,
