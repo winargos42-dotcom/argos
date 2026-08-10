@@ -39,6 +39,25 @@ async def test_classifies_blocking_pages(browser, fixture, expected):
 
 
 @pytest.mark.asyncio
+async def test_live_browser_requires_explicit_draft_url():
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+    try:
+        result = await browser.inspect()
+    finally:
+        await browser.close()
+    assert result.status == "configuration_required"
+
+
+def test_live_browser_rejects_off_domain_draft_url():
+    with pytest.raises(ValueError, match="same origin"):
+        PlanetaBrowser(
+            base_url="https://planeta.ru",
+            draft_url="https://example.com/fake-draft",
+            headless=True,
+        )
+
+
+@pytest.mark.asyncio
 async def test_fill_draft_never_submits(browser):
     campaign = default_argos_reboot_campaign()
     await browser.open_fixture("draft.html")
