@@ -22,7 +22,10 @@ RUN groupadd --gid 10001 app \
     && chown -R app:app /app /data/planeta
 
 COPY --chown=app:app integrations/planeta_mcp /app/integrations/planeta_mcp
-RUN touch /app/integrations/__init__.py && chown app:app /app/integrations/__init__.py
+RUN touch /app/integrations/__init__.py \
+    && chown app:app /app/integrations/__init__.py \
+    && python -m compileall /app/integrations/planeta_mcp \
+    && python -c "from integrations.planeta_mcp.server import REGISTERED_TOOL_NAMES, app; assert len(REGISTERED_TOOL_NAMES) == 8; assert app.title == 'ARGOS Planeta MCP'"
 
 USER app
 
