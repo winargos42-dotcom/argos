@@ -3,6 +3,7 @@ from __future__ import annotations
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field
 from playwright.async_api import (
@@ -21,6 +22,7 @@ from . import selectors
 
 class BrowserState(StrEnum):
     OK = "ok"
+    CONFIGURATION_REQUIRED = "configuration_required"
     HUMAN_ACTION_REQUIRED = "human_action_required"
     AUTHENTICATION_REQUIRED = "authentication_required"
     CAPTCHA_REQUIRED = "captcha_required"
@@ -39,20 +41,30 @@ class BrowserResult(BaseModel):
         return self.model_dump(mode="json")
 
 
+def _origin(url: str) -> tuple[str, str, int | None]:
+    parsed = urlsplit(url)
+    return parsed.scheme.casefold(), (parsed.hostname or "").casefold(), parsed.port
+
+
 class PlanetaBrowser:
     def __init__(
         self,
         base_url: str = "https://planeta.ru",
+        draft_url: str | None = None,
         headless: bool = True,
         fixture_dir: str | Path | None = None,
         executable_path: str | None = None,
         storage_state: dict[str, Any] | None = None,
     ):
         self.base_url = base_url.rstrip("/")
+        self.draft_url = draft_url.strip() if draft_url else None
+        if self.draft_url and _origin(self.draft_url) != _origin(self.base_url):
+            raise ValueError("draft_url must use the same origin as base_url")
         self.headless = headless
         self.fixture_dir = Path(fixture_dir) if fixture_dir else None
         self.executable_path = executable_path
         self.storage_state = storage_state
+        self._fixture_loaded = False
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
         self._context: BrowserContext | None = None
@@ -73,6 +85,17 @@ class PlanetaBrowser:
         self._page = await self._context.new_page()
         return self._page
 
+    async def _prepare_page(self) -> tuple[Page | None, BrowserResult | None]:
+        if not self._fixture_loaded and not self.draft_url:
+            return None, BrowserResult(
+                status=BrowserState.CONFIGURATION_REQUIRED.value,
+                reason="PLANETA_DRAFT_URL must point to the owner's Planeta.ru draft editor",
+            )
+        page = await self._ensure_page()
+        if not self._fixture_loaded and self.draft_url and page.url != self.draft_url:
+            await page.goto(self.draft_url, wait_until="domcontentloaded", timeout=30000)
+        return page, None
+
     async def open_fixture(self, filename: str) -> None:
         if self.fixture_dir is None:
             raise RuntimeError("fixture_dir is not configured")
@@ -81,6 +104,7 @@ class PlanetaBrowser:
             raise FileNotFoundError(filename)
         page = await self._ensure_page()
         await page.set_content(path.read_text(encoding="utf-8"), wait_until="domcontentloaded")
+        self._fixture_loaded = True
 
     async def classify_page(self, page: Page) -> BrowserState:
         try:
@@ -122,10 +146,20 @@ class PlanetaBrowser:
             return BrowserState.PLANETA_ERROR
 
     async def inspect(self) -> BrowserResult:
-        page = await self._ensure_page()
-        state = await self.classify_page(page)
+        try:
+            page, early = await self._prepare_page()
+            if early is not None:
+                return early
+            assert page is not None
+            state = await self.classify_page(page)
+        except PlaywrightTimeoutError:
+            state = BrowserState.NETWORK_ERROR
+        except PlaywrightError:
+            state = BrowserState.PLANETA_ERROR
+
         reasons = {
             BrowserState.OK: "known draft editor detected",
+            BrowserState.CONFIGURATION_REQUIRED: "Planeta.ru draft URL is not configured",
             BrowserState.AUTHENTICATION_REQUIRED: "human Planeta.ru login is required",
             BrowserState.CAPTCHA_REQUIRED: "CAPTCHA/anti-bot step requires human action",
             BrowserState.HUMAN_ACTION_REQUIRED: "identity or verification step requires human action",
@@ -145,12 +179,12 @@ class PlanetaBrowser:
         }
 
     async def read_draft(self) -> BrowserResult:
-        page = await self._ensure_page()
         inspected = await self.inspect()
         if inspected.status != BrowserState.OK.value:
             return inspected
+        assert self._page is not None
         try:
-            snapshot = await self._read_snapshot(page)
+            snapshot = await self._read_snapshot(self._page)
             return BrowserResult(status="ok", reason="draft read", draft_snapshot=snapshot)
         except PlaywrightTimeoutError:
             return BrowserResult(status="network_error", reason="timeout while reading draft")
@@ -158,10 +192,11 @@ class PlanetaBrowser:
             return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
 
     async def fill_draft(self, payload: CampaignPayload) -> BrowserResult:
-        page = await self._ensure_page()
         inspected = await self.inspect()
         if inspected.status != BrowserState.OK.value:
             return inspected
+        assert self._page is not None
+        page = self._page
         try:
             await page.locator(selectors.TITLE_INPUT).fill(payload.title)
             await page.locator(selectors.TARGET_INPUT).fill(str(payload.target_amount))
@@ -183,10 +218,11 @@ class PlanetaBrowser:
             return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
 
     async def submit_for_moderation(self) -> BrowserResult:
-        page = await self._ensure_page()
         inspected = await self.inspect()
         if inspected.status != BrowserState.OK.value:
             return inspected
+        assert self._page is not None
+        page = self._page
         try:
             snapshot = await self._read_snapshot(page)
             await page.locator(selectors.SUBMIT_MODERATION_BUTTON).click()
@@ -215,3 +251,4 @@ class PlanetaBrowser:
         self._context = None
         self._browser = None
         self._playwright = None
+        self._fixture_loaded = False
