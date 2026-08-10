@@ -16,10 +16,12 @@ from .service import PlanetaCampaignService
 from .session_store import SessionStore
 from .store import CampaignStore
 
-try:  # Production dependency; optional only so unit tests can run without the SDK installed.
-    from mcp.server.fastmcp import FastMCP
-except ImportError:  # pragma: no cover - exercised by the lightweight test environment.
-    FastMCP = None  # type: ignore[assignment]
+try:  # Production dependency; optional only so lightweight unit tests can import this module.
+    from mcp.server import MCPServer
+    from mcp.server.transport_security import TransportSecuritySettings
+except ImportError:  # pragma: no cover - exercised only without the production SDK.
+    MCPServer = None  # type: ignore[assignment]
+    TransportSecuritySettings = None  # type: ignore[assignment]
 
 
 REGISTERED_TOOL_NAMES = (
@@ -132,6 +134,32 @@ def _register_tools(mcp: Any, service: PlanetaCampaignService | None) -> None:
         return result.safe_dict()
 
 
+def _transport_security() -> Any:
+    if TransportSecuritySettings is None:
+        return None
+    hosts = ["127.0.0.1:*", "localhost:*"]
+    origins = ["http://127.0.0.1:*", "http://localhost:*"]
+
+    configured = os.getenv("PLANETA_ALLOWED_HOSTS", "")
+    public_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
+    candidates = [part.strip() for part in configured.split(",") if part.strip()]
+    if public_domain.strip():
+        candidates.append(public_domain.strip())
+
+    for host in dict.fromkeys(candidates):
+        clean = host.removeprefix("https://").removeprefix("http://").rstrip("/")
+        if not clean:
+            continue
+        hosts.extend([clean, f"{clean}:*"])
+        origins.extend([f"https://{clean}", f"https://{clean}:*"])
+
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=list(dict.fromkeys(hosts)),
+        allowed_origins=list(dict.fromkeys(origins)),
+    )
+
+
 def create_app(
     service: PlanetaCampaignService | None = None,
     *,
@@ -139,16 +167,19 @@ def create_app(
     auth_secret: str | None = None,
 ) -> FastAPI:
     mcp_server = None
+    mcp_subapp = None
     if enable_mcp:
-        if FastMCP is None:
-            raise RuntimeError("Official MCP Python SDK is required when MCP is enabled")
-        mcp_server = FastMCP(
-            name="ARGOS Planeta MCP",
-            stateless_http=True,
-            json_response=True,
-            streamable_http_path="/",
-        )
+        if MCPServer is None:
+            raise RuntimeError("Official MCP Python SDK v2 is required when MCP is enabled")
+        mcp_server = MCPServer("ARGOS Planeta MCP")
         _register_tools(mcp_server, service)
+        mcp_subapp = mcp_server.streamable_http_app(
+            streamable_http_path="/mcp",
+            json_response=True,
+            stateless_http=True,
+            transport_security=_transport_security(),
+            host="0.0.0.0",
+        )
 
     if mcp_server is not None:
         @contextlib.asynccontextmanager
@@ -178,8 +209,9 @@ def create_app(
                     return JSONResponse(status_code=401, content={"detail": "unauthorized"})
             return await call_next(request)
 
-    if mcp_server is not None:
-        app.mount("/mcp", mcp_server.streamable_http_app())
+    if mcp_subapp is not None:
+        # Mount at root so the MCPServer's own /mcp route stays publicly available as /mcp.
+        app.mount("/", mcp_subapp)
     else:
         @app.api_route("/mcp", methods=["GET", "POST", "DELETE"])
         async def mcp_disabled():
@@ -194,7 +226,7 @@ def _module_app() -> FastAPI:
         service = build_default_service()
     except Exception:
         service = None
-    return create_app(service=service, enable_mcp=FastMCP is not None, auth_secret=secret)
+    return create_app(service=service, enable_mcp=MCPServer is not None, auth_secret=secret)
 
 
 app = _module_app()
