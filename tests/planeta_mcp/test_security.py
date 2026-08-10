@@ -17,38 +17,58 @@ def test_campaign_digest_is_stable():
     assert campaign_digest(campaign) == campaign_digest(campaign)
 
 
-def test_approval_token_is_one_time_and_bound_to_digest():
+def test_request_cannot_be_consumed_until_human_confirmation():
     campaign = default_argos_reboot_campaign()
     gate = ApprovalGate(b"test-secret", ttl_seconds=300)
-    grant = gate.issue(campaign)
-    gate.consume(grant.token, campaign)
-    with pytest.raises(ApprovalError):
-        gate.consume(grant.token, campaign)
+    request = gate.request(campaign)
+
+    with pytest.raises(ApprovalError, match="human confirmation"):
+        gate.consume(request.request_id, campaign)
+
+    challenge = gate.challenge(request.request_id)
+    gate.confirm(request.request_id, challenge.csrf_token)
+    gate.consume(request.request_id, campaign)
+
+    with pytest.raises(ApprovalError, match="already been used"):
+        gate.consume(request.request_id, campaign)
 
 
-def test_campaign_edit_invalidates_approval():
+def test_invalid_confirmation_token_does_not_arm_submit():
     campaign = default_argos_reboot_campaign()
     gate = ApprovalGate(b"test-secret", ttl_seconds=300)
-    grant = gate.issue(campaign)
+    request = gate.request(campaign)
+
+    with pytest.raises(ApprovalError, match="Invalid human confirmation"):
+        gate.confirm(request.request_id, "wrong-csrf")
+    with pytest.raises(ApprovalError, match="human confirmation"):
+        gate.consume(request.request_id, campaign)
+
+
+def test_campaign_edit_invalidates_approval_request():
+    campaign = default_argos_reboot_campaign()
+    gate = ApprovalGate(b"test-secret", ttl_seconds=300)
+    request = gate.request(campaign)
+    challenge = gate.challenge(request.request_id)
+    gate.confirm(request.request_id, challenge.csrf_token)
     changed = campaign.model_copy(update={"target_amount": campaign.target_amount + 1})
-    with pytest.raises(ApprovalError):
-        gate.consume(grant.token, changed)
+    with pytest.raises(ApprovalError, match="does not match current campaign"):
+        gate.consume(request.request_id, changed)
 
 
-def test_approval_expires():
+def test_approval_request_expires_before_confirmation():
     campaign = default_argos_reboot_campaign()
     clock = FakeClock()
     gate = ApprovalGate(b"test-secret", ttl_seconds=5, clock=clock)
-    grant = gate.issue(campaign)
+    request = gate.request(campaign)
     clock.value += 6
-    with pytest.raises(ApprovalError):
-        gate.consume(grant.token, campaign)
+    with pytest.raises(ApprovalError, match="expired"):
+        gate.challenge(request.request_id)
 
 
-def test_invalidate_all_revokes_grants():
+def test_invalidate_all_revokes_requests():
     campaign = default_argos_reboot_campaign()
     gate = ApprovalGate(b"test-secret", ttl_seconds=300)
-    grant = gate.issue(campaign)
+    request = gate.request(campaign)
     gate.invalidate_all()
-    with pytest.raises(ApprovalError):
-        gate.consume(grant.token, campaign)
+    with pytest.raises(ApprovalError, match="Unknown approval request"):
+        gate.challenge(request.request_id)
