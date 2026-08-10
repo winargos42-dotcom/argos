@@ -6,7 +6,7 @@ from typing import Any, Protocol
 from .audit import AuditLogger
 from .browser import BrowserResult
 from .models import CampaignPayload, ValidationReport
-from .security import ApprovalGate, ApprovalGrant
+from .security import ApprovalChallenge, ApprovalGate, ApprovalRequest
 from .store import CampaignStore
 
 
@@ -123,31 +123,50 @@ class PlanetaCampaignService:
         self.audit.record("planeta_sync_draft", campaign.id, result.status, payload)
         return payload
 
-    async def request_submit_approval(self) -> ApprovalGrant:
+    async def request_submit_approval(self) -> ApprovalRequest:
         campaign = self.store.load_required()
         report = campaign.validate_for_planeta()
         if report.errors:
             raise CampaignValidationError(report.errors)
-        grant = self.approval_gate.issue(campaign)
+        request = self.approval_gate.request(campaign)
         self.audit.record(
             "planeta_request_submit_approval",
             campaign.id,
-            "ok",
+            "pending_human_confirmation",
             {
-                "campaign_digest": grant.campaign_digest,
-                "issued_at": grant.issued_at,
-                "expires_at": grant.expires_at,
-                "approval_token": grant.token,
+                "request_id_hash": self.approval_gate._request_hash(request.request_id),
+                "campaign_digest": request.campaign_digest,
+                "issued_at": request.issued_at,
+                "expires_at": request.expires_at,
             },
         )
-        return grant
+        return request
 
-    async def submit_for_moderation(self, approval_token: str) -> BrowserResult:
+    def get_submit_approval_challenge(self, request_id: str) -> ApprovalChallenge:
+        return self.approval_gate.challenge(request_id)
+
+    def confirm_submit_approval(self, request_id: str, csrf_token: str) -> ApprovalChallenge:
+        campaign = self.store.load_required()
+        challenge = self.approval_gate.confirm(request_id, csrf_token)
+        self.audit.record(
+            "planeta_confirm_submit_approval",
+            campaign.id,
+            "human_confirmed",
+            {
+                "request_id_hash": self.approval_gate._request_hash(request_id),
+                "campaign_digest": challenge.campaign_digest,
+                "approved_at": challenge.approved_at,
+                "expires_at": challenge.expires_at,
+            },
+        )
+        return challenge
+
+    async def submit_for_moderation(self, request_id: str) -> BrowserResult:
         campaign = self.store.load_required()
         report = campaign.validate_for_planeta()
         if report.errors:
             raise CampaignValidationError(report.errors)
-        self.approval_gate.consume(approval_token, campaign)
+        self.approval_gate.consume(request_id, campaign)
         result = await self.browser.submit_for_moderation()
         self._last_browser_status = result.status
         self.audit.record(
