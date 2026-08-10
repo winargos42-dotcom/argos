@@ -49,32 +49,44 @@ def service(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_submit_requires_prior_approval(service, campaign):
+async def test_submit_requires_prior_human_confirmation(service, campaign):
     await service.prepare_campaign(campaign)
-    with pytest.raises(ApprovalError):
-        await service.submit_for_moderation("not-valid")
+    request = await service.request_submit_approval()
+
+    with pytest.raises(ApprovalError, match="human confirmation"):
+        await service.submit_for_moderation(request.request_id)
     assert service.browser.submit_calls == 0
+
+    challenge = service.get_submit_approval_challenge(request.request_id)
+    service.confirm_submit_approval(request.request_id, challenge.csrf_token)
+    result = await service.submit_for_moderation(request.request_id)
+    assert result.status == "ok"
+    assert service.browser.submit_calls == 1
 
 
 @pytest.mark.asyncio
-async def test_prepare_invalidates_prior_approval(service, campaign):
+async def test_prepare_invalidates_prior_approval_request(service, campaign):
     await service.prepare_campaign(campaign)
-    grant = await service.request_submit_approval()
+    request = await service.request_submit_approval()
+    challenge = service.get_submit_approval_challenge(request.request_id)
+    service.confirm_submit_approval(request.request_id, challenge.csrf_token)
     await service.prepare_campaign(campaign.model_copy(update={"target_amount": 199999}))
-    with pytest.raises(ApprovalError):
-        await service.submit_for_moderation(grant.token)
+    with pytest.raises(ApprovalError, match="Unknown approval request"):
+        await service.submit_for_moderation(request.request_id)
     assert service.browser.submit_calls == 0
 
 
 @pytest.mark.asyncio
-async def test_failed_browser_submit_still_consumes_token(service, campaign):
+async def test_failed_browser_submit_still_consumes_confirmed_request(service, campaign):
     await service.prepare_campaign(campaign)
-    grant = await service.request_submit_approval()
+    request = await service.request_submit_approval()
+    challenge = service.get_submit_approval_challenge(request.request_id)
+    service.confirm_submit_approval(request.request_id, challenge.csrf_token)
     service.browser.submit_result = BrowserResult(status="captcha_required", reason="human")
-    result = await service.submit_for_moderation(grant.token)
+    result = await service.submit_for_moderation(request.request_id)
     assert result.status == "captcha_required"
-    with pytest.raises(ApprovalError):
-        await service.submit_for_moderation(grant.token)
+    with pytest.raises(ApprovalError, match="already been used"):
+        await service.submit_for_moderation(request.request_id)
     assert service.browser.submit_calls == 1
 
 
