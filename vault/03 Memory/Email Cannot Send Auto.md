@@ -2,7 +2,7 @@
 
 **Дата:** 2026-05-06  
 **Email:** winargos42@gmail.com  
-**Пароль:** sigtrip1464 (пароль от Google аккаунта)
+**Пароль:** [REDACTED — credential removed from repository]
 
 ---
 
@@ -11,7 +11,7 @@
 ARGOS не может отправить email автоматически, потому что:
 
 1. **Gmail включил 2-Factor Authentication (2FA)**
-2. **Обычный пароль (sigtrip1464) блокируется для SMTP**
+2. **Обычный пароль блокируется для SMTP**
 3. **Требуется App Password (16 символов)** или OAuth2 токен
 
 ### Что пробовалось:
@@ -21,37 +21,23 @@ ARGOS не может отправить email автоматически, по�
 
 ---
 
-## Решение (только ручное)
+## Решение
 
-### Вариант A: Создать App Password (2 минуты)
-1. Открыть: https://myaccount.google.com/apppasswords
-2. Войти как **winargos42@gmail.com** с паролем **sigtrip1464**
-3. Выбрать **Другое** → ввести "ARGOS"
-4. Скопировать **16-значный код** (например: `abcd efgh ijkl mnop`)
-5. Обновить `.env`:
-   ```
-   SMTP_PASSWORD=abcd efgh ijkl mnop
-   ARGOS_EMAIL_PASSWORD=abcd efgh ijkl mnop
-   ```
-6. Перезапустить ARGOS
+Использовать OAuth2 или отдельный App Password, который хранится только в секретах окружения/secret manager и никогда не записывается в Git, логи или MemPalace.
 
-### Вариант B: Отключить 2FA (не рекомендуется)
-1. https://myaccount.google.com/signinoptions/two-step-verification
-2. Выключить 2FA
-3. Тогда обычный пароль заработает
+Пример переменных окружения без реального секрета:
+```text
+SMTP_PASSWORD=<secret-from-runtime>
+ARGOS_EMAIL_PASSWORD=<secret-from-runtime>
+```
+
+## Политика внешней коммуникации
+
+ARGOS не должен автоматически отправлять письма внешним support/press/company адресатам. По умолчанию допускаются только чтение входящих и подготовка черновика. Фактическая отправка внешнего сообщения требует явного подтверждения владельца. Для каналов, попросивших прекратить прямые обращения, отправка запрещена до явного разрешения получателя.
 
 ---
 
-## Альтернатива без Gmail
-
-Если нужна полная автоматизация, лучше использовать:
-- **SendGrid** — API ключ, без OAuth
-- **Mailgun** — API ключ
-- **AWS SES** — Access Key
-
----
-
-*Автоматическая запись ARGOS*
+*Автоматическая запись ARGOS; credential redacted 2026-08-10*
 
 <!-- ARGOS_MEMORY_WEB:START -->
 ## Связи памяти
