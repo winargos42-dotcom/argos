@@ -1,0 +1,84 @@
+from pathlib import Path
+
+import pytest
+import pytest_asyncio
+
+from integrations.planeta_mcp.browser import PlanetaBrowser
+from integrations.planeta_mcp.defaults import default_argos_reboot_campaign
+
+
+FIXTURES = Path(__file__).parents[2] / "integrations" / "planeta_mcp" / "fixtures"
+
+
+@pytest_asyncio.fixture
+async def browser():
+    instance = PlanetaBrowser(
+        base_url="https://planeta.ru",
+        headless=True,
+        fixture_dir=FIXTURES,
+        executable_path="/usr/bin/chromium",
+    )
+    yield instance
+    await instance.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("fixture", "expected"),
+    [
+        ("login.html", "authentication_required"),
+        ("captcha.html", "captcha_required"),
+        ("identity.html", "human_action_required"),
+        ("ui_changed.html", "ui_changed"),
+    ],
+)
+async def test_classifies_blocking_pages(browser, fixture, expected):
+    await browser.open_fixture(fixture)
+    result = await browser.inspect()
+    assert result.status == expected
+
+
+@pytest.mark.asyncio
+async def test_live_browser_requires_explicit_draft_url():
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+    try:
+        result = await browser.inspect()
+    finally:
+        await browser.close()
+    assert result.status == "configuration_required"
+
+
+def test_live_browser_rejects_off_domain_draft_url():
+    with pytest.raises(ValueError, match="same origin"):
+        PlanetaBrowser(
+            base_url="https://planeta.ru",
+            draft_url="https://example.com/fake-draft",
+            headless=True,
+        )
+
+
+@pytest.mark.asyncio
+async def test_fill_draft_never_submits(browser):
+    campaign = default_argos_reboot_campaign()
+    await browser.open_fixture("draft.html")
+    result = await browser.fill_draft(campaign)
+    assert result.status == "ok"
+    assert await browser.submit_click_count() == 0
+    assert result.draft_snapshot["title"] == campaign.title
+    assert result.draft_snapshot["target_amount"] == str(campaign.target_amount)
+
+
+@pytest.mark.asyncio
+async def test_read_draft_returns_snapshot(browser):
+    await browser.open_fixture("draft.html")
+    result = await browser.read_draft()
+    assert result.status == "ok"
+    assert result.draft_snapshot["title"] == ""
+
+
+@pytest.mark.asyncio
+async def test_submit_uses_only_exact_moderation_control(browser):
+    await browser.open_fixture("draft.html")
+    result = await browser.submit_for_moderation()
+    assert result.status == "ok"
+    assert await browser.submit_click_count() == 1

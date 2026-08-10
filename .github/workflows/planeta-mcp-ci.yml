@@ -1,0 +1,48 @@
+name: Planeta MCP CI
+
+on:
+  pull_request:
+    paths:
+      - "integrations/planeta_mcp/**"
+      - "tests/planeta_mcp/**"
+      - "scripts/smoke_planeta_mcp.py"
+      - ".github/workflows/planeta-mcp-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "integrations/planeta_mcp/**"
+      - "tests/planeta_mcp/**"
+      - "scripts/smoke_planeta_mcp.py"
+      - ".github/workflows/planeta-mcp-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: integrations/planeta_mcp/requirements.txt
+
+      - name: Install service dependencies
+        run: pip install -r integrations/planeta_mcp/requirements.txt
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run Planeta MCP tests
+        run: python -m pytest tests/planeta_mcp -v
+
+      - name: Compile Planeta MCP
+        run: python -m compileall integrations/planeta_mcp
+
+      - name: Build Planeta MCP image
+        run: docker build -f integrations/planeta_mcp/Dockerfile -t argos-planeta-mcp:${{ github.sha }} .
