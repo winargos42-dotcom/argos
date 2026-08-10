@@ -87,6 +87,10 @@ class ApprovalGate:
     def _request_hash(request_id: str) -> str:
         return hashlib.sha256(request_id.encode("utf-8")).hexdigest()
 
+    def request_fingerprint(self, request_id: str) -> str:
+        """Return a non-secret short fingerprint safe for audit logs."""
+        return self._request_hash(request_id)[:16]
+
     def _csrf_token(self, request_id: str, record: _ApprovalRecord) -> str:
         message = (
             f"human-confirm|{request_id}|{record.campaign_digest}|{record.expires_at:.6f}"
