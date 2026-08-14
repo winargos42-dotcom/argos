@@ -9,7 +9,15 @@ from urllib.parse import urlsplit
 
 from starlette.responses import HTMLResponse, JSONResponse
 
-from .server import app as core_app
+from . import server as server_module
+from .direct_vnc import direct_vnc_relay
+
+
+# Production-only transport override: keep the core MCP/FastAPI routes intact,
+# but relay the noVNC WebSocket directly to loopback x11vnc TCP instead of
+# chaining through a second local WebSocket/websockify process.
+server_module._default_live_ws_relay = direct_vnc_relay
+core_app = server_module.app
 
 
 ASGIApp = Callable[[dict[str, Any], Callable[[], Awaitable[dict[str, Any]]], Callable[[dict[str, Any]], Awaitable[None]]], Awaitable[None]]
@@ -40,8 +48,25 @@ h1{font-size:1.3rem;margin:0 0 12px}.muted{color:#aaa}.error{color:#ffb4b4}butto
 (async()=>{
   const status=document.getElementById('status');
   const token=location.hash.slice(1);
-  if(!token){status.className='error';status.textContent='Нет токена сессии. Запроси новую ссылку.';return;}
   history.replaceState(null,'',location.pathname);
+  const openVnc=()=>location.replace('/live-login/assets/vnc.html?autoconnect=true&resize=scale&view_clip=true&reconnect=true');
+
+  try{
+    const existing=await fetch('/live-login/status',{credentials:'same-origin',cache:'no-store'});
+    if(existing.ok){
+      const state=await existing.json();
+      if(state.state==='draft_ready'){
+        status.textContent='Авторизация завершена. Черновик готов.';
+        return;
+      }
+      status.textContent='Активная сессия найдена. Восстанавливаю экран…';
+      openVnc();
+      return;
+    }
+  }catch(_e){}
+
+  if(!token){status.className='error';status.textContent='Нет активной сессии и нет нового токена. Запроси новую ссылку.';return;}
+
   try{
     const r=await fetch('/live-login/exchange',{
       method:'POST',
@@ -51,11 +76,11 @@ h1{font-size:1.3rem;margin:0 0 12px}.muted{color:#aaa}.error{color:#ffb4b4}butto
     });
     if(!r.ok){
       status.className='error';
-      status.textContent=r.status===401?'Сессия истекла. Запроси новую ссылку.':'Не удалось открыть сессию: HTTP '+r.status;
+      status.textContent=r.status===409?'Эта ссылка уже использована. Открой её в той же вкладке с сохранённой сессией или запроси новую.':(r.status===401?'Сессия истекла. Запроси новую ссылку.':'Не удалось открыть сессию: HTTP '+r.status);
       return;
     }
     status.textContent='Подключено. Открываю мобильный экран…';
-    location.replace('/live-login/assets/vnc.html?autoconnect=true&resize=scale&view_clip=true&reconnect=true');
+    openVnc();
   }catch(e){status.className='error';status.textContent='Ошибка сети при открытии защищённой сессии.';}
 })();
 </script></body></html>"""
@@ -78,8 +103,6 @@ class LiveEntryBootstrap:
         self._lock = asyncio.Lock()
 
     async def __call__(self, scope, receive, send):
-        # One-link mobile launcher: exchange the fragment token in JS and then
-        # redirect into noVNC's full touch-friendly UI in the same browser.
         if (
             scope.get("type") == "http"
             and scope.get("method") == "GET"
@@ -91,10 +114,6 @@ class LiveEntryBootstrap:
             )(scope, receive, send)
             return
 
-        # noVNC's full mobile UI resolves its default websocket endpoint
-        # relative to /live-login/assets/vnc.html. Rewrite that websocket path
-        # to the protected live-login relay before Starlette's StaticFiles mount
-        # can see it (StaticFiles is HTTP-only and would otherwise raise 500).
         if (
             scope.get("type") == "websocket"
             and scope.get("path") == "/live-login/assets/websockify"
@@ -156,9 +175,6 @@ class LiveEntryBootstrap:
                 )(scope, receive, send)
                 return
 
-            # Burn the public entry capability as soon as the core live session
-            # exists. A later internal exchange failure must not permit a second
-            # Chromium session to be started with the same capability.
             self._entry_used = True
 
             exchanged = await self._invoke_core(

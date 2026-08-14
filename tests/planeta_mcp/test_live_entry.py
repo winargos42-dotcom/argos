@@ -92,3 +92,26 @@ def test_entry_wrapper_passes_normal_live_sessions_through():
 
     assert exchanged.status_code == 204
     assert coordinator.start_calls == 1
+
+
+def test_mobile_launcher_reuses_active_cookie_before_consuming_entry_capability():
+    coordinator = EntryCoordinator()
+    core_app = create_app(
+        service=None,
+        enable_mcp=False,
+        live_control_secret="control-secret",
+        live_coordinator=coordinator,
+    )
+    app = create_entry_app(
+        core_app,
+        entry_token="entry-capability",
+        control_secret="control-secret",
+    )
+    client = TestClient(app, base_url="https://testserver")
+
+    page = client.get("/live-login/mobile")
+    assert page.status_code == 200
+    assert "fetch('/live-login/status'" in page.text
+    assert "fetch('/live-login/exchange'" in page.text
+    assert page.text.index("fetch('/live-login/status'") < page.text.index("fetch('/live-login/exchange'")
+    assert "credentials:'same-origin'" in page.text

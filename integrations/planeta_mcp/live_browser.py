@@ -11,9 +11,9 @@ from playwright.async_api import BrowserContext, Page, Playwright, async_playwri
 class LiveBrowserRuntime:
     """Own the local-only graphical browser stack used for human Planeta.ru login.
 
-    X11, VNC, websockify and CDP are deliberately bound to loopback. Public access
-    is expected to be mediated by the token-gated FastAPI routes, never by Railway
-    networking directly.
+    X11, VNC and CDP are deliberately bound to loopback. Public access is
+    mediated by the token-gated FastAPI WebSocket route, which relays directly
+    to the loopback x11vnc TCP socket.
     """
 
     def __init__(
@@ -33,9 +33,9 @@ class LiveBrowserRuntime:
         self.cdp_port = cdp_port
         self.vnc_host = "127.0.0.1"
         self.vnc_port = vnc_port
-        self.websockify_port = websockify_port
+        self.websockify_port = websockify_port  # retained for backwards-compatible construction
         self.cdp_url = f"http://127.0.0.1:{self.cdp_port}"
-        self.websockify_url = f"ws://127.0.0.1:{self.websockify_port}"
+        self.websockify_url = f"tcp://{self.vnc_host}:{self.vnc_port}"
 
         self._processes: list[asyncio.subprocess.Process] = []
         self._playwright: Playwright | None = None
@@ -114,7 +114,6 @@ class LiveBrowserRuntime:
             await asyncio.sleep(0.25)
             await self._spawn(self.vnc_command(), env=display_env)
             await asyncio.sleep(0.15)
-            await self._spawn(self.websockify_command(), env=display_env)
 
             self._playwright = await async_playwright().start()
             self._context = await self._playwright.chromium.launch_persistent_context(
