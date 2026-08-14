@@ -29,7 +29,7 @@ class FakeCoordinator:
         session = self.controller.get(token)
         if session is None or not session.exchanged or not session.view_active:
             return None
-        return "ws://127.0.0.1:6080"
+        return "tcp://127.0.0.1:5900"
 
 
 def test_live_websocket_requires_cookie_and_relays_only_to_loopback():
@@ -67,12 +67,8 @@ def test_live_websocket_requires_cookie_and_relays_only_to_loopback():
     )
     assert exchanged.status_code == 204
 
-    # Starlette TestClient does not automatically carry a Secure __Host- cookie
-    # from HTTPS HTTP requests into its synthetic WebSocket handshake. A real
-    # browser on wss:// does. Pass the already-issued session cookie explicitly
-    # so the test exercises the server-side WebSocket authorization and relay.
     headers = {"cookie": f"__Host-planeta_live={capability}"}
     with client.websocket_connect("/live-login/websockify", headers=headers) as websocket:
         assert websocket.receive_text() == "relay-ok"
 
-    assert seen == ["ws://127.0.0.1:6080"]
+    assert seen == ["tcp://127.0.0.1:5900"]
