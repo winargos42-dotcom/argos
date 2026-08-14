@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import pytest_asyncio
+from playwright.async_api import async_playwright
 
 from integrations.planeta_mcp.browser import PlanetaBrowser
 from integrations.planeta_mcp.defaults import default_argos_reboot_campaign
@@ -82,3 +83,28 @@ async def test_submit_uses_only_exact_moderation_control(browser):
     result = await browser.submit_for_moderation()
     assert result.status == "ok"
     assert await browser.submit_click_count() == 1
+
+
+@pytest.mark.asyncio
+async def test_browser_attaches_to_existing_cdp_context(tmp_path):
+    async with async_playwright() as playwright:
+        context = await playwright.chromium.launch_persistent_context(
+            str(tmp_path / "shared-profile"),
+            headless=True,
+            args=[
+                "--remote-debugging-port=9333",
+                "--remote-debugging-address=127.0.0.1",
+            ],
+        )
+        try:
+            page = context.pages[0]
+            await page.set_content("<title>shared</title><body>same-context</body>")
+            adapter = PlanetaBrowser(cdp_url="http://127.0.0.1:9333")
+            try:
+                attached = await adapter._ensure_page()
+                assert await attached.title() == "shared"
+                assert await attached.locator("body").inner_text() == "same-context"
+            finally:
+                await adapter.close()
+        finally:
+            await context.close()
