@@ -67,7 +67,12 @@ def test_live_websocket_requires_cookie_and_relays_only_to_loopback():
     )
     assert exchanged.status_code == 204
 
-    with client.websocket_connect("/live-login/websockify") as websocket:
+    # Starlette TestClient does not automatically carry a Secure __Host- cookie
+    # from HTTPS HTTP requests into its synthetic WebSocket handshake. A real
+    # browser on wss:// does. Pass the already-issued session cookie explicitly
+    # so the test exercises the server-side WebSocket authorization and relay.
+    headers = {"cookie": f"__Host-planeta_live={capability}"}
+    with client.websocket_connect("/live-login/websockify", headers=headers) as websocket:
         assert websocket.receive_text() == "relay-ok"
 
     assert seen == ["ws://127.0.0.1:6080"]
