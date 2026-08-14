@@ -39,6 +39,20 @@ class LiveEntryBootstrap:
         self._lock = asyncio.Lock()
 
     async def __call__(self, scope, receive, send):
+        # noVNC's full mobile UI resolves its default websocket endpoint
+        # relative to /live-login/assets/vnc.html. Rewrite that websocket path
+        # to the protected live-login relay before Starlette's StaticFiles mount
+        # can see it (StaticFiles is HTTP-only and would otherwise raise 500).
+        if (
+            scope.get("type") == "websocket"
+            and scope.get("path") == "/live-login/assets/websockify"
+        ):
+            rewritten = dict(scope)
+            rewritten["path"] = "/live-login/websockify"
+            rewritten["raw_path"] = b"/live-login/websockify"
+            await self.app(rewritten, receive, send)
+            return
+
         if (
             scope.get("type") != "http"
             or scope.get("method") != "POST"
