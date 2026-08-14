@@ -7,7 +7,8 @@ import os
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
 
 from .audit import AuditLogger
 from .browser import PlanetaBrowser
@@ -242,6 +243,49 @@ html,body,#screen{width:100%;height:100%;margin:0;background:#111;color:#fff;fon
 </body></html>"""
 
 
+def _live_client_js() -> str:
+    return """const screen = document.getElementById('screen');
+let capability = window.location.hash.slice(1);
+history.replaceState(null, '', window.location.pathname);
+
+function show(message) {
+  screen.innerHTML = '';
+  const node = document.createElement('div');
+  node.className = 'message';
+  node.textContent = message;
+  screen.appendChild(node);
+}
+
+async function start() {
+  if (!capability) {
+    show('Одноразовая ссылка недействительна или уже использована.');
+    return;
+  }
+
+  const exchange = await fetch('/live-login/exchange', {
+    method: 'POST',
+    headers: {Authorization: `Bearer ${capability}`},
+    credentials: 'same-origin',
+    cache: 'no-store',
+  });
+  capability = '';
+  if (!exchange.ok) {
+    show('Не удалось открыть защищённую сессию. Запроси новую ссылку.');
+    return;
+  }
+
+  const {default: RFB} = await import('/live-login/assets/core/rfb.js');
+  const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const rfb = new RFB(screen, `${scheme}://${window.location.host}/live-login/websockify`);
+  rfb.scaleViewport = true;
+  rfb.resizeSession = true;
+  rfb.focusOnClick = true;
+}
+
+start().catch(() => show('Не удалось подключиться к браузеру Planeta.ru.'));
+"""
+
+
 def _approval_page(
     request_id: str,
     campaign_digest: str,
@@ -309,6 +353,12 @@ def create_app(
     else:
         app = FastAPI(title="ARGOS Planeta MCP")
 
+    app.mount(
+        "/live-login/assets",
+        StaticFiles(directory="/usr/share/novnc", check_dir=False),
+        name="planeta-novnc",
+    )
+
     def require_http_service() -> PlanetaCampaignService:
         if service is None:
             raise HTTPException(status_code=503, detail="Planeta MCP service is not configured")
@@ -354,6 +404,16 @@ def create_app(
         if live_coordinator is None or not live_control_secret:
             raise HTTPException(status_code=503, detail="live login is not configured")
         return HTMLResponse(_live_login_page(), headers=_live_headers())
+
+    @app.get("/live-login/client.js", response_class=PlainTextResponse)
+    async def live_login_client() -> PlainTextResponse:
+        if live_coordinator is None or not live_control_secret:
+            raise HTTPException(status_code=503, detail="live login is not configured")
+        return PlainTextResponse(
+            _live_client_js(),
+            media_type="application/javascript",
+            headers=_live_headers(),
+        )
 
     @app.post("/live-login/exchange")
     async def live_login_exchange(request: Request) -> Response:
