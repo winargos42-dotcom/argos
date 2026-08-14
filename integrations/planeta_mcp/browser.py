@@ -107,7 +107,12 @@ class PlanetaBrowser:
                 reason="PLANETA_DRAFT_URL must point to the owner's Planeta.ru draft editor",
             )
         page = await self._ensure_page()
-        if not self._fixture_loaded and self.draft_url and page.url != self.draft_url:
+        if (
+            not self.cdp_url
+            and not self._fixture_loaded
+            and self.draft_url
+            and page.url != self.draft_url
+        ):
             await page.goto(self.draft_url, wait_until="domcontentloaded", timeout=30000)
         return page, None
 
