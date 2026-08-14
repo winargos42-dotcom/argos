@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import hmac
 import html
 import os
 from typing import Any
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
+from websockets.asyncio.client import connect as websocket_connect
 
 from .audit import AuditLogger
 from .browser import PlanetaBrowser
@@ -286,6 +289,45 @@ start().catch(() => show('Не удалось подключиться к бра
 """
 
 
+async def _default_live_ws_relay(websocket: WebSocket, target: str) -> None:
+    parsed = urlsplit(target)
+    if parsed.scheme != "ws" or parsed.hostname != "127.0.0.1" or parsed.port != 6080:
+        await websocket.close(code=4403)
+        return
+
+    await websocket.accept()
+    try:
+        async with websocket_connect(target, max_size=None, compression=None) as upstream:
+            async def client_to_upstream() -> None:
+                while True:
+                    message = await websocket.receive()
+                    if message["type"] == "websocket.disconnect":
+                        return
+                    if message.get("bytes") is not None:
+                        await upstream.send(message["bytes"])
+                    elif message.get("text") is not None:
+                        await upstream.send(message["text"])
+
+            async def upstream_to_client() -> None:
+                async for message in upstream:
+                    if isinstance(message, bytes):
+                        await websocket.send_bytes(message)
+                    else:
+                        await websocket.send_text(message)
+
+            tasks = {
+                asyncio.create_task(client_to_upstream()),
+                asyncio.create_task(upstream_to_client()),
+            }
+            _done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in pending:
+                task.cancel()
+            await asyncio.gather(*pending, return_exceptions=True)
+    except Exception:
+        with contextlib.suppress(Exception):
+            await websocket.close(code=1011)
+
+
 def _approval_page(
     request_id: str,
     campaign_digest: str,
@@ -328,6 +370,7 @@ def create_app(
     auth_secret: str | None = None,
     live_control_secret: str | None = None,
     live_coordinator: Any | None = None,
+    live_ws_relay: Any | None = None,
 ) -> FastAPI:
     mcp_server = None
     mcp_subapp = None
@@ -452,6 +495,22 @@ def create_app(
         if status is None:
             return JSONResponse(status_code=404, content={"detail": "live login session not found"})
         return JSONResponse(status, headers=_live_headers())
+
+    @app.websocket("/live-login/websockify")
+    async def live_login_websocket(websocket: WebSocket) -> None:
+        if live_coordinator is None or not live_control_secret:
+            await websocket.close(code=1013)
+            return
+        token = websocket.cookies.get(_LIVE_COOKIE, "")
+        if not token:
+            await websocket.close(code=4401)
+            return
+        target = live_coordinator.websockify_url(token)
+        if not target:
+            await websocket.close(code=4403)
+            return
+        relay = live_ws_relay or _default_live_ws_relay
+        await relay(websocket, target)
 
     @app.get("/approve/{request_id}", response_class=HTMLResponse)
     async def approval_form(request_id: str) -> HTMLResponse:
