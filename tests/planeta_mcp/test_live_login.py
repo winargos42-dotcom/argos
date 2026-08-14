@@ -27,7 +27,7 @@ def test_live_login_expired_token_disappears():
     assert ctl.get(token) is None
 
 
-def test_live_login_capability_exchanges_once_and_ready_disables_view():
+def test_live_login_capability_exchange_is_idempotent_while_view_is_active():
     ctl = LiveLoginController(ttl_seconds=300)
     session = ctl.start()
 
@@ -35,9 +35,14 @@ def test_live_login_capability_exchanges_once_and_ready_disables_view():
     assert exchanged.exchanged is True
     assert exchanged.view_active is True
 
-    with pytest.raises(ValueError, match="already exchanged"):
-        ctl.exchange(session.token)
+    reloaded = ctl.exchange(session.token)
+    assert reloaded is exchanged
+    assert reloaded.exchanged is True
+    assert reloaded.view_active is True
 
     ready = ctl.mark_ready(session.token)
     assert ready.state == "draft_ready"
     assert ready.view_active is False
+
+    with pytest.raises(ValueError, match="no longer active"):
+        ctl.exchange(session.token)
