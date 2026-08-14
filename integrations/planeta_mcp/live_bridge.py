@@ -19,6 +19,17 @@ def _origin(url: str) -> tuple[str, str, int | None]:
     return parsed.scheme.casefold(), (parsed.hostname or "").casefold(), parsed.port
 
 
+def _is_allowed_human_auth_origin(url: str, base_url: str) -> bool:
+    parsed = urlsplit(url)
+    base = urlsplit(base_url)
+    scheme = parsed.scheme.casefold()
+    host = (parsed.hostname or "").casefold()
+    base_host = (base.hostname or "").casefold()
+    if scheme != "https" or not host or not base_host:
+        return False
+    return host == base_host or host.endswith(f".{base_host}")
+
+
 class LiveLoginCoordinator:
     """Bridge a human-visible Chromium session to the existing Planeta MCP service."""
 
@@ -167,7 +178,7 @@ class LiveLoginCoordinator:
             while self.controller.get(token) is not None:
                 page = getattr(runtime, "page", None)
                 page_url = str(getattr(page, "url", ""))
-                if page_url and _origin(page_url) != _origin(self.config.base_url):
+                if page_url and not _is_allowed_human_auth_origin(page_url, self.config.base_url):
                     self.controller.set_state(token, LiveLoginState.HUMAN_ACTION_REQUIRED)
                     self._results[token]["reason"] = "unexpected_origin"
                     terminal = True
@@ -178,6 +189,12 @@ class LiveLoginCoordinator:
                 self._results[token]["reason"] = inspected.reason
 
                 if state == "ok":
+                    if _origin(page_url) != _origin(self.config.base_url):
+                        self.controller.set_state(token, LiveLoginState.HUMAN_LOGIN_IN_PROGRESS)
+                        self._results[token]["reason"] = "waiting_for_return_to_draft_origin"
+                        await asyncio.sleep(self.poll_interval)
+                        continue
+
                     self.session_store.save_storage_state(await runtime.storage_state())
                     await self.service.prepare_campaign(default_argos_reboot_campaign())
 

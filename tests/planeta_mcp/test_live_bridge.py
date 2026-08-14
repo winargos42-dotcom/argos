@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 from integrations.planeta_mcp.audit import AuditLogger
 from integrations.planeta_mcp.browser import BrowserResult
 from integrations.planeta_mcp.config import PlanetaConfig
-from integrations.planeta_mcp.live_bridge import LiveLoginCoordinator
+from integrations.planeta_mcp.live_bridge import LiveLoginCoordinator, _is_allowed_human_auth_origin
 from integrations.planeta_mcp.live_login import LiveLoginController
 from integrations.planeta_mcp.security import ApprovalGate
 from integrations.planeta_mcp.service import PlanetaCampaignService
@@ -80,6 +80,16 @@ class FakeRuntime:
 
     async def stop(self):
         self.stopped = True
+
+
+def test_human_auth_origin_allows_https_planeta_subdomains_only():
+    base = "https://planeta.ru"
+    assert _is_allowed_human_auth_origin("https://planeta.ru/nuborn_session", base) is True
+    assert _is_allowed_human_auth_origin("https://id.planeta.ru/login", base) is True
+    assert _is_allowed_human_auth_origin("https://school.planeta.ru/check", base) is True
+    assert _is_allowed_human_auth_origin("http://id.planeta.ru/login", base) is False
+    assert _is_allowed_human_auth_origin("https://planeta.ru.evil.example/login", base) is False
+    assert _is_allowed_human_auth_origin("https://example.com/login", base) is False
 
 
 @pytest.mark.asyncio

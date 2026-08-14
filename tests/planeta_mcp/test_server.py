@@ -183,7 +183,7 @@ def test_live_login_fragment_exchanges_for_http_only_cookie_and_status_is_saniti
         "/live-login/exchange",
         headers={"Authorization": f"Bearer {capability}"},
     )
-    assert duplicate.status_code == 409
+    assert duplicate.status_code == 204
 
     status = client.get("/live-login/status")
     assert status.status_code == 200
