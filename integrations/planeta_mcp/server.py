@@ -7,7 +7,7 @@ import os
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from .audit import AuditLogger
 from .browser import PlanetaBrowser
@@ -35,6 +35,8 @@ REGISTERED_TOOL_NAMES = (
     "planeta_request_submit_approval",
     "planeta_submit_for_moderation",
 )
+
+_LIVE_COOKIE = "__Host-planeta_live"
 
 
 def _public_base_url() -> str:
@@ -210,6 +212,36 @@ def _approval_headers() -> dict[str, str]:
     }
 
 
+def _live_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-store, max-age=0",
+        "Pragma": "no-cache",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Content-Security-Policy": (
+            "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; "
+            "connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+        ),
+    }
+
+
+def _live_login_page() -> str:
+    return """<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>ARGOS — вход Planeta.ru</title>
+<style>
+html,body,#screen{width:100%;height:100%;margin:0;background:#111;color:#fff;font-family:system-ui,sans-serif}
+#screen{overflow:hidden}.message{padding:18px}
+</style>
+</head>
+<body><div id="screen"><div class="message">Подключение к защищённому браузеру Planeta.ru…</div></div>
+<script type="module" src="/live-login/client.js"></script>
+</body></html>"""
+
+
 def _approval_page(
     request_id: str,
     campaign_digest: str,
@@ -250,6 +282,8 @@ def create_app(
     *,
     enable_mcp: bool = True,
     auth_secret: str | None = None,
+    live_control_secret: str | None = None,
+    live_coordinator: Any | None = None,
 ) -> FastAPI:
     mcp_server = None
     mcp_subapp = None
@@ -280,6 +314,11 @@ def create_app(
             raise HTTPException(status_code=503, detail="Planeta MCP service is not configured")
         return service
 
+    def require_live_coordinator() -> Any:
+        if live_coordinator is None or not live_control_secret:
+            raise HTTPException(status_code=503, detail="live login is not configured")
+        return live_coordinator
+
     @app.get("/health")
     async def health() -> dict[str, Any]:
         return {
@@ -288,6 +327,71 @@ def create_app(
             "mcp_enabled": mcp_server is not None,
             "configured": service is not None,
         }
+
+    @app.post("/live-login/start")
+    async def live_login_start(request: Request) -> JSONResponse:
+        coordinator = require_live_coordinator()
+        supplied = request.headers.get("authorization", "")
+        expected = f"Bearer {live_control_secret}"
+        if not hmac.compare_digest(supplied, expected):
+            return JSONResponse(status_code=401, content={"detail": "unauthorized"})
+        session = await coordinator.start()
+        base = _public_base_url()
+        path = "/live-login/"
+        browser_url = f"{base}{path}#{session.token}" if base else f"{path}#{session.token}"
+        return JSONResponse(
+            {
+                "browser_url": browser_url,
+                "expires_at": session.expires_at,
+                "status_url": f"{base}/live-login/status" if base else "/live-login/status",
+                "durability": getattr(coordinator, "durability", "ephemeral"),
+            },
+            headers=_live_headers(),
+        )
+
+    @app.get("/live-login/", response_class=HTMLResponse)
+    async def live_login_page() -> HTMLResponse:
+        if live_coordinator is None or not live_control_secret:
+            raise HTTPException(status_code=503, detail="live login is not configured")
+        return HTMLResponse(_live_login_page(), headers=_live_headers())
+
+    @app.post("/live-login/exchange")
+    async def live_login_exchange(request: Request) -> Response:
+        coordinator = require_live_coordinator()
+        supplied = request.headers.get("authorization", "")
+        prefix = "Bearer "
+        if not supplied.startswith(prefix):
+            return JSONResponse(status_code=401, content={"detail": "unauthorized"})
+        token = supplied[len(prefix):]
+        try:
+            coordinator.exchange(token)
+        except KeyError:
+            return JSONResponse(status_code=401, content={"detail": "invalid or expired capability"})
+        except ValueError:
+            return JSONResponse(status_code=409, content={"detail": "capability already exchanged"})
+
+        response = Response(status_code=204, headers=_live_headers())
+        response.set_cookie(
+            _LIVE_COOKIE,
+            token,
+            secure=True,
+            httponly=True,
+            samesite="strict",
+            path="/",
+            max_age=None,
+        )
+        return response
+
+    @app.get("/live-login/status")
+    async def live_login_status(request: Request) -> JSONResponse:
+        coordinator = require_live_coordinator()
+        token = request.cookies.get(_LIVE_COOKIE, "")
+        if not token:
+            return JSONResponse(status_code=401, content={"detail": "unauthorized"})
+        status = coordinator.status(token)
+        if status is None:
+            return JSONResponse(status_code=404, content={"detail": "live login session not found"})
+        return JSONResponse(status, headers=_live_headers())
 
     @app.get("/approve/{request_id}", response_class=HTMLResponse)
     async def approval_form(request_id: str) -> HTMLResponse:
