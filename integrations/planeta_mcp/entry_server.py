@@ -7,7 +7,7 @@ import os
 from typing import Any, Awaitable, Callable
 from urllib.parse import urlsplit
 
-from starlette.responses import JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse
 
 from .server import app as core_app
 
@@ -20,6 +20,45 @@ def _authorization(scope: dict[str, Any]) -> str:
         if name.lower() == b"authorization":
             return value.decode("latin-1")
     return ""
+
+
+def _mobile_launcher() -> str:
+    return """<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>ARGOS — Planeta mobile login</title>
+<style>
+html,body{margin:0;min-height:100%;background:#111;color:#fff;font:16px system-ui,sans-serif}
+main{max-width:620px;margin:0 auto;padding:32px 20px}.card{border:1px solid #444;border-radius:18px;padding:22px;background:#181818}
+h1{font-size:1.3rem;margin:0 0 12px}.muted{color:#aaa}.error{color:#ffb4b4}button{font-size:1rem;padding:12px 16px}
+</style>
+</head>
+<body><main><div class="card"><h1>ARGOS — вход Planeta.ru</h1><p id="status">Открываю защищённый браузер…</p><p class="muted">После подключения используй кнопку клавиатуры в панели noVNC. Экран можно прокручивать и масштабировать пальцами.</p></div></main>
+<script>
+(async()=>{
+  const status=document.getElementById('status');
+  const token=location.hash.slice(1);
+  if(!token){status.className='error';status.textContent='Нет токена сессии. Запроси новую ссылку.';return;}
+  history.replaceState(null,'',location.pathname);
+  try{
+    const r=await fetch('/live-login/exchange',{
+      method:'POST',
+      headers:{Authorization:`Bearer ${token}`},
+      credentials:'same-origin',
+      cache:'no-store'
+    });
+    if(!r.ok){
+      status.className='error';
+      status.textContent=r.status===401?'Сессия истекла. Запроси новую ссылку.':'Не удалось открыть сессию: HTTP '+r.status;
+      return;
+    }
+    status.textContent='Подключено. Открываю мобильный экран…';
+    location.replace('/live-login/assets/vnc.html?autoconnect=true&resize=scale&view_clip=true&reconnect=true');
+  }catch(e){status.className='error';status.textContent='Ошибка сети при открытии защищённой сессии.';}
+})();
+</script></body></html>"""
 
 
 class LiveEntryBootstrap:
@@ -39,6 +78,19 @@ class LiveEntryBootstrap:
         self._lock = asyncio.Lock()
 
     async def __call__(self, scope, receive, send):
+        # One-link mobile launcher: exchange the fragment token in JS and then
+        # redirect into noVNC's full touch-friendly UI in the same browser.
+        if (
+            scope.get("type") == "http"
+            and scope.get("method") == "GET"
+            and scope.get("path") == "/live-login/mobile"
+        ):
+            await HTMLResponse(
+                _mobile_launcher(),
+                headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
+            )(scope, receive, send)
+            return
+
         # noVNC's full mobile UI resolves its default websocket endpoint
         # relative to /live-login/assets/vnc.html. Rewrite that websocket path
         # to the protected live-login relay before Starlette's StaticFiles mount
