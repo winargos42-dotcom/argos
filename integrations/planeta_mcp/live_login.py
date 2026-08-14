@@ -68,11 +68,21 @@ class LiveLoginController:
         return session
 
     def exchange(self, token: str) -> LiveLoginSession:
+        """Exchange a valid capability for the active browser view.
+
+        The exchange is intentionally idempotent while the same live session is
+        still active. Mobile browsers commonly reload a tab when switching apps,
+        opening the keyboard, or recovering from a transient network pause. A
+        reload must not burn the session and force the owner to request a new
+        URL. Expired/invalid tokens still fail closed in ``get()``.
+        """
         session = self.get(token)
         if session is None:
             raise KeyError("live login session not found or expired")
         if session.exchanged:
-            raise ValueError("live login capability already exchanged")
+            if not session.view_active:
+                raise ValueError("live login capability is no longer active")
+            return session
         session.exchanged = True
         session.state = LiveLoginState.HUMAN_LOGIN_IN_PROGRESS
         return session
