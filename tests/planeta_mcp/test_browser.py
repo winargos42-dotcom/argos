@@ -107,3 +107,23 @@ async def test_browser_attaches_to_existing_cdp_context(tmp_path):
             assert await page.title() == "shared"
         finally:
             await context.close()
+
+
+@pytest.mark.asyncio
+async def test_cdp_mode_never_redirects_human_login_page_back_to_draft():
+    class HumanPage:
+        url = "https://planeta.ru/nuborn_session"
+
+        async def goto(self, *_args, **_kwargs):
+            raise AssertionError("shared human browser must not be redirected by watcher")
+
+    adapter = PlanetaBrowser(
+        base_url="https://planeta.ru",
+        draft_url="https://planeta.ru/campaigns/251138/edit/about",
+        cdp_url="http://127.0.0.1:9222",
+    )
+    adapter._page = HumanPage()
+    page, early = await adapter._prepare_page()
+
+    assert early is None
+    assert page.url == "https://planeta.ru/nuborn_session"
