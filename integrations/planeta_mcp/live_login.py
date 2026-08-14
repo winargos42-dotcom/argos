@@ -21,6 +21,8 @@ class LiveLoginSession:
     issued_at: float
     expires_at: float
     state: LiveLoginState
+    exchanged: bool = False
+    view_active: bool = True
 
 
 class LiveLoginController:
@@ -55,8 +57,19 @@ class LiveLoginController:
         session = self._sessions[key]
         if self._clock() > session.expires_at:
             session.state = LiveLoginState.EXPIRED
+            session.view_active = False
             del self._sessions[key]
             return None
+        return session
+
+    def exchange(self, token: str) -> LiveLoginSession:
+        session = self.get(token)
+        if session is None:
+            raise KeyError("live login session not found or expired")
+        if session.exchanged:
+            raise ValueError("live login capability already exchanged")
+        session.exchanged = True
+        session.state = LiveLoginState.HUMAN_LOGIN_IN_PROGRESS
         return session
 
     def mark_in_progress(self, token: str) -> LiveLoginSession:
@@ -71,6 +84,7 @@ class LiveLoginController:
         if session is None:
             raise KeyError("live login session not found or expired")
         session.state = LiveLoginState.DRAFT_READY
+        session.view_active = False
         return session
 
     def invalidate(self, token: str) -> None:
