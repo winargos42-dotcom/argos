@@ -11,6 +11,11 @@ from typing import Callable
 class LiveLoginState(StrEnum):
     WAITING_FOR_HUMAN = "waiting_for_human"
     HUMAN_LOGIN_IN_PROGRESS = "human_login_in_progress"
+    AUTHENTICATION_REQUIRED = "authentication_required"
+    CAPTCHA_REQUIRED = "captcha_required"
+    HUMAN_ACTION_REQUIRED = "human_action_required"
+    UI_CHANGED = "ui_changed"
+    NETWORK_ERROR = "network_error"
     DRAFT_READY = "draft_ready"
     EXPIRED = "expired"
 
@@ -72,18 +77,18 @@ class LiveLoginController:
         session.state = LiveLoginState.HUMAN_LOGIN_IN_PROGRESS
         return session
 
-    def mark_in_progress(self, token: str) -> LiveLoginSession:
+    def set_state(self, token: str, state: LiveLoginState | str) -> LiveLoginSession:
         session = self.get(token)
         if session is None:
             raise KeyError("live login session not found or expired")
-        session.state = LiveLoginState.HUMAN_LOGIN_IN_PROGRESS
+        session.state = state if isinstance(state, LiveLoginState) else LiveLoginState(state)
         return session
 
+    def mark_in_progress(self, token: str) -> LiveLoginSession:
+        return self.set_state(token, LiveLoginState.HUMAN_LOGIN_IN_PROGRESS)
+
     def mark_ready(self, token: str) -> LiveLoginSession:
-        session = self.get(token)
-        if session is None:
-            raise KeyError("live login session not found or expired")
-        session.state = LiveLoginState.DRAFT_READY
+        session = self.set_state(token, LiveLoginState.DRAFT_READY)
         session.view_active = False
         return session
 
