@@ -16,6 +16,8 @@ from websockets.asyncio.client import connect as websocket_connect
 from .audit import AuditLogger
 from .browser import PlanetaBrowser
 from .config import PlanetaConfig
+from .live_bridge import LiveLoginCoordinator
+from .live_login import LiveLoginController
 from .security import ApprovalError, ApprovalGate
 from .service import PlanetaCampaignService
 from .session_store import SessionStore
@@ -571,14 +573,46 @@ def create_app(
 
 def _module_app() -> FastAPI:
     mcp_secret = os.environ.get("PLANETA_MCP_SECRET")
+    live_control_secret = os.environ.get("PLANETA_LIVE_CONTROL_SECRET")
+    service: PlanetaCampaignService | None = None
+    live_coordinator: LiveLoginCoordinator | None = None
+
     try:
         service = build_default_service()
     except Exception:
         service = None
+
+    if service is not None and live_control_secret:
+        try:
+            config = PlanetaConfig.from_env()
+            session_key = os.environ.get("PLANETA_SESSION_KEY")
+            if not session_key:
+                raise RuntimeError("PLANETA_SESSION_KEY is required")
+            if not config.draft_url:
+                raise RuntimeError("PLANETA_DRAFT_URL is required for live login")
+            durability = os.getenv("PLANETA_SESSION_DURABILITY", "ephemeral").strip().lower()
+            if durability not in {"ephemeral", "durable"}:
+                raise ValueError("PLANETA_SESSION_DURABILITY must be ephemeral or durable")
+            session_store = SessionStore(config.state_path.parent / "session.enc", session_key)
+            live_coordinator = LiveLoginCoordinator(
+                service=service,
+                config=config,
+                session_store=session_store,
+                controller=LiveLoginController(ttl_seconds=config.live_ttl_seconds),
+                durability=durability,
+            )
+        except Exception:
+            live_coordinator = None
+
+    if live_coordinator is None:
+        live_control_secret = None
+
     return create_app(
         service=service,
         enable_mcp=MCPServer is not None,
         auth_secret=mcp_secret,
+        live_control_secret=live_control_secret,
+        live_coordinator=live_coordinator,
     )
 
 
