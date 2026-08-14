@@ -51,6 +51,12 @@ class FakeLiveCoordinator:
             "durability": self.durability,
         }
 
+    def websockify_url(self, token):
+        session = self.controller.get(token)
+        if session is None or not session.exchanged or not session.view_active:
+            return None
+        return "ws://127.0.0.1:6080"
+
 
 def make_service(tmp_path):
     browser = NoopBrowser()
@@ -186,3 +192,23 @@ def test_live_login_fragment_exchanges_for_http_only_cookie_and_status_is_saniti
     assert "token" not in status.json()
     assert "cookie" not in status.json()
     assert service.browser.submit_calls == 0
+
+
+def test_live_login_client_removes_fragment_and_uses_protected_websocket(tmp_path):
+    client = TestClient(
+        create_app(
+            service=make_service(tmp_path),
+            enable_mcp=False,
+            live_control_secret="control-secret",
+            live_coordinator=FakeLiveCoordinator(),
+        )
+    )
+    response = client.get("/live-login/client.js")
+    assert response.status_code == 200
+    assert response.headers["cache-control"].startswith("no-store")
+    assert "location.hash" in response.text
+    assert "history.replaceState" in response.text
+    assert "/live-login/exchange" in response.text
+    assert "/live-login/websockify" in response.text
+    assert "/live-login/assets/core/rfb.js" in response.text
+    assert "password" not in response.text.casefold()
