@@ -16,8 +16,8 @@ from playwright.async_api import (
     async_playwright,
 )
 
-from .models import CampaignPayload
 from . import selectors
+from .models import CampaignPayload
 
 
 class BrowserState(StrEnum):
@@ -55,6 +55,7 @@ class PlanetaBrowser:
         fixture_dir: str | Path | None = None,
         executable_path: str | None = None,
         storage_state: dict[str, Any] | None = None,
+        cdp_url: str | None = None,
     ):
         self.base_url = base_url.rstrip("/")
         self.draft_url = draft_url.strip() if draft_url else None
@@ -64,16 +65,30 @@ class PlanetaBrowser:
         self.fixture_dir = Path(fixture_dir) if fixture_dir else None
         self.executable_path = executable_path
         self.storage_state = storage_state
+        self.cdp_url = cdp_url.strip() if cdp_url else None
         self._fixture_loaded = False
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
         self._context: BrowserContext | None = None
         self._page: Page | None = None
+        self._attached_over_cdp = False
 
     async def _ensure_page(self) -> Page:
         if self._page is not None:
             return self._page
         self._playwright = await async_playwright().start()
+
+        if self.cdp_url:
+            self._browser = await self._playwright.chromium.connect_over_cdp(self.cdp_url)
+            self._attached_over_cdp = True
+            contexts = self._browser.contexts
+            if not contexts:
+                raise RuntimeError("connected Chromium has no browser context")
+            self._context = contexts[0]
+            pages = self._context.pages
+            self._page = pages[0] if pages else await self._context.new_page()
+            return self._page
+
         launch_kwargs: dict[str, Any] = {"headless": self.headless}
         if self.executable_path:
             launch_kwargs["executable_path"] = self.executable_path
@@ -92,7 +107,12 @@ class PlanetaBrowser:
                 reason="PLANETA_DRAFT_URL must point to the owner's Planeta.ru draft editor",
             )
         page = await self._ensure_page()
-        if not self._fixture_loaded and self.draft_url and page.url != self.draft_url:
+        if (
+            not self.cdp_url
+            and not self._fixture_loaded
+            and self.draft_url
+            and page.url != self.draft_url
+        ):
             await page.goto(self.draft_url, wait_until="domcontentloaded", timeout=30000)
         return page, None
 
@@ -241,10 +261,11 @@ class PlanetaBrowser:
         return int(await page.evaluate("() => window.submitClicks || 0"))
 
     async def close(self) -> None:
-        if self._context is not None:
-            await self._context.close()
-        if self._browser is not None:
-            await self._browser.close()
+        if not self._attached_over_cdp:
+            if self._context is not None:
+                await self._context.close()
+            if self._browser is not None:
+                await self._browser.close()
         if self._playwright is not None:
             await self._playwright.stop()
         self._page = None
@@ -252,3 +273,4 @@ class PlanetaBrowser:
         self._browser = None
         self._playwright = None
         self._fixture_loaded = False
+        self._attached_over_cdp = False

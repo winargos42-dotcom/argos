@@ -1,17 +1,23 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import hmac
 import html
 import os
 from typing import Any
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
+from websockets.asyncio.client import connect as websocket_connect
 
 from .audit import AuditLogger
 from .browser import PlanetaBrowser
 from .config import PlanetaConfig
+from .live_bridge import LiveLoginCoordinator
+from .live_login import LiveLoginController
 from .security import ApprovalError, ApprovalGate
 from .service import PlanetaCampaignService
 from .session_store import SessionStore
@@ -35,6 +41,8 @@ REGISTERED_TOOL_NAMES = (
     "planeta_request_submit_approval",
     "planeta_submit_for_moderation",
 )
+
+_LIVE_COOKIE = "__Host-planeta_live"
 
 
 def _public_base_url() -> str:
@@ -210,6 +218,118 @@ def _approval_headers() -> dict[str, str]:
     }
 
 
+def _live_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-store, max-age=0",
+        "Pragma": "no-cache",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Content-Security-Policy": (
+            "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; "
+            "connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+        ),
+    }
+
+
+def _live_login_page() -> str:
+    return """<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>ARGOS — вход Planeta.ru</title>
+<style>
+html,body,#screen{width:100%;height:100%;margin:0;background:#111;color:#fff;font-family:system-ui,sans-serif}
+#screen{overflow:hidden}.message{padding:18px}
+</style>
+</head>
+<body><div id="screen"><div class="message">Подключение к защищённому браузеру Planeta.ru…</div></div>
+<script type="module" src="/live-login/client.js"></script>
+</body></html>"""
+
+
+def _live_client_js() -> str:
+    return """const screen = document.getElementById('screen');
+let capability = window.location.hash.slice(1);
+history.replaceState(null, '', window.location.pathname);
+
+function show(message) {
+  screen.innerHTML = '';
+  const node = document.createElement('div');
+  node.className = 'message';
+  node.textContent = message;
+  screen.appendChild(node);
+}
+
+async function start() {
+  if (!capability) {
+    show('Одноразовая ссылка недействительна или уже использована.');
+    return;
+  }
+
+  const exchange = await fetch('/live-login/exchange', {
+    method: 'POST',
+    headers: {Authorization: `Bearer ${capability}`},
+    credentials: 'same-origin',
+    cache: 'no-store',
+  });
+  capability = '';
+  if (!exchange.ok) {
+    show('Не удалось открыть защищённую сессию. Запроси новую ссылку.');
+    return;
+  }
+
+  const {default: RFB} = await import('/live-login/assets/core/rfb.js');
+  const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const rfb = new RFB(screen, `${scheme}://${window.location.host}/live-login/websockify`);
+  rfb.scaleViewport = true;
+  rfb.resizeSession = true;
+  rfb.focusOnClick = true;
+}
+
+start().catch(() => show('Не удалось подключиться к браузеру Planeta.ru.'));
+"""
+
+
+async def _default_live_ws_relay(websocket: WebSocket, target: str) -> None:
+    parsed = urlsplit(target)
+    if parsed.scheme != "ws" or parsed.hostname != "127.0.0.1" or parsed.port != 6080:
+        await websocket.close(code=4403)
+        return
+
+    await websocket.accept()
+    try:
+        async with websocket_connect(target, max_size=None, compression=None) as upstream:
+            async def client_to_upstream() -> None:
+                while True:
+                    message = await websocket.receive()
+                    if message["type"] == "websocket.disconnect":
+                        return
+                    if message.get("bytes") is not None:
+                        await upstream.send(message["bytes"])
+                    elif message.get("text") is not None:
+                        await upstream.send(message["text"])
+
+            async def upstream_to_client() -> None:
+                async for message in upstream:
+                    if isinstance(message, bytes):
+                        await websocket.send_bytes(message)
+                    else:
+                        await websocket.send_text(message)
+
+            tasks = {
+                asyncio.create_task(client_to_upstream()),
+                asyncio.create_task(upstream_to_client()),
+            }
+            _done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            for task in pending:
+                task.cancel()
+            await asyncio.gather(*pending, return_exceptions=True)
+    except Exception:
+        with contextlib.suppress(Exception):
+            await websocket.close(code=1011)
+
+
 def _approval_page(
     request_id: str,
     campaign_digest: str,
@@ -250,6 +370,9 @@ def create_app(
     *,
     enable_mcp: bool = True,
     auth_secret: str | None = None,
+    live_control_secret: str | None = None,
+    live_coordinator: Any | None = None,
+    live_ws_relay: Any | None = None,
 ) -> FastAPI:
     mcp_server = None
     mcp_subapp = None
@@ -275,10 +398,21 @@ def create_app(
     else:
         app = FastAPI(title="ARGOS Planeta MCP")
 
+    app.mount(
+        "/live-login/assets",
+        StaticFiles(directory="/usr/share/novnc", check_dir=False),
+        name="planeta-novnc",
+    )
+
     def require_http_service() -> PlanetaCampaignService:
         if service is None:
             raise HTTPException(status_code=503, detail="Planeta MCP service is not configured")
         return service
+
+    def require_live_coordinator() -> Any:
+        if live_coordinator is None or not live_control_secret:
+            raise HTTPException(status_code=503, detail="live login is not configured")
+        return live_coordinator
 
     @app.get("/health")
     async def health() -> dict[str, Any]:
@@ -288,6 +422,97 @@ def create_app(
             "mcp_enabled": mcp_server is not None,
             "configured": service is not None,
         }
+
+    @app.post("/live-login/start")
+    async def live_login_start(request: Request) -> JSONResponse:
+        coordinator = require_live_coordinator()
+        supplied = request.headers.get("authorization", "")
+        expected = f"Bearer {live_control_secret}"
+        if not hmac.compare_digest(supplied, expected):
+            return JSONResponse(status_code=401, content={"detail": "unauthorized"})
+        session = await coordinator.start()
+        base = _public_base_url()
+        path = "/live-login/"
+        browser_url = f"{base}{path}#{session.token}" if base else f"{path}#{session.token}"
+        return JSONResponse(
+            {
+                "browser_url": browser_url,
+                "expires_at": session.expires_at,
+                "status_url": f"{base}/live-login/status" if base else "/live-login/status",
+                "durability": getattr(coordinator, "durability", "ephemeral"),
+            },
+            headers=_live_headers(),
+        )
+
+    @app.get("/live-login/", response_class=HTMLResponse)
+    async def live_login_page() -> HTMLResponse:
+        if live_coordinator is None or not live_control_secret:
+            raise HTTPException(status_code=503, detail="live login is not configured")
+        return HTMLResponse(_live_login_page(), headers=_live_headers())
+
+    @app.get("/live-login/client.js", response_class=PlainTextResponse)
+    async def live_login_client() -> PlainTextResponse:
+        if live_coordinator is None or not live_control_secret:
+            raise HTTPException(status_code=503, detail="live login is not configured")
+        return PlainTextResponse(
+            _live_client_js(),
+            media_type="application/javascript",
+            headers=_live_headers(),
+        )
+
+    @app.post("/live-login/exchange")
+    async def live_login_exchange(request: Request) -> Response:
+        coordinator = require_live_coordinator()
+        supplied = request.headers.get("authorization", "")
+        prefix = "Bearer "
+        if not supplied.startswith(prefix):
+            return JSONResponse(status_code=401, content={"detail": "unauthorized"})
+        token = supplied[len(prefix):]
+        try:
+            coordinator.exchange(token)
+        except KeyError:
+            return JSONResponse(status_code=401, content={"detail": "invalid or expired capability"})
+        except ValueError:
+            return JSONResponse(status_code=409, content={"detail": "capability already exchanged"})
+
+        response = Response(status_code=204, headers=_live_headers())
+        response.set_cookie(
+            _LIVE_COOKIE,
+            token,
+            secure=True,
+            httponly=True,
+            samesite="strict",
+            path="/",
+            max_age=None,
+        )
+        return response
+
+    @app.get("/live-login/status")
+    async def live_login_status(request: Request) -> JSONResponse:
+        coordinator = require_live_coordinator()
+        token = request.cookies.get(_LIVE_COOKIE, "")
+        if not token:
+            return JSONResponse(status_code=401, content={"detail": "unauthorized"})
+        status = coordinator.status(token)
+        if status is None:
+            return JSONResponse(status_code=404, content={"detail": "live login session not found"})
+        return JSONResponse(status, headers=_live_headers())
+
+    @app.websocket("/live-login/websockify")
+    async def live_login_websocket(websocket: WebSocket) -> None:
+        if live_coordinator is None or not live_control_secret:
+            await websocket.close(code=1013)
+            return
+        token = websocket.cookies.get(_LIVE_COOKIE, "")
+        if not token:
+            await websocket.close(code=4401)
+            return
+        target = live_coordinator.websockify_url(token)
+        if not target:
+            await websocket.close(code=4403)
+            return
+        relay = live_ws_relay or _default_live_ws_relay
+        await relay(websocket, target)
 
     @app.get("/approve/{request_id}", response_class=HTMLResponse)
     async def approval_form(request_id: str) -> HTMLResponse:
@@ -348,14 +573,46 @@ def create_app(
 
 def _module_app() -> FastAPI:
     mcp_secret = os.environ.get("PLANETA_MCP_SECRET")
+    live_control_secret = os.environ.get("PLANETA_LIVE_CONTROL_SECRET")
+    service: PlanetaCampaignService | None = None
+    live_coordinator: LiveLoginCoordinator | None = None
+
     try:
         service = build_default_service()
     except Exception:
         service = None
+
+    if service is not None and live_control_secret:
+        try:
+            config = PlanetaConfig.from_env()
+            session_key = os.environ.get("PLANETA_SESSION_KEY")
+            if not session_key:
+                raise RuntimeError("PLANETA_SESSION_KEY is required")
+            if not config.draft_url:
+                raise RuntimeError("PLANETA_DRAFT_URL is required for live login")
+            durability = os.getenv("PLANETA_SESSION_DURABILITY", "ephemeral").strip().lower()
+            if durability not in {"ephemeral", "durable"}:
+                raise ValueError("PLANETA_SESSION_DURABILITY must be ephemeral or durable")
+            session_store = SessionStore(config.state_path.parent / "session.enc", session_key)
+            live_coordinator = LiveLoginCoordinator(
+                service=service,
+                config=config,
+                session_store=session_store,
+                controller=LiveLoginController(ttl_seconds=config.live_ttl_seconds),
+                durability=durability,
+            )
+        except Exception:
+            live_coordinator = None
+
+    if live_coordinator is None:
+        live_control_secret = None
+
     return create_app(
         service=service,
         enable_mcp=MCPServer is not None,
         auth_secret=mcp_secret,
+        live_control_secret=live_control_secret,
+        live_coordinator=live_coordinator,
     )
 
 
