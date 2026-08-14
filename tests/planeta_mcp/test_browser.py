@@ -100,11 +100,10 @@ async def test_browser_attaches_to_existing_cdp_context(tmp_path):
             page = context.pages[0]
             await page.set_content("<title>shared</title><body>same-context</body>")
             adapter = PlanetaBrowser(cdp_url="http://127.0.0.1:9333")
-            try:
-                attached = await adapter._ensure_page()
-                assert await attached.title() == "shared"
-                assert await attached.locator("body").inner_text() == "same-context"
-            finally:
-                await adapter.close()
+            attached = await adapter._ensure_page()
+            assert await attached.title() == "shared"
+            assert await attached.locator("body").inner_text() == "same-context"
+            await adapter.close()
+            assert await page.title() == "shared"
         finally:
             await context.close()
