@@ -33,9 +33,9 @@ RUN groupadd --gid 10001 app \
 
 COPY --chown=app:app . /app/integrations/planeta_mcp
 RUN python -m compileall /app/integrations/planeta_mcp \
-    && python -c "from integrations.planeta_mcp.server import REGISTERED_TOOL_NAMES, app; assert len(REGISTERED_TOOL_NAMES) == 8; assert app.title == 'ARGOS Planeta MCP'"
+    && python -c "from integrations.planeta_mcp.server import REGISTERED_TOOL_NAMES; from integrations.planeta_mcp.entry_server import app; assert len(REGISTERED_TOOL_NAMES) == 8; assert app is not None"
 
 USER app
 EXPOSE 8000
 
-CMD ["uvicorn", "integrations.planeta_mcp.server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "integrations.planeta_mcp.entry_server:app", "--host", "0.0.0.0", "--port", "8000"]
