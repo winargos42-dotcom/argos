@@ -14,6 +14,33 @@ def test_argos_reboot_defaults_are_valid():
     assert all(reward.physical is False for reward in campaign.rewards)
 
 
+def test_argos_reboot_story_contains_fire_evidence_budget_and_recovery_plan():
+    campaign = default_argos_reboot_campaign()
+    story = campaign.story
+
+    assert "По словам автора" in story
+    assert "3 августа 2026" in story
+    for url in (
+        "https://github.com/poilopr57-a11y/Argos",
+        "https://github.com/winargos42-dotcom/argos",
+        "https://huggingface.co/AvaSiG/argos-v1",
+        "https://huggingface.co/datasets/AvaSiG/argos-canonical",
+    ):
+        assert url in story
+
+    for text in (
+        "85 000 ₽",
+        "65 000 ₽",
+        "30 000 ₽",
+        "20 000 ₽",
+        "200 000 ₽",
+        "сервер",
+        "GPU/FPGA",
+        "резерв",
+    ):
+        assert text in story
+
+
 def test_campaign_rejects_missing_evidence_and_empty_rewards():
     campaign = default_argos_reboot_campaign().model_copy(
         update={"evidence_links": [], "rewards": []}

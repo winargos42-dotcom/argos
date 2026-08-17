@@ -22,6 +22,7 @@ class IdleBrowser:
 class SharedDraftBrowser:
     def __init__(self):
         self.submit_calls = 0
+        self.rewards_snapshot = []
 
     async def inspect(self):
         return BrowserResult(status="ok", reason="known draft editor detected")
@@ -38,6 +39,22 @@ class SharedDraftBrowser:
             },
         )
 
+    async def fill_rewards(self, campaign):
+        self.rewards_snapshot = [
+            {
+                "title": reward.title,
+                "amount": str(reward.amount),
+                "description": reward.description,
+                "physical": reward.physical,
+            }
+            for reward in campaign.rewards
+        ]
+        return BrowserResult(
+            status="ok",
+            reason="rewards saved",
+            draft_snapshot={"rewards": self.rewards_snapshot},
+        )
+
     async def read_draft(self):
         campaign = self.campaign_store.load_required()
         return BrowserResult(
@@ -51,12 +68,37 @@ class SharedDraftBrowser:
             },
         )
 
+    async def read_rewards(self):
+        return BrowserResult(
+            status="ok",
+            reason="rewards read",
+            draft_snapshot={"rewards": self.rewards_snapshot},
+        )
+
     async def submit_for_moderation(self):
         self.submit_calls += 1
         return BrowserResult(status="ok", reason="should not happen")
 
     async def close(self):
         return None
+
+
+class RecoveringSharedBrowser(SharedDraftBrowser):
+    def __init__(self, runtime, draft_url):
+        super().__init__()
+        self.runtime = runtime
+        self.draft_url = draft_url
+        self.navigate_calls = 0
+
+    async def inspect(self):
+        if self.runtime.page.url != self.draft_url:
+            return BrowserResult(status="ui_changed", reason="known draft selectors are missing or ambiguous")
+        return await super().inspect()
+
+    async def navigate_to_draft(self):
+        self.navigate_calls += 1
+        self.runtime.page.url = self.draft_url
+        return BrowserResult(status="ok", reason="draft opened")
 
 
 class FakeRuntime:
@@ -140,6 +182,48 @@ async def test_live_bridge_captures_session_fills_syncs_and_never_submits(tmp_pa
     assert runtime.started is True
     assert runtime.stopped is True
     assert controller.get(session.token).view_active is False
+
+
+@pytest.mark.asyncio
+async def test_live_bridge_returns_authenticated_same_origin_page_to_configured_draft(tmp_path):
+    draft_url = "https://planeta.ru/campaigns/251138/edit/about"
+    config = PlanetaConfig(
+        base_url="https://planeta.ru",
+        draft_url=draft_url,
+        headless=False,
+        state_path=tmp_path / "campaign.json",
+    )
+    store = CampaignStore(config.state_path)
+    runtime = FakeRuntime()
+    runtime.page.url = "https://planeta.ru/profile"
+    shared_browser = RecoveringSharedBrowser(runtime, draft_url)
+    shared_browser.campaign_store = store
+    service = PlanetaCampaignService(
+        store=store,
+        browser=IdleBrowser(),
+        approval_gate=ApprovalGate(b"approval-secret", ttl_seconds=300),
+        audit=AuditLogger(tmp_path / "audit.jsonl"),
+    )
+    session_store = SessionStore(tmp_path / "session.enc", Fernet.generate_key())
+    controller = LiveLoginController(ttl_seconds=300)
+    coordinator = LiveLoginCoordinator(
+        service=service,
+        config=config,
+        session_store=session_store,
+        controller=controller,
+        runtime_factory=lambda: runtime,
+        browser_factory=lambda _runtime: shared_browser,
+        poll_interval=0.001,
+    )
+
+    session = await coordinator.start()
+    await coordinator.wait(session.token, timeout=2.0)
+
+    status = coordinator.status(session.token)
+    assert status is not None
+    assert status["state"] == "draft_ready"
+    assert shared_browser.navigate_calls == 1
+    assert runtime.page.url == draft_url
 
 
 @pytest.mark.asyncio

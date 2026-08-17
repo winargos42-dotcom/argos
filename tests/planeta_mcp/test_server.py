@@ -22,8 +22,14 @@ class NoopBrowser:
     async def fill_draft(self, campaign):
         return BrowserResult(status="ok", reason="noop")
 
+    async def fill_rewards(self, campaign):
+        return BrowserResult(status="ok", reason="noop", draft_snapshot={"rewards": []})
+
     async def read_draft(self):
         return BrowserResult(status="ok", reason="noop")
+
+    async def read_rewards(self):
+        return BrowserResult(status="ok", reason="noop", draft_snapshot={"rewards": []})
 
     async def submit_for_moderation(self):
         self.submit_calls += 1

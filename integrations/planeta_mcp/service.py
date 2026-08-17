@@ -18,7 +18,9 @@ class CampaignValidationError(ValueError):
 
 class BrowserAdapter(Protocol):
     async def fill_draft(self, campaign: CampaignPayload) -> BrowserResult: ...
+    async def fill_rewards(self, campaign: CampaignPayload) -> BrowserResult: ...
     async def read_draft(self) -> BrowserResult: ...
+    async def read_rewards(self) -> BrowserResult: ...
     async def submit_for_moderation(self) -> BrowserResult: ...
 
 
@@ -92,16 +94,52 @@ class PlanetaCampaignService:
                 "planeta_fill_draft", campaign.id, result.status, result.safe_dict()
             )
             return result
-        result = await self.browser.fill_draft(campaign)
+
+        draft_result = await self.browser.fill_draft(campaign)
+        if draft_result.status != "ok":
+            self._last_browser_status = draft_result.status
+            self.audit.record(
+                "planeta_fill_draft", campaign.id, draft_result.status, draft_result.safe_dict()
+            )
+            return draft_result
+
+        rewards_result = await self.browser.fill_rewards(campaign)
+        if rewards_result.status != "ok":
+            self._last_browser_status = rewards_result.status
+            self.audit.record(
+                "planeta_fill_draft", campaign.id, rewards_result.status, rewards_result.safe_dict()
+            )
+            return rewards_result
+
+        result = BrowserResult(
+            status="ok",
+            reason="draft fields and digital rewards filled and saved",
+            draft_snapshot={**draft_result.draft_snapshot, **rewards_result.draft_snapshot},
+        )
         self._last_browser_status = result.status
         self.audit.record("planeta_fill_draft", campaign.id, result.status, result.safe_dict())
         return result
+
+    @staticmethod
+    def _expected_rewards(campaign: CampaignPayload) -> list[dict[str, Any]]:
+        return [
+            {
+                "title": reward.title,
+                "amount": str(reward.amount),
+                "description": reward.description,
+                "physical": reward.physical,
+            }
+            for reward in campaign.rewards
+        ]
 
     async def sync_draft(self) -> dict[str, Any]:
         campaign = self.store.load_required()
         result = await self.browser.read_draft()
         self._last_browser_status = result.status
-        differences: dict[str, dict[str, Any]] = {}
+        differences: dict[str, Any] = {}
+        reason = result.reason
+        final_status = result.status
+
         if result.status == "ok":
             expected = {
                 "title": campaign.title,
@@ -113,14 +151,29 @@ class PlanetaCampaignService:
                 remote_value = result.draft_snapshot.get(field)
                 if remote_value != local_value:
                     differences[field] = {"local": local_value, "planeta": remote_value}
-            self._last_sync_at = datetime.now(timezone.utc).isoformat()
+
+            rewards_result = await self.browser.read_rewards()
+            final_status = rewards_result.status
+            reason = rewards_result.reason if rewards_result.status != "ok" else result.reason
+            self._last_browser_status = final_status
+            if rewards_result.status == "ok":
+                expected_rewards = self._expected_rewards(campaign)
+                remote_rewards = rewards_result.draft_snapshot.get("rewards", [])
+                if remote_rewards != expected_rewards:
+                    differences["rewards"] = {
+                        "local": expected_rewards,
+                        "planeta": remote_rewards,
+                    }
+            if final_status == "ok":
+                self._last_sync_at = datetime.now(timezone.utc).isoformat()
+
         payload = {
-            "status": result.status,
-            "reason": result.reason,
+            "status": final_status,
+            "reason": reason,
             "differences": differences,
             "last_sync_at": self._last_sync_at,
         }
-        self.audit.record("planeta_sync_draft", campaign.id, result.status, payload)
+        self.audit.record("planeta_sync_draft", campaign.id, final_status, payload)
         return payload
 
     async def request_submit_approval(self) -> ApprovalRequest:

@@ -40,6 +40,13 @@ async def test_classifies_blocking_pages(browser, fixture, expected):
 
 
 @pytest.mark.asyncio
+async def test_about_editor_does_not_require_submit_control(browser):
+    await browser.open_fixture("about_without_submit.html")
+    result = await browser.inspect()
+    assert result.status == "ok"
+
+
+@pytest.mark.asyncio
 async def test_live_browser_requires_explicit_draft_url():
     browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
     try:
@@ -70,6 +77,21 @@ async def test_fill_draft_never_submits(browser):
 
 
 @pytest.mark.asyncio
+async def test_fill_draft_supports_semantic_accessible_controls(browser):
+    campaign = default_argos_reboot_campaign()
+    await browser.open_fixture("semantic_draft.html")
+
+    result = await browser.fill_draft(campaign)
+
+    assert result.status == "ok"
+    assert result.draft_snapshot["title"] == campaign.title
+    assert result.draft_snapshot["target_amount"] == str(campaign.target_amount)
+    assert result.draft_snapshot["summary"] == campaign.summary
+    assert result.draft_snapshot["story"] == campaign.story
+    assert await browser.submit_click_count() == 0
+
+
+@pytest.mark.asyncio
 async def test_read_draft_returns_snapshot(browser):
     await browser.open_fixture("draft.html")
     result = await browser.read_draft()
@@ -81,6 +103,16 @@ async def test_read_draft_returns_snapshot(browser):
 async def test_submit_uses_only_exact_moderation_control(browser):
     await browser.open_fixture("draft.html")
     result = await browser.submit_for_moderation()
+    assert result.status == "ok"
+    assert await browser.submit_click_count() == 1
+
+
+@pytest.mark.asyncio
+async def test_submit_navigates_exact_review_step_before_moderation(browser):
+    await browser.open_fixture("moderation_nav.html")
+
+    result = await browser.submit_for_moderation()
+
     assert result.status == "ok"
     assert await browser.submit_click_count() == 1
 

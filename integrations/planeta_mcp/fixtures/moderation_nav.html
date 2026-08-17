@@ -1,0 +1,21 @@
+<!doctype html><html lang="ru"><body>
+<section id="about-panel">
+  <label for="project-name">Название проекта</label><input id="project-name" value="ARGOS REBOOT" />
+  <label for="funding-goal">Сумма сбора</label><input id="funding-goal" value="200000" />
+  <label for="short-description">Краткое описание проекта</label><textarea id="short-description">summary</textarea>
+  <label for="full-description">Описание проекта</label><textarea id="full-description">story</textarea>
+  <button type="button">Сохранить</button>
+  <button id="review-nav" type="button">Проверка и публикация</button>
+</section>
+<section id="review-panel" hidden>
+  <button id="submit-moderation" type="button">Отправить на модерацию</button>
+</section>
+<script>
+window.submitClicks=0;
+document.getElementById('review-nav').onclick=()=>{
+  document.getElementById('about-panel').hidden=true;
+  document.getElementById('review-panel').hidden=false;
+};
+document.getElementById('submit-moderation').onclick=()=>{window.submitClicks+=1};
+</script>
+</body></html>

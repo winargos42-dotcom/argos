@@ -12,7 +12,10 @@ class FakeBrowser:
     def __init__(self):
         self.submit_calls = 0
         self.fill_calls = 0
+        self.reward_fill_calls = 0
+        self.reward_read_calls = 0
         self.snapshot = {"title": "", "target_amount": "", "summary": "", "story": ""}
+        self.rewards_snapshot = []
         self.submit_result = BrowserResult(status="ok", reason="submitted")
 
     async def fill_draft(self, campaign):
@@ -25,8 +28,33 @@ class FakeBrowser:
         }
         return BrowserResult(status="ok", reason="filled", draft_snapshot=self.snapshot)
 
+    async def fill_rewards(self, campaign):
+        self.reward_fill_calls += 1
+        self.rewards_snapshot = [
+            {
+                "title": reward.title,
+                "amount": str(reward.amount),
+                "description": reward.description,
+                "physical": reward.physical,
+            }
+            for reward in campaign.rewards
+        ]
+        return BrowserResult(
+            status="ok",
+            reason="rewards filled",
+            draft_snapshot={"rewards": self.rewards_snapshot},
+        )
+
     async def read_draft(self):
         return BrowserResult(status="ok", reason="read", draft_snapshot=self.snapshot)
+
+    async def read_rewards(self):
+        self.reward_read_calls += 1
+        return BrowserResult(
+            status="ok",
+            reason="rewards read",
+            draft_snapshot={"rewards": self.rewards_snapshot},
+        )
 
     async def submit_for_moderation(self):
         self.submit_calls += 1
@@ -46,6 +74,32 @@ def service(tmp_path):
         approval_gate=ApprovalGate(b"test-secret", ttl_seconds=300),
         audit=AuditLogger(tmp_path / "audit.jsonl"),
     )
+
+
+@pytest.mark.asyncio
+async def test_fill_and_sync_include_rewards(service, campaign):
+    await service.prepare_campaign(campaign)
+
+    filled = await service.fill_draft()
+    synced = await service.sync_draft()
+
+    assert filled.status == "ok"
+    assert service.browser.fill_calls == 1
+    assert service.browser.reward_fill_calls == 1
+    assert service.browser.reward_read_calls == 1
+    assert synced["status"] == "ok"
+    assert synced["differences"] == {}
+
+
+@pytest.mark.asyncio
+async def test_sync_reports_reward_difference(service, campaign):
+    await service.prepare_campaign(campaign)
+    await service.fill_draft()
+    service.browser.rewards_snapshot[0]["amount"] = "999"
+
+    synced = await service.sync_draft()
+
+    assert "rewards" in synced["differences"]
 
 
 @pytest.mark.asyncio
@@ -97,6 +151,7 @@ async def test_fill_validates_before_browser_mutation(service, campaign):
     result = await service.fill_draft()
     assert result.status == "validation_failed"
     assert service.browser.fill_calls == 0
+    assert service.browser.reward_fill_calls == 0
 
 
 @pytest.mark.asyncio

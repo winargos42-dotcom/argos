@@ -188,6 +188,28 @@ class LiveLoginCoordinator:
                 state = inspected.status
                 self._results[token]["reason"] = inspected.reason
 
+                if (
+                    state == "ui_changed"
+                    and page_url
+                    and _origin(page_url) == _origin(self.config.base_url)
+                    and page_url != self.config.draft_url
+                ):
+                    navigation = await shared_browser.navigate_to_draft()
+                    self._results[token]["reason"] = navigation.reason
+                    if navigation.status != "ok":
+                        self._set_from_browser_status(token, navigation.status)
+                        terminal = navigation.status not in {
+                            "authentication_required",
+                            "captcha_required",
+                            "human_action_required",
+                            "ui_changed",
+                            "network_error",
+                        }
+                        if terminal:
+                            return
+                    await asyncio.sleep(self.poll_interval)
+                    continue
+
                 if state == "ok":
                     if _origin(page_url) != _origin(self.config.base_url):
                         self.controller.set_state(token, LiveLoginState.HUMAN_LOGIN_IN_PROGRESS)

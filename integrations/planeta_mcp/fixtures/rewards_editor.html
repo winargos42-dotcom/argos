@@ -1,0 +1,35 @@
+<!doctype html><html lang="ru"><body>
+<nav><button id="rewards-nav" type="button">Вознаграждения</button></nav>
+<section id="rewards-panel">
+  <button id="add-reward" type="button">Добавить вознаграждение</button>
+  <div id="reward-list"></div>
+  <div id="reward-form" hidden>
+    <label for="reward-title">Название вознаграждения</label><input id="reward-title" />
+    <label for="reward-amount">Стоимость вознаграждения</label><input id="reward-amount" inputmode="numeric" />
+    <label for="reward-description">Описание вознаграждения</label><textarea id="reward-description"></textarea>
+    <label><input id="physical-reward" type="checkbox" /> Физическое вознаграждение</label>
+    <button id="save-reward" type="button">Сохранить вознаграждение</button>
+  </div>
+</section>
+<script>
+const form=document.getElementById('reward-form');
+const list=document.getElementById('reward-list');
+document.getElementById('add-reward').onclick=()=>{form.hidden=false};
+document.getElementById('save-reward').onclick=()=>{
+  const title=document.getElementById('reward-title').value;
+  const amount=document.getElementById('reward-amount').value;
+  const description=document.getElementById('reward-description').value;
+  const card=document.createElement('article');
+  card.className='reward-card';
+  card.dataset.amount=amount;
+  card.dataset.description=description;
+  const h=document.createElement('h3'); h.textContent=title; card.appendChild(h);
+  list.appendChild(card);
+  document.getElementById('reward-title').value='';
+  document.getElementById('reward-amount').value='';
+  document.getElementById('reward-description').value='';
+  document.getElementById('physical-reward').checked=false;
+  form.hidden=true;
+};
+</script>
+</body></html>
