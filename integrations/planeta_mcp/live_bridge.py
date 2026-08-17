@@ -51,6 +51,7 @@ class LiveLoginCoordinator:
             raise ValueError("draft_url must use the same origin as base_url")
         if poll_interval <= 0:
             raise ValueError("poll_interval must be positive")
+        assert config.session_dir is not None
 
         self.service = service
         self.config = config
@@ -61,7 +62,7 @@ class LiveLoginCoordinator:
 
         self._runtime_factory = runtime_factory or (
             lambda: LiveBrowserRuntime(
-                data_dir=config.state_path.parent,
+                data_dir=config.session_dir,
                 draft_url=config.draft_url,
             )
         )

@@ -2,6 +2,30 @@ from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
 from integrations.planeta_mcp import server
+from integrations.planeta_mcp.session_store import SessionStore
+
+
+def test_default_service_loads_session_from_independent_directory(monkeypatch, tmp_path):
+    state_path = tmp_path / "work" / "campaign.json"
+    session_dir = tmp_path / "persistent"
+    session_key = Fernet.generate_key()
+    cookie_state = {
+        "cookies": [
+            {"name": "sid", "value": "saved", "domain": ".planeta.ru", "path": "/"}
+        ],
+        "origins": [],
+    }
+    SessionStore(session_dir / "session.enc", session_key).save_storage_state(cookie_state)
+    monkeypatch.setenv("PLANETA_APPROVAL_SECRET", "approval-secret")
+    monkeypatch.setenv("PLANETA_SESSION_KEY", session_key.decode("ascii"))
+    monkeypatch.setenv("PLANETA_STATE_PATH", str(state_path))
+    monkeypatch.setenv("PLANETA_SESSION_DIR", str(session_dir))
+
+    service = server.build_default_service()
+
+    assert service.store.path == state_path
+    assert service.audit.path == state_path.parent / "audit.jsonl"
+    assert service.browser.storage_state == cookie_state
 
 
 def test_module_app_wires_live_login_from_environment(monkeypatch, tmp_path):

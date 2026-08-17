@@ -124,6 +124,32 @@ class FakeRuntime:
         self.stopped = True
 
 
+def test_live_bridge_default_runtime_uses_session_dir(tmp_path):
+    state_path = tmp_path / "work" / "campaign.json"
+    session_dir = tmp_path / "persistent"
+    config = PlanetaConfig(
+        draft_url="https://planeta.ru/campaigns/251138/edit/about",
+        state_path=state_path,
+        session_dir=session_dir,
+    )
+    service = PlanetaCampaignService(
+        store=CampaignStore(state_path),
+        browser=IdleBrowser(),
+        approval_gate=ApprovalGate(b"approval-secret", ttl_seconds=300),
+        audit=AuditLogger(state_path.parent / "audit.jsonl"),
+    )
+    coordinator = LiveLoginCoordinator(
+        service=service,
+        config=config,
+        session_store=SessionStore(session_dir / "session.enc", Fernet.generate_key()),
+    )
+
+    runtime = coordinator._runtime_factory()
+
+    assert runtime.data_dir == session_dir
+    assert runtime.profile_dir == session_dir / "browser-profile"
+
+
 def test_human_auth_origin_allows_https_planeta_subdomains_only():
     base = "https://planeta.ru"
     assert _is_allowed_human_auth_origin("https://planeta.ru/nuborn_session", base) is True

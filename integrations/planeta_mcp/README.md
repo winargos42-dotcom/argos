@@ -46,6 +46,14 @@ Optional state path:
 PLANETA_STATE_PATH=/data/planeta/campaign.json
 ```
 
+For a persistent authenticated browser with a separately writable campaign state:
+
+- `PLANETA_SESSION_DIR=/data/planeta` stores `session.enc` and `browser-profile` on the Railway volume.
+- `PLANETA_STATE_PATH=/tmp/planeta_campaign.json` stores the current normalized campaign in a writable runtime path.
+- `PLANETA_SESSION_DURABILITY=durable` reports that the browser session is expected to survive service restarts.
+
+If `PLANETA_SESSION_DIR` is omitted, it defaults to the parent directory of `PLANETA_STATE_PATH` for backward compatibility.
+
 There must be **no** `PLANETA_PASSWORD`, passport, INN, identity-document, cookie, or raw browser-session environment variable.
 
 ## Authentication/session handoff
@@ -54,7 +62,7 @@ The browser adapter can reuse Playwright storage-state only **after** a human ha
 
 If the stored session is absent/expired, or Planeta.ru shows login, CAPTCHA, SMS/e-mail confirmation, passport/INN verification, or an unknown editor layout, the browser action fails closed and returns a human-action-required/authentication/CAPTCHA/UI-changed status rather than guessing or bypassing the step.
 
-The production service expects an authenticated encrypted session file at `/data/planeta/session.enc` (or the directory containing `PLANETA_STATE_PATH`). Establishing that human-authenticated session is an operator action and is deliberately outside MCP tool calls.
+The production service expects an authenticated encrypted session file at `PLANETA_SESSION_DIR/session.enc` (by default, the directory containing `PLANETA_STATE_PATH`). Establishing that human-authenticated session is an operator action and is deliberately outside MCP tool calls.
 
 ## Final-submit flow
 

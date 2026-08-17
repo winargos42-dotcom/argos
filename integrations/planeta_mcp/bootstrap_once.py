@@ -96,7 +96,8 @@ async def run() -> int:
                     return 0
 
                 storage_state = await context.storage_state()
-                store = SessionStore(config.state_path.parent / "session.enc", session_key)
+                assert config.session_dir is not None
+                store = SessionStore(config.session_dir / "session.enc", session_key)
                 store.save_storage_state(storage_state)
                 print(f"PLANETA_BOOTSTRAP status=session_saved page_state={state.value}", flush=True)
             finally:
