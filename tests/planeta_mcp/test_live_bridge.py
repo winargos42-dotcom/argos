@@ -22,6 +22,7 @@ class IdleBrowser:
 class SharedDraftBrowser:
     def __init__(self):
         self.submit_calls = 0
+        self.rewards_snapshot = []
 
     async def inspect(self):
         return BrowserResult(status="ok", reason="known draft editor detected")
@@ -38,6 +39,22 @@ class SharedDraftBrowser:
             },
         )
 
+    async def fill_rewards(self, campaign):
+        self.rewards_snapshot = [
+            {
+                "title": reward.title,
+                "amount": str(reward.amount),
+                "description": reward.description,
+                "physical": reward.physical,
+            }
+            for reward in campaign.rewards
+        ]
+        return BrowserResult(
+            status="ok",
+            reason="rewards saved",
+            draft_snapshot={"rewards": self.rewards_snapshot},
+        )
+
     async def read_draft(self):
         campaign = self.campaign_store.load_required()
         return BrowserResult(
@@ -49,6 +66,13 @@ class SharedDraftBrowser:
                 "summary": campaign.summary,
                 "story": campaign.story,
             },
+        )
+
+    async def read_rewards(self):
+        return BrowserResult(
+            status="ok",
+            reason="rewards read",
+            draft_snapshot={"rewards": self.rewards_snapshot},
         )
 
     async def submit_for_moderation(self):
