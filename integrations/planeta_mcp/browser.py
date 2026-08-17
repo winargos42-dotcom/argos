@@ -82,6 +82,13 @@ _EXACT_SELECTORS = {
 }
 
 _DRAFT_EDITOR_KEYS = ("title", "target", "summary", "story", "save")
+_REWARDS_NAV = re.compile(r"^\s*вознаграждения\s*$", re.I)
+_ADD_REWARD = re.compile(r"^\s*добавить\s+вознаграждение\s*$", re.I)
+_REWARD_TITLE = re.compile(r"^\s*название\s+вознаграждения\s*\*?\s*$", re.I)
+_REWARD_AMOUNT = re.compile(r"^\s*(?:стоимость|сумма)\s+вознаграждения\s*\*?\s*$", re.I)
+_REWARD_DESCRIPTION = re.compile(r"^\s*описание\s+вознаграждения\s*\*?\s*$", re.I)
+_REWARD_PHYSICAL = re.compile(r"^\s*(?:физическое\s+вознаграждение|требуется\s+доставка)\s*$", re.I)
+_SAVE_REWARD = re.compile(r"^\s*сохранить\s+вознаграждение\s*$", re.I)
 
 
 class PlanetaBrowser:
@@ -366,6 +373,87 @@ class PlanetaBrowser:
             )
         except PlaywrightTimeoutError:
             return BrowserResult(status="network_error", reason="timeout while filling draft")
+        except PlaywrightError as exc:
+            return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
+
+    async def fill_rewards(self, payload: CampaignPayload) -> BrowserResult:
+        page = await self._ensure_page()
+        try:
+            add_button = page.get_by_role("button", name=_ADD_REWARD)
+            add_count = await add_button.count()
+            if add_count == 0:
+                navigation_candidates = []
+                for role in ("link", "button"):
+                    candidate = page.get_by_role(role, name=_REWARDS_NAV)
+                    if await candidate.count() == 1:
+                        navigation_candidates.append(candidate)
+                    elif await candidate.count() > 1:
+                        return BrowserResult(status="ui_changed", reason="rewards navigation is ambiguous")
+                if len(navigation_candidates) != 1:
+                    return BrowserResult(status="ui_changed", reason="rewards navigation is missing or ambiguous")
+                await navigation_candidates[0].click()
+                add_button = page.get_by_role("button", name=_ADD_REWARD)
+                add_count = await add_button.count()
+            if add_count != 1:
+                return BrowserResult(status="ui_changed", reason="add reward control is missing or ambiguous")
+
+            rewards_snapshot: list[dict[str, Any]] = []
+            for reward in payload.rewards:
+                existing = page.get_by_text(reward.title, exact=True)
+                existing_count = await existing.count()
+                if existing_count > 1:
+                    return BrowserResult(status="ui_changed", reason="reward title is duplicated or ambiguous")
+                if existing_count == 0:
+                    await add_button.click()
+                    title = page.get_by_label(_REWARD_TITLE)
+                    amount = page.get_by_label(_REWARD_AMOUNT)
+                    description = page.get_by_label(_REWARD_DESCRIPTION)
+                    save = page.get_by_role("button", name=_SAVE_REWARD)
+                    if any(
+                        count != 1
+                        for count in (
+                            await title.count(),
+                            await amount.count(),
+                            await description.count(),
+                            await save.count(),
+                        )
+                    ):
+                        return BrowserResult(status="ui_changed", reason="reward editor controls are missing or ambiguous")
+                    await title.fill(reward.title)
+                    await amount.fill(str(reward.amount))
+                    await description.fill(reward.description)
+
+                    physical = page.get_by_role("checkbox", name=_REWARD_PHYSICAL)
+                    physical_count = await physical.count()
+                    if physical_count > 1:
+                        return BrowserResult(status="ui_changed", reason="physical reward control is ambiguous")
+                    if physical_count == 1 and await physical.is_checked():
+                        await physical.uncheck()
+
+                    await save.click()
+                    if await page.get_by_text(reward.title, exact=True).count() != 1:
+                        return BrowserResult(status="ui_changed", reason="saved reward could not be verified")
+
+                rewards_snapshot.append(
+                    {
+                        "title": reward.title,
+                        "amount": str(reward.amount),
+                        "description": reward.description,
+                        "physical": False,
+                    }
+                )
+
+            if self.draft_url and not self._fixture_loaded:
+                returned = await self.navigate_to_draft()
+                if returned.status != "ok":
+                    return returned
+            return BrowserResult(
+                status="ok",
+                reason="digital rewards created or already present",
+                draft_snapshot={"rewards": rewards_snapshot},
+            )
+        except PlaywrightTimeoutError:
+            return BrowserResult(status="network_error", reason="timeout while filling rewards")
         except PlaywrightError as exc:
             return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
 
