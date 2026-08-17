@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import asyncio
 import hmac
+import html
 import json
 import os
 from typing import Any, Awaitable, Callable
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from starlette.responses import HTMLResponse, JSONResponse
 
 from . import server as server_module
 from .direct_vnc import direct_vnc_relay
+from .security import ApprovalError
+from .service import CampaignValidationError, PlanetaCampaignService
 
 
 # Production-only transport override: keep the core MCP/FastAPI routes intact,
@@ -20,7 +23,14 @@ server_module._default_live_ws_relay = direct_vnc_relay
 core_app = server_module.app
 
 
-ASGIApp = Callable[[dict[str, Any], Callable[[], Awaitable[dict[str, Any]]], Callable[[dict[str, Any]], Awaitable[None]]], Awaitable[None]]
+ASGIApp = Callable[
+    [
+        dict[str, Any],
+        Callable[[], Awaitable[dict[str, Any]]],
+        Callable[[dict[str, Any]], Awaitable[None]],
+    ],
+    Awaitable[None],
+]
 
 
 def _authorization(scope: dict[str, Any]) -> str:
@@ -28,6 +38,74 @@ def _authorization(scope: dict[str, Any]) -> str:
         if name.lower() == b"authorization":
             return value.decode("latin-1")
     return ""
+
+
+def _safe_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-store, max-age=0",
+        "Pragma": "no-cache",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "no-referrer",
+        "Content-Security-Policy": (
+            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
+            "frame-ancestors 'none'; base-uri 'none'"
+        ),
+    }
+
+
+def _final_approval_page(
+    request_id: str,
+    campaign_digest: str,
+    expires_at: float,
+    csrf_token: str,
+) -> str:
+    safe_request = html.escape(request_id, quote=True)
+    safe_digest = html.escape(campaign_digest, quote=True)
+    safe_csrf = html.escape(csrf_token, quote=True)
+    return f"""<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARGOS REBOOT — финальное подтверждение</title>
+<style>
+body{{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 18px;line-height:1.5}}
+.card{{border:1px solid #8885;border-radius:16px;padding:22px}}
+code{{word-break:break-all}}button{{font-size:1.05rem;padding:12px 18px;margin-top:16px}}
+.warn{{font-weight:700}}
+</style>
+</head>
+<body><div class="card">
+<h1>ARGOS REBOOT</h1>
+<p class="warn">Черновик заполнен и сверен. Отправить кампанию на модерацию Planeta.ru?</p>
+<p>Это финальное одноразовое подтверждение для текущей версии кампании.</p>
+<p>Digest: <code>{safe_digest}</code></p>
+<p>Истекает: <code>{expires_at:.0f}</code></p>
+<form method="post" action="/live-login/moderation/{safe_request}">
+<input type="hidden" name="csrf_token" value="{safe_csrf}">
+<button type="submit">Подтвердить и отправить на модерацию</button>
+</form>
+</div></body></html>"""
+
+
+def _submission_page(*, success: bool, status: str = "") -> str:
+    if success:
+        heading = "Кампания отправлена на модерацию"
+        detail = "ARGOS REBOOT передан Planeta.ru на модерацию."
+    else:
+        heading = "Отправка не завершена"
+        safe_status = html.escape(status or "unknown", quote=True)
+        detail = (
+            "Planeta.ru не подтвердила завершение отправки. "
+            f"Безопасный статус: <code>{safe_status}</code>. "
+            "Для повторной попытки потребуется новое подтверждение."
+        )
+    return f"""<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ARGOS REBOOT</title>
+<style>body{{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 18px;line-height:1.5}}.card{{border:1px solid #8885;border-radius:16px;padding:22px}}code{{word-break:break-all}}</style>
+</head><body><div class="card"><h1>{heading}</h1><p>{detail}</p></div></body></html>"""
 
 
 def _mobile_launcher() -> str:
@@ -56,7 +134,7 @@ h1{font-size:1.3rem;margin:0 0 12px}.muted{color:#aaa}.error{color:#ffb4b4}butto
     if(existing.ok){
       const state=await existing.json();
       if(state.state==='draft_ready'){
-        status.textContent='Авторизация завершена. Черновик готов.';
+        location.replace('/live-login/moderation');
         return;
       }
       status.textContent='Активная сессия найдена. Восстанавливаю экран…';
@@ -87,13 +165,7 @@ h1{font-size:1.3rem;margin:0 0 12px}.muted{color:#aaa}.error{color:#ffb4b4}butto
 
 
 class LiveEntryBootstrap:
-    """One-time fragment capability bootstrap for the existing live-login API.
-
-    The public browser sends the high-entropy entry capability only in the
-    Authorization header to /live-login/exchange. This wrapper converts that
-    capability into the core app's normal generated live session without ever
-    placing the entry capability in a URL path/query or log message.
-    """
+    """One-time mobile bootstrap plus guarded final moderation handoff."""
 
     def __init__(self, app: ASGIApp, *, entry_token: str, control_secret: str):
         self.app = app
@@ -101,34 +173,40 @@ class LiveEntryBootstrap:
         self._control_secret = control_secret
         self._entry_used = False
         self._lock = asyncio.Lock()
+        self._approval_services: dict[str, PlanetaCampaignService] = {}
 
     async def __call__(self, scope, receive, send):
-        if (
-            scope.get("type") == "http"
-            and scope.get("method") == "GET"
-            and scope.get("path") == "/live-login/mobile"
-        ):
+        scope_type = scope.get("type")
+        method = scope.get("method")
+        path = scope.get("path", "")
+
+        if scope_type == "http" and method == "GET" and path == "/live-login/mobile":
             await HTMLResponse(
                 _mobile_launcher(),
                 headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
             )(scope, receive, send)
             return
 
+        if scope_type == "http" and method == "GET" and path == "/live-login/moderation":
+            await self._show_live_moderation(scope, receive, send)
+            return
+
         if (
-            scope.get("type") == "websocket"
-            and scope.get("path") == "/live-login/assets/websockify"
+            scope_type == "http"
+            and method == "POST"
+            and path.startswith("/live-login/moderation/")
         ):
+            await self._submit_live_moderation(scope, receive, send)
+            return
+
+        if scope_type == "websocket" and path == "/live-login/assets/websockify":
             rewritten = dict(scope)
             rewritten["path"] = "/live-login/websockify"
             rewritten["raw_path"] = b"/live-login/websockify"
             await self.app(rewritten, receive, send)
             return
 
-        if (
-            scope.get("type") != "http"
-            or scope.get("method") != "POST"
-            or scope.get("path") != "/live-login/exchange"
-        ):
+        if scope_type != "http" or method != "POST" or path != "/live-login/exchange":
             await self.app(scope, receive, send)
             return
 
@@ -175,8 +253,6 @@ class LiveEntryBootstrap:
                 )(scope, receive, send)
                 return
 
-            self._entry_used = True
-
             exchanged = await self._invoke_core(
                 scope,
                 method="POST",
@@ -191,7 +267,124 @@ class LiveEntryBootstrap:
                 )(scope, receive, send)
                 return
 
+            self._entry_used = True
             await self._replay(exchanged, send)
+
+    async def _show_live_moderation(self, scope, receive, send) -> None:
+        status_response = await self._invoke_core(
+            scope,
+            method="GET",
+            path="/live-login/status",
+        )
+        if status_response["status"] == 401:
+            await JSONResponse(
+                {"detail": "live session authorization required"},
+                status_code=401,
+                headers={"Cache-Control": "no-store"},
+            )(scope, receive, send)
+            return
+        if status_response["status"] != 200:
+            await JSONResponse(
+                {"detail": "live login session not found"},
+                status_code=404,
+                headers={"Cache-Control": "no-store"},
+            )(scope, receive, send)
+            return
+
+        try:
+            status = json.loads(status_response["body"].decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            status = {}
+        if status.get("state") != "draft_ready":
+            await JSONResponse(
+                {"detail": "draft is not ready"},
+                status_code=409,
+                headers={"Cache-Control": "no-store"},
+            )(scope, receive, send)
+            return
+
+        try:
+            service = server_module.build_default_service()
+            approval_request = await service.request_submit_approval()
+            challenge = service.get_submit_approval_challenge(approval_request.request_id)
+        except (RuntimeError, CampaignValidationError, ApprovalError):
+            await JSONResponse(
+                {"detail": "final approval could not be prepared"},
+                status_code=503,
+                headers={"Cache-Control": "no-store"},
+            )(scope, receive, send)
+            return
+
+        self._approval_services[approval_request.request_id] = service
+        await HTMLResponse(
+            _final_approval_page(
+                challenge.request_id,
+                challenge.campaign_digest,
+                challenge.expires_at,
+                challenge.csrf_token,
+            ),
+            headers=_safe_headers(),
+        )(scope, receive, send)
+
+    async def _submit_live_moderation(self, scope, receive, send) -> None:
+        request_id = str(scope.get("path", "")).rsplit("/", 1)[-1]
+        service = self._approval_services.get(request_id)
+        if not request_id or service is None:
+            await JSONResponse(
+                {"detail": "approval request not found"},
+                status_code=404,
+                headers={"Cache-Control": "no-store"},
+            )(scope, receive, send)
+            return
+
+        body = await self._read_body(receive)
+        try:
+            form = parse_qs(body.decode("utf-8"), keep_blank_values=True)
+            csrf_token = form.get("csrf_token", [""])[0]
+        except UnicodeDecodeError:
+            csrf_token = ""
+        if not csrf_token:
+            await JSONResponse(
+                {"detail": "missing confirmation token"},
+                status_code=400,
+                headers={"Cache-Control": "no-store"},
+            )(scope, self._empty_receive, send)
+            return
+
+        try:
+            service.confirm_submit_approval(request_id, csrf_token)
+        except ApprovalError:
+            await JSONResponse(
+                {"detail": "invalid or expired confirmation"},
+                status_code=400,
+                headers={"Cache-Control": "no-store"},
+            )(scope, self._empty_receive, send)
+            return
+
+        try:
+            result = await service.submit_for_moderation(request_id)
+        except (ApprovalError, CampaignValidationError):
+            self._approval_services.pop(request_id, None)
+            await HTMLResponse(
+                _submission_page(success=False, status="approval_error"),
+                status_code=409,
+                headers=_safe_headers(),
+            )(scope, self._empty_receive, send)
+            return
+
+        self._approval_services.pop(request_id, None)
+        if result.status == "ok":
+            await HTMLResponse(
+                _submission_page(success=True),
+                headers=_safe_headers(),
+            )(scope, self._empty_receive, send)
+            return
+
+        await HTMLResponse(
+            _submission_page(success=False, status=result.status),
+            status_code=409,
+            headers=_safe_headers(),
+        )(scope, self._empty_receive, send)
 
     async def _invoke_core(
         self,
@@ -199,7 +392,7 @@ class LiveEntryBootstrap:
         *,
         method: str,
         path: str,
-        authorization: str,
+        authorization: str | None = None,
     ) -> dict[str, Any]:
         scope = dict(original_scope)
         scope["method"] = method
@@ -210,7 +403,9 @@ class LiveEntryBootstrap:
             (name, value)
             for name, value in original_scope.get("headers", [])
             if name.lower() not in {b"authorization", b"content-length", b"content-type"}
-        ] + [(b"authorization", authorization.encode("latin-1"))]
+        ]
+        if authorization is not None:
+            scope["headers"].append((b"authorization", authorization.encode("latin-1")))
 
         sent: list[dict[str, Any]] = []
         request_consumed = False
@@ -239,6 +434,24 @@ class LiveEntryBootstrap:
             "headers": list(start.get("headers", [])),
             "body": body,
         }
+
+    @staticmethod
+    async def _read_body(receive) -> bytes:
+        chunks: list[bytes] = []
+        while True:
+            message = await receive()
+            if message.get("type") == "http.disconnect":
+                break
+            if message.get("type") != "http.request":
+                continue
+            chunks.append(message.get("body", b""))
+            if not message.get("more_body", False):
+                break
+        return b"".join(chunks)
+
+    @staticmethod
+    async def _empty_receive() -> dict[str, Any]:
+        return {"type": "http.request", "body": b"", "more_body": False}
 
     @staticmethod
     async def _replay(response: dict[str, Any], send) -> None:
