@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,7 @@ from playwright.async_api import (
     Browser,
     BrowserContext,
     Error as PlaywrightError,
+    Locator,
     Page,
     Playwright,
     TimeoutError as PlaywrightTimeoutError,
@@ -44,6 +46,34 @@ class BrowserResult(BaseModel):
 def _origin(url: str) -> tuple[str, str, int | None]:
     parsed = urlsplit(url)
     return parsed.scheme.casefold(), (parsed.hostname or "").casefold(), parsed.port
+
+
+_SEMANTIC_NAMES = {
+    "title": re.compile(r"^\s*(?:название(?:\s+проекта)?|заголовок(?:\s+проекта)?)\s*\*?\s*$", re.I),
+    "target": re.compile(
+        r"^\s*(?:сумма\s+сбора|финансовая\s+цель|цель\s+сбора|нужно\s+собрать|сумма)\s*\*?\s*$",
+        re.I,
+    ),
+    "summary": re.compile(
+        r"^\s*(?:краткое\s+описание(?:\s+проекта)?|короткое\s+описание|анонс)\s*\*?\s*$",
+        re.I,
+    ),
+    "story": re.compile(
+        r"^\s*(?:описание\s+проекта|подробное\s+описание|история\s+проекта|о\s+проекте)\s*\*?\s*$",
+        re.I,
+    ),
+    "save": re.compile(r"^\s*сохранить(?:\s+(?:черновик|изменения))?\s*$", re.I),
+    "submit": re.compile(r"^\s*отправить(?:\s+проект)?\s+на\s+модераци(?:ю|и)\s*$", re.I),
+}
+
+_EXACT_SELECTORS = {
+    "title": selectors.TITLE_INPUT,
+    "target": selectors.TARGET_INPUT,
+    "summary": selectors.SUMMARY_INPUT,
+    "story": selectors.STORY_EDITOR,
+    "save": selectors.SAVE_DRAFT_BUTTON,
+    "submit": selectors.SUBMIT_MODERATION_BUTTON,
+}
 
 
 class PlanetaBrowser:
@@ -126,6 +156,57 @@ class PlanetaBrowser:
         await page.set_content(path.read_text(encoding="utf-8"), wait_until="domcontentloaded")
         self._fixture_loaded = True
 
+    async def _resolve_control(self, page: Page, key: str) -> Locator | None:
+        exact_selector = _EXACT_SELECTORS[key]
+        exact = page.locator(exact_selector)
+        exact_count = await exact.count()
+        if exact_count == 1:
+            return exact
+        if exact_count > 1:
+            return None
+
+        semantic_name = _SEMANTIC_NAMES[key]
+        if key in {"save", "submit"}:
+            for role in ("button", "link"):
+                candidate = page.get_by_role(role, name=semantic_name)
+                count = await candidate.count()
+                if count == 1:
+                    return candidate
+                if count > 1:
+                    return None
+            return None
+
+        labelled = page.get_by_label(semantic_name)
+        labelled_count = await labelled.count()
+        if labelled_count == 1:
+            return labelled
+        if labelled_count > 1:
+            return None
+
+        roles = ("textbox", "spinbutton") if key == "target" else ("textbox",)
+        for role in roles:
+            candidate = page.get_by_role(role, name=semantic_name)
+            count = await candidate.count()
+            if count == 1:
+                return candidate
+            if count > 1:
+                return None
+
+        placeholder = page.get_by_placeholder(semantic_name)
+        placeholder_count = await placeholder.count()
+        if placeholder_count == 1:
+            return placeholder
+        return None
+
+    async def _resolve_required_controls(self, page: Page) -> dict[str, Locator] | None:
+        resolved: dict[str, Locator] = {}
+        for key in selectors.REQUIRED_DRAFT_SELECTORS:
+            control = await self._resolve_control(page, key)
+            if control is None:
+                return None
+            resolved[key] = control
+        return resolved
+
     async def classify_page(self, page: Page) -> BrowserState:
         try:
             url = page.url.casefold()
@@ -156,9 +237,8 @@ class PlanetaBrowser:
             if "ошибка модерации" in body_text or "ошибка сервиса" in body_text:
                 return BrowserState.PLANETA_ERROR
 
-            for selector in selectors.REQUIRED_DRAFT_SELECTORS.values():
-                if await page.locator(selector).count() != 1:
-                    return BrowserState.UI_CHANGED
+            if await self._resolve_required_controls(page) is None:
+                return BrowserState.UI_CHANGED
             return BrowserState.OK
         except PlaywrightTimeoutError:
             return BrowserState.NETWORK_ERROR
@@ -190,12 +270,44 @@ class PlanetaBrowser:
         }
         return BrowserResult(status=state.value, reason=reasons[state])
 
+    async def navigate_to_draft(self) -> BrowserResult:
+        if not self.draft_url:
+            return BrowserResult(
+                status=BrowserState.CONFIGURATION_REQUIRED.value,
+                reason="Planeta.ru draft URL is not configured",
+            )
+        try:
+            page = await self._ensure_page()
+            if page.url != self.draft_url:
+                await page.goto(self.draft_url, wait_until="domcontentloaded", timeout=30000)
+            return BrowserResult(status="ok", reason="configured draft opened")
+        except PlaywrightTimeoutError:
+            return BrowserResult(status="network_error", reason="timeout while opening configured draft")
+        except PlaywrightError as exc:
+            return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
+
+    @staticmethod
+    async def _control_value(control: Locator) -> str:
+        value = await control.evaluate(
+            """(el) => {
+                if ('value' in el) return String(el.value ?? '');
+                return String(el.innerText ?? el.textContent ?? '');
+            }"""
+        )
+        return str(value)
+
     async def _read_snapshot(self, page: Page) -> dict[str, str]:
+        controls: dict[str, Locator] = {}
+        for key in ("title", "target", "summary", "story"):
+            control = await self._resolve_control(page, key)
+            if control is None:
+                raise LookupError(key)
+            controls[key] = control
         return {
-            "title": await page.locator(selectors.TITLE_INPUT).input_value(),
-            "target_amount": await page.locator(selectors.TARGET_INPUT).input_value(),
-            "summary": await page.locator(selectors.SUMMARY_INPUT).input_value(),
-            "story": await page.locator(selectors.STORY_EDITOR).input_value(),
+            "title": await self._control_value(controls["title"]),
+            "target_amount": await self._control_value(controls["target"]),
+            "summary": await self._control_value(controls["summary"]),
+            "story": await self._control_value(controls["story"]),
         }
 
     async def read_draft(self) -> BrowserResult:
@@ -206,6 +318,8 @@ class PlanetaBrowser:
         try:
             snapshot = await self._read_snapshot(self._page)
             return BrowserResult(status="ok", reason="draft read", draft_snapshot=snapshot)
+        except LookupError:
+            return BrowserResult(status="ui_changed", reason="known draft selectors are missing or ambiguous")
         except PlaywrightTimeoutError:
             return BrowserResult(status="network_error", reason="timeout while reading draft")
         except PlaywrightError as exc:
@@ -218,15 +332,25 @@ class PlanetaBrowser:
         assert self._page is not None
         page = self._page
         try:
-            await page.locator(selectors.TITLE_INPUT).fill(payload.title)
-            await page.locator(selectors.TARGET_INPUT).fill(str(payload.target_amount))
-            await page.locator(selectors.SUMMARY_INPUT).fill(payload.summary)
-            await page.locator(selectors.STORY_EDITOR).fill(payload.story)
+            controls: dict[str, Locator] = {}
+            for key in ("title", "target", "summary", "story", "save"):
+                control = await self._resolve_control(page, key)
+                if control is None:
+                    return BrowserResult(
+                        status="ui_changed",
+                        reason="known draft selectors are missing or ambiguous",
+                    )
+                controls[key] = control
+
+            await controls["title"].fill(payload.title)
+            await controls["target"].fill(str(payload.target_amount))
+            await controls["summary"].fill(payload.summary)
+            await controls["story"].fill(payload.story)
 
             pre_save = await self.inspect()
             if pre_save.status != BrowserState.OK.value:
                 return pre_save
-            await page.locator(selectors.SAVE_DRAFT_BUTTON).click()
+            await controls["save"].click()
             return BrowserResult(
                 status="ok",
                 reason="draft fields filled and safe save control clicked",
@@ -245,12 +369,21 @@ class PlanetaBrowser:
         page = self._page
         try:
             snapshot = await self._read_snapshot(page)
-            await page.locator(selectors.SUBMIT_MODERATION_BUTTON).click()
+            submit = await self._resolve_control(page, "submit")
+            if submit is None:
+                return BrowserResult(
+                    status="ui_changed",
+                    reason="exact moderation-submit control is missing or ambiguous",
+                    draft_snapshot=snapshot,
+                )
+            await submit.click()
             return BrowserResult(
                 status="ok",
                 reason="exact moderation-submit control clicked",
                 draft_snapshot=snapshot,
             )
+        except LookupError:
+            return BrowserResult(status="ui_changed", reason="known draft selectors are missing or ambiguous")
         except PlaywrightTimeoutError:
             return BrowserResult(status="network_error", reason="timeout during moderation submit")
         except PlaywrightError as exc:
