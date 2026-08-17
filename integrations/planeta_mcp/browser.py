@@ -48,6 +48,12 @@ def _origin(url: str) -> tuple[str, str, int | None]:
     return parsed.scheme.casefold(), (parsed.hostname or "").casefold(), parsed.port
 
 
+def _normalize_editor_text(value: str) -> str:
+    value = value.replace("\r\n", "\n").replace("\r", "\n")
+    value = re.sub(r"\n{3,}", "\n\n", value)
+    return value.strip()
+
+
 _SEMANTIC_NAMES = {
     "title": re.compile(r"^\s*(?:название(?:\s+проекта)?|заголовок(?:\s+проекта)?)\s*\*?\s*$", re.I),
     "target": re.compile(
@@ -294,7 +300,7 @@ class PlanetaBrowser:
                 return String(el.innerText ?? el.textContent ?? '');
             }"""
         )
-        return str(value)
+        return _normalize_editor_text(str(value))
 
     async def _read_snapshot(self, page: Page) -> dict[str, str]:
         controls: dict[str, Locator] = {}
