@@ -72,8 +72,9 @@ def build_default_service() -> PlanetaCampaignService:
     if not session_key:
         raise RuntimeError("PLANETA_SESSION_KEY is required")
 
-    data_dir = config.state_path.parent
-    session_store = SessionStore(data_dir / "session.enc", session_key)
+    state_dir = config.state_path.parent
+    assert config.session_dir is not None
+    session_store = SessionStore(config.session_dir / "session.enc", session_key)
     storage_state = session_store.load_storage_state()
     browser = PlanetaBrowser(
         base_url=config.base_url,
@@ -88,7 +89,7 @@ def build_default_service() -> PlanetaCampaignService:
             approval_secret,
             ttl_seconds=config.submit_ttl_seconds,
         ),
-        audit=AuditLogger(data_dir / "audit.jsonl"),
+        audit=AuditLogger(state_dir / "audit.jsonl"),
     )
 
 
@@ -593,7 +594,8 @@ def _module_app() -> FastAPI:
             durability = os.getenv("PLANETA_SESSION_DURABILITY", "ephemeral").strip().lower()
             if durability not in {"ephemeral", "durable"}:
                 raise ValueError("PLANETA_SESSION_DURABILITY must be ephemeral or durable")
-            session_store = SessionStore(config.state_path.parent / "session.enc", session_key)
+            assert config.session_dir is not None
+            session_store = SessionStore(config.session_dir / "session.enc", session_key)
             live_coordinator = LiveLoginCoordinator(
                 service=service,
                 config=config,

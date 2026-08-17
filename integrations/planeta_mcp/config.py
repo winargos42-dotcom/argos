@@ -13,6 +13,11 @@ class PlanetaConfig:
     submit_ttl_seconds: int = 300
     live_ttl_seconds: int = 600
     state_path: Path = Path("/data/planeta/campaign.json")
+    session_dir: Path | None = None
+
+    def __post_init__(self) -> None:
+        if self.session_dir is None:
+            object.__setattr__(self, "session_dir", self.state_path.parent)
 
     @classmethod
     def from_env(cls) -> "PlanetaConfig":
@@ -29,11 +34,15 @@ class PlanetaConfig:
             raise ValueError("PLANETA_LIVE_TTL_SECONDS must be positive")
 
         draft_url = os.getenv("PLANETA_DRAFT_URL", "").strip() or None
+        state_path = Path(os.getenv("PLANETA_STATE_PATH", "/data/planeta/campaign.json"))
+        session_dir_raw = os.getenv("PLANETA_SESSION_DIR", "").strip()
+        session_dir = Path(session_dir_raw) if session_dir_raw else state_path.parent
         return cls(
             base_url=os.getenv("PLANETA_BASE_URL", "https://planeta.ru").rstrip("/"),
             draft_url=draft_url,
             headless=headless_raw in {"true", "1", "yes"},
             submit_ttl_seconds=submit_ttl,
             live_ttl_seconds=live_ttl,
-            state_path=Path(os.getenv("PLANETA_STATE_PATH", "/data/planeta/campaign.json")),
+            state_path=state_path,
+            session_dir=session_dir,
         )
