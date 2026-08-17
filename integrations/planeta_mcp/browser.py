@@ -117,6 +117,7 @@ class PlanetaBrowser:
         self._context: BrowserContext | None = None
         self._page: Page | None = None
         self._attached_over_cdp = False
+        self._last_rewards_snapshot: list[dict[str, Any]] = []
 
     async def _ensure_page(self) -> Page:
         if self._page is not None:
@@ -443,6 +444,7 @@ class PlanetaBrowser:
                     }
                 )
 
+            self._last_rewards_snapshot = [dict(reward) for reward in rewards_snapshot]
             if self.draft_url and not self._fixture_loaded:
                 returned = await self.navigate_to_draft()
                 if returned.status != "ok":
@@ -454,6 +456,84 @@ class PlanetaBrowser:
             )
         except PlaywrightTimeoutError:
             return BrowserResult(status="network_error", reason="timeout while filling rewards")
+        except PlaywrightError as exc:
+            return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
+
+    async def read_rewards(self) -> BrowserResult:
+        if not self._last_rewards_snapshot:
+            return BrowserResult(
+                status="ui_changed",
+                reason="no rewards snapshot is available for strict verification",
+            )
+        page = await self._ensure_page()
+        try:
+            add_button = page.get_by_role("button", name=_ADD_REWARD)
+            add_count = await add_button.count()
+            if add_count == 0:
+                navigation_candidates = []
+                for role in ("link", "button"):
+                    candidate = page.get_by_role(role, name=_REWARDS_NAV)
+                    count = await candidate.count()
+                    if count == 1:
+                        navigation_candidates.append(candidate)
+                    elif count > 1:
+                        return BrowserResult(status="ui_changed", reason="rewards navigation is ambiguous")
+                if len(navigation_candidates) != 1:
+                    return BrowserResult(status="ui_changed", reason="rewards navigation is missing or ambiguous")
+                await navigation_candidates[0].click()
+                add_count = await page.get_by_role("button", name=_ADD_REWARD).count()
+            if add_count != 1:
+                return BrowserResult(status="ui_changed", reason="rewards editor could not be verified")
+
+            for expected in self._last_rewards_snapshot:
+                title = page.get_by_text(str(expected["title"]), exact=True)
+                if await title.count() != 1:
+                    return BrowserResult(status="ui_changed", reason="saved reward title is missing or ambiguous")
+                verified = await title.evaluate(
+                    """(node, expected) => {
+                        const norm = (value) => String(value ?? '')
+                            .replace(/\u00a0/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                        const amount = String(expected.amount);
+                        const grouped = Number(amount).toLocaleString('ru-RU').replace(/\u00a0/g, ' ');
+                        let current = node;
+                        for (let depth = 0; current && depth < 7; depth += 1, current = current.parentElement) {
+                            const text = norm(current.innerText || current.textContent || '');
+                            const dataAmount = current.dataset ? current.dataset.amount : '';
+                            const dataDescription = current.dataset ? current.dataset.description : '';
+                            const amountOk = dataAmount
+                                ? String(dataAmount) === amount
+                                : text.includes(amount) || text.includes(grouped);
+                            const descriptionOk = dataDescription
+                                ? norm(dataDescription) === norm(expected.description)
+                                : text.includes(norm(expected.description));
+                            const checkbox = current.querySelector ? current.querySelector('input[type="checkbox"]') : null;
+                            const physicalOk = expected.physical ? true : !(checkbox && checkbox.checked);
+                            if (amountOk && descriptionOk && physicalOk) return true;
+                        }
+                        return false;
+                    }""",
+                    expected,
+                )
+                if not verified:
+                    return BrowserResult(
+                        status="ui_changed",
+                        reason="saved reward amount, description, or digital type could not be verified",
+                    )
+
+            snapshot = [dict(reward) for reward in self._last_rewards_snapshot]
+            if self.draft_url and not self._fixture_loaded:
+                returned = await self.navigate_to_draft()
+                if returned.status != "ok":
+                    return returned
+            return BrowserResult(
+                status="ok",
+                reason="digital rewards verified",
+                draft_snapshot={"rewards": snapshot},
+            )
+        except PlaywrightTimeoutError:
+            return BrowserResult(status="network_error", reason="timeout while reading rewards")
         except PlaywrightError as exc:
             return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
 
@@ -503,3 +583,4 @@ class PlanetaBrowser:
         self._playwright = None
         self._fixture_loaded = False
         self._attached_over_cdp = False
+        self._last_rewards_snapshot = []
