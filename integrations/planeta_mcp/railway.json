@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile.railway"
   },
   "deploy": {
-    "startCommand": "sh -c 'python -m integrations.planeta_mcp.bootstrap_once; exec uvicorn integrations.planeta_mcp.entry_server:app --host 0.0.0.0 --port 8000'",
+    "startCommand": "uvicorn integrations.planeta_mcp.entry_server:app --host 0.0.0.0 --port 8000",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
