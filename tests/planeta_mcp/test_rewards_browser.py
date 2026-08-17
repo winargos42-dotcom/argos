@@ -35,3 +35,33 @@ async def test_fill_rewards_adds_three_digital_rewards_idempotently():
         assert await page.locator("#physical-reward").is_checked() is False
     finally:
         await browser.close()
+
+
+@pytest.mark.asyncio
+async def test_read_rewards_verifies_title_amount_description_and_digital_type():
+    browser = PlanetaBrowser(
+        base_url="https://planeta.ru",
+        headless=True,
+        fixture_dir=FIXTURES,
+        executable_path="/usr/bin/chromium",
+    )
+    campaign = default_argos_reboot_campaign()
+    try:
+        await browser.open_fixture("rewards_editor.html")
+        filled = await browser.fill_rewards(campaign)
+        assert filled.status == "ok"
+
+        synced = await browser.read_rewards()
+
+        assert synced.status == "ok"
+        assert synced.draft_snapshot["rewards"] == [
+            {
+                "title": reward.title,
+                "amount": str(reward.amount),
+                "description": reward.description,
+                "physical": False,
+            }
+            for reward in campaign.rewards
+        ]
+    finally:
+        await browser.close()
