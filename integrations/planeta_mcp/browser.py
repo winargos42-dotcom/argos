@@ -393,7 +393,13 @@ class PlanetaBrowser:
                     amount = page.get_by_label(_REWARD_AMOUNT)
                     description = page.get_by_label(_REWARD_DESCRIPTION)
                     save = page.get_by_role("button", name=_SAVE_REWARD)
-                    if any(await locator.count() != 1 for locator in (title, amount, description, save)):
+                    counts = [
+                        await title.count(),
+                        await amount.count(),
+                        await description.count(),
+                        await save.count(),
+                    ]
+                    if any(control_count != 1 for control_count in counts):
                         return BrowserResult(status="ui_changed", reason="reward editor controls are missing or ambiguous")
                     await title.fill(reward.title)
                     await amount.fill(str(reward.amount))
