@@ -70,6 +70,21 @@ async def test_fill_draft_never_submits(browser):
 
 
 @pytest.mark.asyncio
+async def test_fill_draft_supports_semantic_accessible_controls(browser):
+    campaign = default_argos_reboot_campaign()
+    await browser.open_fixture("semantic_draft.html")
+
+    result = await browser.fill_draft(campaign)
+
+    assert result.status == "ok"
+    assert result.draft_snapshot["title"] == campaign.title
+    assert result.draft_snapshot["target_amount"] == str(campaign.target_amount)
+    assert result.draft_snapshot["summary"] == campaign.summary
+    assert result.draft_snapshot["story"] == campaign.story
+    assert await browser.submit_click_count() == 0
+
+
+@pytest.mark.asyncio
 async def test_read_draft_returns_snapshot(browser):
     await browser.open_fixture("draft.html")
     result = await browser.read_draft()
