@@ -82,6 +82,7 @@ _EXACT_SELECTORS = {
 }
 
 _DRAFT_EDITOR_KEYS = ("title", "target", "summary", "story", "save")
+_REVIEW_NAV = re.compile(r"^\s*проверка\s+и\s+публикация\s*$", re.I)
 _REWARDS_NAV = re.compile(r"^\s*вознаграждения\s*$", re.I)
 _ADD_REWARD = re.compile(r"^\s*добавить\s+вознаграждение\s*$", re.I)
 _REWARD_TITLE = re.compile(r"^\s*название\s+вознаграждения\s*\*?\s*$", re.I)
@@ -123,7 +124,6 @@ class PlanetaBrowser:
         if self._page is not None:
             return self._page
         self._playwright = await async_playwright().start()
-
         if self.cdp_url:
             self._browser = await self._playwright.chromium.connect_over_cdp(self.cdp_url)
             self._attached_over_cdp = True
@@ -153,12 +153,7 @@ class PlanetaBrowser:
                 reason="PLANETA_DRAFT_URL must point to the owner's Planeta.ru draft editor",
             )
         page = await self._ensure_page()
-        if (
-            not self.cdp_url
-            and not self._fixture_loaded
-            and self.draft_url
-            and page.url != self.draft_url
-        ):
+        if not self.cdp_url and not self._fixture_loaded and self.draft_url and page.url != self.draft_url:
             await page.goto(self.draft_url, wait_until="domcontentloaded", timeout=30000)
         return page, None
 
@@ -173,8 +168,7 @@ class PlanetaBrowser:
         self._fixture_loaded = True
 
     async def _resolve_control(self, page: Page, key: str) -> Locator | None:
-        exact_selector = _EXACT_SELECTORS[key]
-        exact = page.locator(exact_selector)
+        exact = page.locator(_EXACT_SELECTORS[key])
         exact_count = await exact.count()
         if exact_count == 1:
             return exact
@@ -193,10 +187,10 @@ class PlanetaBrowser:
             return None
 
         labelled = page.get_by_label(semantic_name)
-        labelled_count = await labelled.count()
-        if labelled_count == 1:
+        count = await labelled.count()
+        if count == 1:
             return labelled
-        if labelled_count > 1:
+        if count > 1:
             return None
 
         roles = ("textbox", "spinbutton") if key == "target" else ("textbox",)
@@ -209,10 +203,7 @@ class PlanetaBrowser:
                 return None
 
         placeholder = page.get_by_placeholder(semantic_name)
-        placeholder_count = await placeholder.count()
-        if placeholder_count == 1:
-            return placeholder
-        return None
+        return placeholder if await placeholder.count() == 1 else None
 
     async def _resolve_required_controls(self, page: Page) -> dict[str, Locator] | None:
         resolved: dict[str, Locator] = {}
@@ -227,15 +218,12 @@ class PlanetaBrowser:
         try:
             url = page.url.casefold()
             body_text = (await page.locator("body").inner_text()).casefold()
-
             if "login" in url or await page.locator(selectors.LOGIN_PASSWORD_INPUT).count() > 0:
                 return BrowserState.AUTHENTICATION_REQUIRED
-
             if await page.locator(selectors.CAPTCHA_WIDGET).count() > 0 or any(
                 marker in body_text for marker in ("captcha", "капча", "я не робот")
             ):
                 return BrowserState.CAPTCHA_REQUIRED
-
             human_markers = (
                 "подтвердите личность",
                 "верификация личности",
@@ -253,10 +241,8 @@ class PlanetaBrowser:
             )
             if any(marker in body_text for marker in human_markers):
                 return BrowserState.HUMAN_ACTION_REQUIRED
-
             if "ошибка модерации" in body_text or "ошибка сервиса" in body_text:
                 return BrowserState.PLANETA_ERROR
-
             if await self._resolve_required_controls(page) is None:
                 return BrowserState.UI_CHANGED
             return BrowserState.OK
@@ -276,7 +262,6 @@ class PlanetaBrowser:
             state = BrowserState.NETWORK_ERROR
         except PlaywrightError:
             state = BrowserState.PLANETA_ERROR
-
         reasons = {
             BrowserState.OK: "known draft editor detected",
             BrowserState.CONFIGURATION_REQUIRED: "Planeta.ru draft URL is not configured",
@@ -292,10 +277,7 @@ class PlanetaBrowser:
 
     async def navigate_to_draft(self) -> BrowserResult:
         if not self.draft_url:
-            return BrowserResult(
-                status=BrowserState.CONFIGURATION_REQUIRED.value,
-                reason="Planeta.ru draft URL is not configured",
-            )
+            return BrowserResult(status="configuration_required", reason="Planeta.ru draft URL is not configured")
         try:
             page = await self._ensure_page()
             if page.url != self.draft_url:
@@ -332,12 +314,11 @@ class PlanetaBrowser:
 
     async def read_draft(self) -> BrowserResult:
         inspected = await self.inspect()
-        if inspected.status != BrowserState.OK.value:
+        if inspected.status != "ok":
             return inspected
         assert self._page is not None
         try:
-            snapshot = await self._read_snapshot(self._page)
-            return BrowserResult(status="ok", reason="draft read", draft_snapshot=snapshot)
+            return BrowserResult(status="ok", reason="draft read", draft_snapshot=await self._read_snapshot(self._page))
         except LookupError:
             return BrowserResult(status="ui_changed", reason="known draft selectors are missing or ambiguous")
         except PlaywrightTimeoutError:
@@ -347,28 +328,20 @@ class PlanetaBrowser:
 
     async def fill_draft(self, payload: CampaignPayload) -> BrowserResult:
         inspected = await self.inspect()
-        if inspected.status != BrowserState.OK.value:
+        if inspected.status != "ok":
             return inspected
         assert self._page is not None
         page = self._page
         try:
-            controls: dict[str, Locator] = {}
-            for key in _DRAFT_EDITOR_KEYS:
-                control = await self._resolve_control(page, key)
-                if control is None:
-                    return BrowserResult(
-                        status="ui_changed",
-                        reason="known draft selectors are missing or ambiguous",
-                    )
-                controls[key] = control
-
+            controls = await self._resolve_required_controls(page)
+            if controls is None:
+                return BrowserResult(status="ui_changed", reason="known draft selectors are missing or ambiguous")
             await controls["title"].fill(payload.title)
             await controls["target"].fill(str(payload.target_amount))
             await controls["summary"].fill(payload.summary)
             await controls["story"].fill(payload.story)
-
             pre_save = await self.inspect()
-            if pre_save.status != BrowserState.OK.value:
+            if pre_save.status != "ok":
                 return pre_save
             await controls["save"].click()
             return BrowserResult(
@@ -381,65 +354,60 @@ class PlanetaBrowser:
         except PlaywrightError as exc:
             return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
 
+    async def _open_rewards_editor(self, page: Page) -> Locator | None:
+        add_button = page.get_by_role("button", name=_ADD_REWARD)
+        count = await add_button.count()
+        if count == 1:
+            return add_button
+        if count > 1:
+            return None
+        navigation_candidates: list[Locator] = []
+        for role in ("link", "button"):
+            candidate = page.get_by_role(role, name=_REWARDS_NAV)
+            count = await candidate.count()
+            if count == 1:
+                navigation_candidates.append(candidate)
+            elif count > 1:
+                return None
+        if len(navigation_candidates) != 1:
+            return None
+        await navigation_candidates[0].click()
+        add_button = page.get_by_role("button", name=_ADD_REWARD)
+        return add_button if await add_button.count() == 1 else None
+
     async def fill_rewards(self, payload: CampaignPayload) -> BrowserResult:
         page = await self._ensure_page()
         try:
-            add_button = page.get_by_role("button", name=_ADD_REWARD)
-            add_count = await add_button.count()
-            if add_count == 0:
-                navigation_candidates = []
-                for role in ("link", "button"):
-                    candidate = page.get_by_role(role, name=_REWARDS_NAV)
-                    if await candidate.count() == 1:
-                        navigation_candidates.append(candidate)
-                    elif await candidate.count() > 1:
-                        return BrowserResult(status="ui_changed", reason="rewards navigation is ambiguous")
-                if len(navigation_candidates) != 1:
-                    return BrowserResult(status="ui_changed", reason="rewards navigation is missing or ambiguous")
-                await navigation_candidates[0].click()
-                add_button = page.get_by_role("button", name=_ADD_REWARD)
-                add_count = await add_button.count()
-            if add_count != 1:
-                return BrowserResult(status="ui_changed", reason="add reward control is missing or ambiguous")
-
-            rewards_snapshot: list[dict[str, Any]] = []
+            add_button = await self._open_rewards_editor(page)
+            if add_button is None:
+                return BrowserResult(status="ui_changed", reason="rewards navigation or add control is missing or ambiguous")
+            snapshot: list[dict[str, Any]] = []
             for reward in payload.rewards:
                 existing = page.get_by_text(reward.title, exact=True)
-                existing_count = await existing.count()
-                if existing_count > 1:
+                count = await existing.count()
+                if count > 1:
                     return BrowserResult(status="ui_changed", reason="reward title is duplicated or ambiguous")
-                if existing_count == 0:
+                if count == 0:
                     await add_button.click()
                     title = page.get_by_label(_REWARD_TITLE)
                     amount = page.get_by_label(_REWARD_AMOUNT)
                     description = page.get_by_label(_REWARD_DESCRIPTION)
                     save = page.get_by_role("button", name=_SAVE_REWARD)
-                    if any(
-                        count != 1
-                        for count in (
-                            await title.count(),
-                            await amount.count(),
-                            await description.count(),
-                            await save.count(),
-                        )
-                    ):
+                    if any(await locator.count() != 1 for locator in (title, amount, description, save)):
                         return BrowserResult(status="ui_changed", reason="reward editor controls are missing or ambiguous")
                     await title.fill(reward.title)
                     await amount.fill(str(reward.amount))
                     await description.fill(reward.description)
-
                     physical = page.get_by_role("checkbox", name=_REWARD_PHYSICAL)
                     physical_count = await physical.count()
                     if physical_count > 1:
                         return BrowserResult(status="ui_changed", reason="physical reward control is ambiguous")
                     if physical_count == 1 and await physical.is_checked():
                         await physical.uncheck()
-
                     await save.click()
                     if await page.get_by_text(reward.title, exact=True).count() != 1:
                         return BrowserResult(status="ui_changed", reason="saved reward could not be verified")
-
-                rewards_snapshot.append(
+                snapshot.append(
                     {
                         "title": reward.title,
                         "amount": str(reward.amount),
@@ -447,8 +415,7 @@ class PlanetaBrowser:
                         "physical": False,
                     }
                 )
-
-            self._last_rewards_snapshot = [dict(reward) for reward in rewards_snapshot]
+            self._last_rewards_snapshot = [dict(item) for item in snapshot]
             if self.draft_url and not self._fixture_loaded:
                 returned = await self.navigate_to_draft()
                 if returned.status != "ok":
@@ -456,7 +423,7 @@ class PlanetaBrowser:
             return BrowserResult(
                 status="ok",
                 reason="digital rewards created or already present",
-                draft_snapshot={"rewards": rewards_snapshot},
+                draft_snapshot={"rewards": snapshot},
             )
         except PlaywrightTimeoutError:
             return BrowserResult(status="network_error", reason="timeout while filling rewards")
@@ -465,30 +432,11 @@ class PlanetaBrowser:
 
     async def read_rewards(self) -> BrowserResult:
         if not self._last_rewards_snapshot:
-            return BrowserResult(
-                status="ui_changed",
-                reason="no rewards snapshot is available for strict verification",
-            )
+            return BrowserResult(status="ui_changed", reason="no rewards snapshot is available for strict verification")
         page = await self._ensure_page()
         try:
-            add_button = page.get_by_role("button", name=_ADD_REWARD)
-            add_count = await add_button.count()
-            if add_count == 0:
-                navigation_candidates = []
-                for role in ("link", "button"):
-                    candidate = page.get_by_role(role, name=_REWARDS_NAV)
-                    count = await candidate.count()
-                    if count == 1:
-                        navigation_candidates.append(candidate)
-                    elif count > 1:
-                        return BrowserResult(status="ui_changed", reason="rewards navigation is ambiguous")
-                if len(navigation_candidates) != 1:
-                    return BrowserResult(status="ui_changed", reason="rewards navigation is missing or ambiguous")
-                await navigation_candidates[0].click()
-                add_count = await page.get_by_role("button", name=_ADD_REWARD).count()
-            if add_count != 1:
+            if await self._open_rewards_editor(page) is None:
                 return BrowserResult(status="ui_changed", reason="rewards editor could not be verified")
-
             for expected in self._last_rewards_snapshot:
                 title = page.get_by_text(str(expected["title"]), exact=True)
                 if await title.count() != 1:
@@ -525,25 +473,31 @@ class PlanetaBrowser:
                         status="ui_changed",
                         reason="saved reward amount, description, or digital type could not be verified",
                     )
-
-            snapshot = [dict(reward) for reward in self._last_rewards_snapshot]
+            snapshot = [dict(item) for item in self._last_rewards_snapshot]
             if self.draft_url and not self._fixture_loaded:
                 returned = await self.navigate_to_draft()
                 if returned.status != "ok":
                     return returned
-            return BrowserResult(
-                status="ok",
-                reason="digital rewards verified",
-                draft_snapshot={"rewards": snapshot},
-            )
+            return BrowserResult(status="ok", reason="digital rewards verified", draft_snapshot={"rewards": snapshot})
         except PlaywrightTimeoutError:
             return BrowserResult(status="network_error", reason="timeout while reading rewards")
         except PlaywrightError as exc:
             return BrowserResult(status="planeta_error", reason=f"browser error: {type(exc).__name__}")
 
+    async def _resolve_review_navigation(self, page: Page) -> Locator | None:
+        candidates: list[Locator] = []
+        for role in ("link", "button"):
+            candidate = page.get_by_role(role, name=_REVIEW_NAV)
+            count = await candidate.count()
+            if count == 1:
+                candidates.append(candidate)
+            elif count > 1:
+                return None
+        return candidates[0] if len(candidates) == 1 else None
+
     async def submit_for_moderation(self) -> BrowserResult:
         inspected = await self.inspect()
-        if inspected.status != BrowserState.OK.value:
+        if inspected.status != "ok":
             return inspected
         assert self._page is not None
         page = self._page
@@ -551,9 +505,19 @@ class PlanetaBrowser:
             snapshot = await self._read_snapshot(page)
             submit = await self._resolve_control(page, "submit")
             if submit is None:
+                review_navigation = await self._resolve_review_navigation(page)
+                if review_navigation is None:
+                    return BrowserResult(
+                        status="ui_changed",
+                        reason="moderation control and exact review navigation are missing or ambiguous",
+                        draft_snapshot=snapshot,
+                    )
+                await review_navigation.click()
+                submit = await self._resolve_control(page, "submit")
+            if submit is None:
                 return BrowserResult(
                     status="ui_changed",
-                    reason="exact moderation-submit control is missing or ambiguous",
+                    reason="exact moderation-submit control is missing or ambiguous after review navigation",
                     draft_snapshot=snapshot,
                 )
             await submit.click()
