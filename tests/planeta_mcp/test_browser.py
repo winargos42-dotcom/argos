@@ -108,6 +108,16 @@ async def test_submit_uses_only_exact_moderation_control(browser):
 
 
 @pytest.mark.asyncio
+async def test_submit_navigates_exact_review_step_before_moderation(browser):
+    await browser.open_fixture("moderation_nav.html")
+
+    result = await browser.submit_for_moderation()
+
+    assert result.status == "ok"
+    assert await browser.submit_click_count() == 1
+
+
+@pytest.mark.asyncio
 async def test_browser_attaches_to_existing_cdp_context(tmp_path):
     async with async_playwright() as playwright:
         context = await playwright.chromium.launch_persistent_context(
