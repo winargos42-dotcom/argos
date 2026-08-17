@@ -22,12 +22,18 @@ class NoopBrowser:
     async def fill_draft(self, campaign):
         return BrowserResult(status="ok", reason="noop")
 
+    async def fill_rewards(self, campaign):
+        return BrowserResult(status="ok", reason="noop", draft_snapshot={"rewards": []})
+
     async def read_draft(self):
         return BrowserResult(status="ok", reason="noop")
 
+    async def read_rewards(self):
+        return BrowserResult(status="ok", reason="noop", draft_snapshot={"rewards": []})
+
     async def submit_for_moderation(self):
         self.submit_calls += 1
-        return BrowserResult(status="ok", reason="noop")
+        return BrowserResult(status="ok", reason="submitted")
 
 
 class FakeLiveCoordinator:
@@ -90,30 +96,70 @@ def test_tool_names_are_registered():
     } == set(REGISTERED_TOOL_NAMES)
 
 
-def test_approval_get_is_read_only_and_post_confirms(tmp_path):
+def test_approval_get_is_read_only_and_post_confirms_and_submits(tmp_path):
     service = make_service(tmp_path)
     campaign = default_argos_reboot_campaign()
     asyncio.run(service.prepare_campaign(campaign))
-    request = asyncio.run(service.request_submit_approval())
+    approval_request = asyncio.run(service.request_submit_approval())
 
     client = TestClient(create_app(service=service, enable_mcp=False))
-    response = client.get(f"/approve/{request.request_id}")
+    response = client.get(f"/approve/{approval_request.request_id}")
     assert response.status_code == 200
-    assert "Подтвердить отправку на модерацию" in response.text
+    assert "Подтвердить и отправить на модерацию" in response.text
+    assert service.browser.submit_calls == 0
 
     with pytest.raises(ApprovalError, match="human confirmation"):
-        service.approval_gate.consume(request.request_id, campaign)
+        service.approval_gate.consume(approval_request.request_id, campaign)
 
     match = re.search(r'name="csrf_token" value="([^"]+)"', response.text)
     assert match is not None
     confirmed = client.post(
-        f"/approve/{request.request_id}",
+        f"/approve/{approval_request.request_id}",
         data={"csrf_token": match.group(1)},
     )
     assert confirmed.status_code == 200
-    assert "Подтверждение принято" in confirmed.text
+    assert "Кампания отправлена на модерацию" in confirmed.text
+    assert service.browser.submit_calls == 1
 
-    service.approval_gate.consume(request.request_id, campaign)
+    with pytest.raises(ApprovalError, match="already been used"):
+        service.approval_gate.consume(approval_request.request_id, campaign)
+
+
+def test_live_ready_session_can_open_final_moderation_confirmation(tmp_path):
+    coordinator = FakeLiveCoordinator()
+    service = make_service(tmp_path)
+    asyncio.run(service.prepare_campaign(default_argos_reboot_campaign()))
+    client = TestClient(
+        create_app(
+            service=service,
+            enable_mcp=False,
+            live_control_secret="control-secret",
+            live_coordinator=coordinator,
+        ),
+        base_url="https://testserver",
+    )
+
+    started = client.post(
+        "/live-login/start",
+        headers={"Authorization": "Bearer control-secret"},
+    ).json()
+    capability = urlsplit(started["browser_url"]).fragment
+    exchanged = client.post(
+        "/live-login/exchange",
+        headers={"Authorization": f"Bearer {capability}"},
+    )
+    assert exchanged.status_code == 204
+
+    not_ready = client.get("/live-login/moderation")
+    assert not_ready.status_code == 409
+    assert service.browser.submit_calls == 0
+
+    coordinator.controller.mark_ready(capability)
+    ready = client.get("/live-login/moderation")
+    assert ready.status_code == 200
+    assert "Подтвердить и отправить на модерацию" in ready.text
+    assert service.browser.submit_calls == 0
+    assert "cache-control" in ready.headers
 
 
 def test_live_login_start_requires_control_secret_and_hides_capability_from_path(tmp_path):
