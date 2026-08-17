@@ -239,8 +239,12 @@ class PlanetaBrowser:
             human_markers = (
                 "подтвердите личность",
                 "верификация личности",
-                "паспорт",
-                "инн",
+                "загрузите паспорт",
+                "загрузить паспорт",
+                "предоставьте паспорт",
+                "введите инн",
+                "укажите инн",
+                "загрузите инн",
                 "sms-код",
                 "смс-код",
                 "код из письма",
@@ -490,7 +494,7 @@ class PlanetaBrowser:
                 if await title.count() != 1:
                     return BrowserResult(status="ui_changed", reason="saved reward title is missing or ambiguous")
                 verified = await title.evaluate(
-                    """(node, expected) => {
+                    r"""(node, expected) => {
                         const norm = (value) => String(value ?? '')
                             .replace(/\u00a0/g, ' ')
                             .replace(/\s+/g, ' ')
