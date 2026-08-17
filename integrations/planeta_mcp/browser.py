@@ -81,6 +81,8 @@ _EXACT_SELECTORS = {
     "submit": selectors.SUBMIT_MODERATION_BUTTON,
 }
 
+_DRAFT_EDITOR_KEYS = ("title", "target", "summary", "story", "save")
+
 
 class PlanetaBrowser:
     def __init__(
@@ -206,7 +208,7 @@ class PlanetaBrowser:
 
     async def _resolve_required_controls(self, page: Page) -> dict[str, Locator] | None:
         resolved: dict[str, Locator] = {}
-        for key in selectors.REQUIRED_DRAFT_SELECTORS:
+        for key in _DRAFT_EDITOR_KEYS:
             control = await self._resolve_control(page, key)
             if control is None:
                 return None
@@ -339,7 +341,7 @@ class PlanetaBrowser:
         page = self._page
         try:
             controls: dict[str, Locator] = {}
-            for key in ("title", "target", "summary", "story", "save"):
+            for key in _DRAFT_EDITOR_KEYS:
                 control = await self._resolve_control(page, key)
                 if control is None:
                     return BrowserResult(
