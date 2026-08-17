@@ -40,6 +40,13 @@ async def test_classifies_blocking_pages(browser, fixture, expected):
 
 
 @pytest.mark.asyncio
+async def test_about_editor_does_not_require_submit_control(browser):
+    await browser.open_fixture("about_without_submit.html")
+    result = await browser.inspect()
+    assert result.status == "ok"
+
+
+@pytest.mark.asyncio
 async def test_live_browser_requires_explicit_draft_url():
     browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
     try:
