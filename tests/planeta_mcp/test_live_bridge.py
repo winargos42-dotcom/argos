@@ -113,7 +113,7 @@ class EditorStepDiagnosticBrowser:
         return BrowserResult(status="network_error", reason="stop test watcher")
 
     async def ui_diagnostic_snapshot(self):
-        return {"url": "https://planeta.ru/campaigns/251138/edit/goal"}
+        return {"url": "https://planeta.ru/campaigns/251138/edit/new-layout-step"}
 
     async def navigate_to_draft(self):
         self.navigate_calls += 1
@@ -448,7 +448,7 @@ async def test_live_bridge_does_not_redirect_safe_campaign_editor_step(tmp_path)
     )
     store = CampaignStore(config.state_path)
     runtime = FakeRuntime()
-    runtime.page.url = "https://planeta.ru/campaigns/251138/edit/goal"
+    runtime.page.url = "https://planeta.ru/campaigns/251138/edit/new-layout-step"
     browser = EditorStepDiagnosticBrowser()
     service = PlanetaCampaignService(
         store=store,
@@ -471,7 +471,7 @@ async def test_live_bridge_does_not_redirect_safe_campaign_editor_step(tmp_path)
 
     assert browser.navigate_calls == 0
     assert coordinator.status(session.token)["ui_diagnostic"] == {
-        "url": "https://planeta.ru/campaigns/251138/edit/goal"
+        "url": "https://planeta.ru/campaigns/251138/edit/new-layout-step"
     }
 
 

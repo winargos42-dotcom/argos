@@ -30,7 +30,19 @@ def _is_allowed_human_auth_origin(url: str, base_url: str) -> bool:
     return host == base_host or host.endswith(f".{base_host}")
 
 
-_SAFE_EDITOR_STEPS = frozenset({"about", "media", "photo", "goal", "rewards"})
+_UNSAFE_EDITOR_STEPS = frozenset(
+    {
+        "agreement",
+        "agreements",
+        "contract",
+        "contracts",
+        "moderation",
+        "publication",
+        "publish",
+        "review",
+        "submit",
+    }
+)
 
 
 def _is_safe_campaign_editor_step(url: str, draft_url: str) -> bool:
@@ -40,7 +52,11 @@ def _is_safe_campaign_editor_step(url: str, draft_url: str) -> bool:
     draft = urlsplit(draft_url)
     editor_root, _, _draft_step = draft.path.rstrip("/").rpartition("/")
     candidate_root, _, candidate_step = parsed.path.rstrip("/").rpartition("/")
-    return candidate_root == editor_root and candidate_step in _SAFE_EDITOR_STEPS
+    return (
+        candidate_root == editor_root
+        and bool(candidate_step)
+        and candidate_step not in _UNSAFE_EDITOR_STEPS
+    )
 
 
 class LiveLoginCoordinator:
