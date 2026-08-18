@@ -144,7 +144,7 @@ def test_live_login_start_requires_control_secret_and_hides_capability_from_path
     assert started.status_code == 200
     browser_url = started.json()["browser_url"]
     parsed = urlsplit(browser_url)
-    assert parsed.path == "/live-login/"
+    assert parsed.path == "/live-login/mobile"
     assert parsed.query == ""
     assert parsed.fragment
     assert parsed.fragment not in parsed.path
