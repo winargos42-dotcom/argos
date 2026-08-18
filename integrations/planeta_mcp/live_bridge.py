@@ -62,7 +62,7 @@ class LiveLoginCoordinator:
 
         self._runtime_factory = runtime_factory or (
             lambda: LiveBrowserRuntime(
-                data_dir=config.session_dir,
+                data_dir=config.state_path.parent / "planeta-live",
                 draft_url=config.draft_url,
             )
         )
@@ -86,8 +86,12 @@ class LiveLoginCoordinator:
             if active is not None and task is not None and not task.done():
                 raise RuntimeError("a live login session is already active")
 
+        storage_state = self.session_store.load_storage_state()
         session = self.controller.start()
         runtime = self._runtime_factory()
+        set_storage_state = getattr(runtime, "set_storage_state", None)
+        if set_storage_state is not None:
+            set_storage_state(storage_state)
         await runtime.start()
         shared_browser = self._browser_factory(runtime)
 
@@ -104,6 +108,8 @@ class LiveLoginCoordinator:
             "fill_status": None,
             "sync_status": None,
             "differences": [],
+            "session_persisted": None,
+            "session_persist_reason": "",
         }
         self._tasks[session.token] = asyncio.create_task(
             self._watch(session.token, runtime, shared_browser)
@@ -126,6 +132,8 @@ class LiveLoginCoordinator:
             "fill_status": result.get("fill_status"),
             "sync_status": result.get("sync_status"),
             "differences": list(result.get("differences", [])),
+            "session_persisted": result.get("session_persisted"),
+            "session_persist_reason": result.get("session_persist_reason", ""),
         }
 
     def websockify_url(self, token: str) -> str | None:
@@ -218,7 +226,14 @@ class LiveLoginCoordinator:
                         await asyncio.sleep(self.poll_interval)
                         continue
 
-                    self.session_store.save_storage_state(await runtime.storage_state())
+                    try:
+                        self.session_store.save_storage_state(await runtime.storage_state())
+                    except OSError as exc:
+                        self._results[token]["session_persisted"] = False
+                        self._results[token]["session_persist_reason"] = type(exc).__name__
+                    else:
+                        self._results[token]["session_persisted"] = True
+                        self._results[token]["session_persist_reason"] = ""
                     await self.service.prepare_campaign(default_argos_reboot_campaign())
 
                     fill = await self.service.fill_draft()
