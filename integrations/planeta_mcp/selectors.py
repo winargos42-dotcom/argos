@@ -12,6 +12,19 @@ STORY_EDITOR = '[data-testid="campaign-story"], textarea[name="story"]'
 SAVE_DRAFT_BUTTON = '[data-testid="save-draft"], button[name="save_draft"]'
 SUBMIT_MODERATION_BUTTON = '[data-testid="submit-moderation"], button[name="submit_moderation"]'
 
+# Confirmed current multi-step editor controls. Keep these separate from the
+# legacy unions above so a partial new layout can never be mistaken for the old
+# single-page form.
+ABOUT_TITLE_INPUT = "#about-name"
+ABOUT_SUMMARY_INPUT = "#about-project"
+ABOUT_END_DATE_INPUT = 'input[placeholder="ДД.ММ.ГГГГ"]'
+ABOUT_STORY_EDITOR = (
+    '[class*="about-details-module__richText___"][contenteditable="true"], '
+    '[class*="about-details-module__richText___"] [contenteditable="true"]'
+)
+ASSET_FILE_INPUTS = 'input[type="file"]'
+GOAL_INPUT = "#editor-goal"
+
 REQUIRED_DRAFT_SELECTORS = {
     "title": TITLE_INPUT,
     "target": TARGET_INPUT,

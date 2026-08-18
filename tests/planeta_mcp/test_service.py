@@ -14,7 +14,13 @@ class FakeBrowser:
         self.fill_calls = 0
         self.reward_fill_calls = 0
         self.reward_read_calls = 0
-        self.snapshot = {"title": "", "target_amount": "", "summary": "", "story": ""}
+        self.snapshot = {
+            "title": "",
+            "target_amount": "",
+            "end_date": "",
+            "summary": "",
+            "story": "",
+        }
         self.rewards_snapshot = []
         self.submit_result = BrowserResult(status="ok", reason="submitted")
 
@@ -23,6 +29,7 @@ class FakeBrowser:
         self.snapshot = {
             "title": campaign.title,
             "target_amount": str(campaign.target_amount),
+            "end_date": campaign.end_date.strftime("%d.%m.%Y"),
             "summary": campaign.summary,
             "story": campaign.story,
         }
@@ -100,6 +107,21 @@ async def test_sync_reports_reward_difference(service, campaign):
     synced = await service.sync_draft()
 
     assert "rewards" in synced["differences"]
+
+
+@pytest.mark.asyncio
+async def test_sync_reports_persisted_media_difference(service, campaign):
+    await service.prepare_campaign(campaign)
+    await service.fill_draft()
+    service.browser.snapshot["cover_image"] = "wrong-cover.jpg"
+    service.browser.snapshot["main_image"] = "argos-reboot-fire-main.jpg"
+
+    synced = await service.sync_draft()
+
+    assert synced["differences"]["cover_image"] == {
+        "local": "argos-reboot-cover.jpg",
+        "planeta": "wrong-cover.jpg",
+    }
 
 
 @pytest.mark.asyncio

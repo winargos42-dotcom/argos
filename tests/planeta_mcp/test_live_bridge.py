@@ -34,6 +34,7 @@ class SharedDraftBrowser:
             draft_snapshot={
                 "title": campaign.title,
                 "target_amount": str(campaign.target_amount),
+                "end_date": campaign.end_date.strftime("%d.%m.%Y"),
                 "summary": campaign.summary,
                 "story": campaign.story,
             },
@@ -63,6 +64,7 @@ class SharedDraftBrowser:
             draft_snapshot={
                 "title": campaign.title,
                 "target_amount": str(campaign.target_amount),
+                "end_date": campaign.end_date.strftime("%d.%m.%Y"),
                 "summary": campaign.summary,
                 "story": campaign.story,
             },
@@ -113,11 +115,34 @@ class EditorStepDiagnosticBrowser:
         return BrowserResult(status="network_error", reason="stop test watcher")
 
     async def ui_diagnostic_snapshot(self):
-        return {"url": "https://planeta.ru/campaigns/251138/edit/new-layout-step"}
+        return {"url": "https://planeta.ru/campaigns/251138/edit/goal"}
 
     async def navigate_to_draft(self):
         self.navigate_calls += 1
         return BrowserResult(status="ok", reason="draft opened")
+
+    async def close(self):
+        return None
+
+
+class FillDiagnosticBrowser:
+    def __init__(self):
+        self.inspect_calls = 0
+
+    async def inspect(self):
+        self.inspect_calls += 1
+        if self.inspect_calls == 1:
+            return BrowserResult(status="ok", reason="known editor")
+        return BrowserResult(status="network_error", reason="stop test watcher")
+
+    async def fill_draft(self, _campaign):
+        return BrowserResult(status="ui_changed", reason="reward form changed")
+
+    async def ui_diagnostic_snapshot(self):
+        return {
+            "url": "https://planeta.ru/campaigns/251138/edit/rewards",
+            "controls": [{"tag": "input", "id": "new-reward-field"}],
+        }
 
     async def close(self):
         return None
@@ -448,7 +473,7 @@ async def test_live_bridge_does_not_redirect_safe_campaign_editor_step(tmp_path)
     )
     store = CampaignStore(config.state_path)
     runtime = FakeRuntime()
-    runtime.page.url = "https://planeta.ru/campaigns/251138/edit/new-layout-step"
+    runtime.page.url = "https://planeta.ru/campaigns/251138/edit/goal"
     browser = EditorStepDiagnosticBrowser()
     service = PlanetaCampaignService(
         store=store,
@@ -471,7 +496,43 @@ async def test_live_bridge_does_not_redirect_safe_campaign_editor_step(tmp_path)
 
     assert browser.navigate_calls == 0
     assert coordinator.status(session.token)["ui_diagnostic"] == {
-        "url": "https://planeta.ru/campaigns/251138/edit/new-layout-step"
+        "url": "https://planeta.ru/campaigns/251138/edit/goal"
+    }
+
+
+@pytest.mark.asyncio
+async def test_live_bridge_captures_diagnostic_from_failed_fill(tmp_path):
+    config = PlanetaConfig(
+        base_url="https://planeta.ru",
+        draft_url="https://planeta.ru/campaigns/251138/edit/about",
+        headless=False,
+        state_path=tmp_path / "campaign.json",
+    )
+    store = CampaignStore(config.state_path)
+    runtime = FakeRuntime()
+    browser = FillDiagnosticBrowser()
+    service = PlanetaCampaignService(
+        store=store,
+        browser=IdleBrowser(),
+        approval_gate=ApprovalGate(b"approval-secret", ttl_seconds=300),
+        audit=AuditLogger(tmp_path / "audit.jsonl"),
+    )
+    coordinator = LiveLoginCoordinator(
+        service=service,
+        config=config,
+        session_store=SessionStore(tmp_path / "session.enc", Fernet.generate_key()),
+        controller=LiveLoginController(ttl_seconds=300),
+        runtime_factory=lambda: runtime,
+        browser_factory=lambda _runtime: browser,
+        poll_interval=0.001,
+    )
+
+    session = await coordinator.start()
+    await coordinator.wait(session.token, timeout=2.0)
+
+    assert coordinator.status(session.token)["ui_diagnostic"] == {
+        "url": "https://planeta.ru/campaigns/251138/edit/rewards",
+        "controls": [{"tag": "input", "id": "new-reward-field"}],
     }
 
 

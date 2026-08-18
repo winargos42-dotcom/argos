@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<body data-active-step="about">
+  <nav aria-label="Редактор проекта">
+    <button type="button" data-editor-step="about">О проекте</button>
+    <button type="button" data-editor-step="assets">Фото и видео</button>
+    <button type="button" data-editor-step="goal">Цель</button>
+    <button type="button" data-editor-step="rewards">Вознаграждения</button>
+    <button type="button" data-editor-step="agreement">Данные для соглашения</button>
+  </nav>
+
+  <section data-step-panel="about">
+    <form data-step-form="about">
+      <label for="about-name">Название проекта*</label>
+      <input id="about-name" />
+      <label for="about-project">Коротко о проекте*</label>
+      <textarea id="about-project"></textarea>
+      <label for="about-end-date">Дата завершения*</label>
+      <input id="about-end-date" placeholder="ДД.ММ.ГГГГ" />
+      <label for="about-region">Регион*</label>
+      <select id="about-region">
+        <option selected>Тестовый регион</option>
+      </select>
+      <label id="story-label">Подробное описание проекта*</label>
+      <div
+        aria-labelledby="story-label"
+        class="about-details-module__richText___fixture"
+        contenteditable="true"
+      ></div>
+      <button type="submit">СОХРАНИТЬ</button>
+    </form>
+  </section>
+
+  <section data-step-panel="assets" hidden>
+    <form data-step-form="assets">
+      <label>Обложка для карточки проекта* <input type="file" /></label>
+      <label>Главное фото или видео* <input type="file" /></label>
+      <input id="assets-video" placeholder="Ссылка на фото или видео" />
+      <button type="submit">СОХРАНИТЬ</button>
+    </form>
+  </section>
+
+  <section data-step-panel="goal" hidden>
+    <form data-step-form="goal">
+      <label for="editor-goal">Финансовая цель*</label>
+      <input id="editor-goal" type="text" placeholder="0 ₽" />
+      <button type="submit">СОХРАНИТЬ</button>
+    </form>
+  </section>
+
+  <section data-step-panel="rewards" hidden>
+    <button id="add-reward" type="button">ДОБАВИТЬ ВОЗНАГРАЖДЕНИЕ</button>
+    <div id="reward-list"></div>
+    <form id="reward-form" hidden>
+      <label for="reward-title">Название вознаграждения*</label>
+      <input id="reward-title" />
+      <label for="reward-amount">Стоимость вознаграждения*</label>
+      <input id="reward-amount" inputmode="numeric" />
+      <label for="reward-description">Описание вознаграждения*</label>
+      <textarea id="reward-description"></textarea>
+      <label><input id="physical-reward" type="checkbox" /> Физическое вознаграждение</label>
+      <button id="save-reward" type="submit">СОХРАНИТЬ ВОЗНАГРАЖДЕНИЕ</button>
+    </form>
+  </section>
+
+  <section data-step-panel="agreement" hidden>
+    <button
+      id="moderation-submit"
+      type="button"
+      onclick="window.submitClicks += 1"
+    >Сохранить и отправить на модерацию</button>
+  </section>
+
+  <script>
+    window.submitClicks = 0;
+    window.navigationLog = ["about"];
+    window.saveCounts = {about: 0, assets: 0, goal: 0, rewards: 0};
+    window.mediaFiles = {cover: "", main: ""};
+
+    function openStep(step) {
+      document.querySelectorAll("[data-step-panel]").forEach((panel) => {
+        panel.hidden = panel.dataset.stepPanel !== step;
+      });
+      document.body.dataset.activeStep = step;
+      window.navigationLog.push(step);
+    }
+
+    document.querySelectorAll("[data-editor-step]").forEach((button) => {
+      button.addEventListener("click", () => openStep(button.dataset.editorStep));
+    });
+
+    document.querySelectorAll("[data-step-form]").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        window.saveCounts[form.dataset.stepForm] += 1;
+      });
+    });
+
+    const mediaInputs = document.querySelectorAll('[data-step-panel="assets"] input[type="file"]');
+    mediaInputs[0].addEventListener("change", () => {
+      window.mediaFiles.cover = mediaInputs[0].files[0]?.name || "";
+    });
+    mediaInputs[1].addEventListener("change", () => {
+      window.mediaFiles.main = mediaInputs[1].files[0]?.name || "";
+    });
+
+    const rewardForm = document.getElementById("reward-form");
+    document.getElementById("add-reward").addEventListener("click", () => {
+      rewardForm.hidden = false;
+    });
+    rewardForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const title = document.getElementById("reward-title").value;
+      const amount = document.getElementById("reward-amount").value;
+      const description = document.getElementById("reward-description").value;
+      const physical = document.getElementById("physical-reward").checked;
+      const card = document.createElement("article");
+      card.dataset.amount = amount;
+      card.dataset.description = description;
+      card.dataset.physical = String(physical);
+      const heading = document.createElement("h3");
+      heading.textContent = title;
+      card.appendChild(heading);
+      document.getElementById("reward-list").appendChild(card);
+      window.saveCounts.rewards += 1;
+      rewardForm.reset();
+      rewardForm.hidden = true;
+    });
+  </script>
+</body>
+</html>

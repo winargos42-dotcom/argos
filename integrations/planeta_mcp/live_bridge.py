@@ -30,19 +30,7 @@ def _is_allowed_human_auth_origin(url: str, base_url: str) -> bool:
     return host == base_host or host.endswith(f".{base_host}")
 
 
-_UNSAFE_EDITOR_STEPS = frozenset(
-    {
-        "agreement",
-        "agreements",
-        "contract",
-        "contracts",
-        "moderation",
-        "publication",
-        "publish",
-        "review",
-        "submit",
-    }
-)
+_SAFE_EDITOR_STEPS = frozenset({"about", "assets", "goal", "rewards"})
 
 
 def _is_safe_campaign_editor_step(url: str, draft_url: str) -> bool:
@@ -54,8 +42,7 @@ def _is_safe_campaign_editor_step(url: str, draft_url: str) -> bool:
     candidate_root, _, candidate_step = parsed.path.rstrip("/").rpartition("/")
     return (
         candidate_root == editor_root
-        and bool(candidate_step)
-        and candidate_step not in _UNSAFE_EDITOR_STEPS
+        and candidate_step in _SAFE_EDITOR_STEPS
     )
 
 
@@ -212,6 +199,15 @@ class LiveLoginCoordinator:
                 self._active_token = None
             await self._restore_headless_browser()
 
+    async def _capture_ui_diagnostic(self, token: str, shared_browser: Any) -> None:
+        diagnostic_snapshot = getattr(shared_browser, "ui_diagnostic_snapshot", None)
+        if diagnostic_snapshot is None:
+            return
+        try:
+            self._results[token]["ui_diagnostic"] = await diagnostic_snapshot()
+        except Exception as exc:
+            self._results[token]["ui_diagnostic"] = {"error": type(exc).__name__}
+
     async def _watch(self, token: str, runtime: Any, shared_browser: Any) -> None:
         terminal = False
         try:
@@ -229,18 +225,7 @@ class LiveLoginCoordinator:
                 self._results[token]["reason"] = inspected.reason
 
                 if state == "ui_changed":
-                    diagnostic_snapshot = getattr(
-                        shared_browser, "ui_diagnostic_snapshot", None
-                    )
-                    if diagnostic_snapshot is not None:
-                        try:
-                            self._results[token]["ui_diagnostic"] = (
-                                await diagnostic_snapshot()
-                            )
-                        except Exception as exc:
-                            self._results[token]["ui_diagnostic"] = {
-                                "error": type(exc).__name__
-                            }
+                    await self._capture_ui_diagnostic(token, shared_browser)
 
                 if (
                     state == "ui_changed"
@@ -285,6 +270,8 @@ class LiveLoginCoordinator:
                     fill = await self.service.fill_draft()
                     self._results[token]["fill_status"] = fill.status
                     if fill.status != "ok":
+                        if fill.status in {"ui_changed", "human_action_required"}:
+                            await self._capture_ui_diagnostic(token, shared_browser)
                         self._set_from_browser_status(token, fill.status)
                         self._results[token]["reason"] = fill.reason
                         terminal = fill.status not in {
@@ -308,7 +295,10 @@ class LiveLoginCoordinator:
                         terminal = True
                         return
 
-                    self._set_from_browser_status(token, str(sync.get("status", "ui_changed")))
+                    sync_status = str(sync.get("status", "ui_changed"))
+                    if sync_status in {"ui_changed", "human_action_required"}:
+                        await self._capture_ui_diagnostic(token, shared_browser)
+                    self._set_from_browser_status(token, sync_status)
                     await asyncio.sleep(self.poll_interval)
                     continue
 
