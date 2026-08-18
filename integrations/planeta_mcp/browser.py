@@ -241,6 +241,10 @@ class PlanetaBrowser:
             )
             if any(marker in body_text for marker in human_markers):
                 return BrowserState.HUMAN_ACTION_REQUIRED
+            if "403" in body_text and any(
+                marker in body_text for marker in ("доступ запрещен", "access denied")
+            ):
+                return BrowserState.PLANETA_ERROR
             if "ошибка модерации" in body_text or "ошибка сервиса" in body_text:
                 return BrowserState.PLANETA_ERROR
             if await self._resolve_required_controls(page) is None:

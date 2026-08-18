@@ -62,7 +62,7 @@ class LiveLoginCoordinator:
 
         self._runtime_factory = runtime_factory or (
             lambda: LiveBrowserRuntime(
-                data_dir=config.state_path.parent / "planeta-live",
+                data_dir=config.session_dir,
                 draft_url=config.draft_url,
             )
         )

@@ -1,8 +1,13 @@
+from pathlib import Path
+
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
 from integrations.planeta_mcp import server
 from integrations.planeta_mcp.session_store import SessionStore
+
+
+ROOT = Path(__file__).parents[2] / "integrations" / "planeta_mcp"
 
 
 def test_default_service_loads_session_from_independent_directory(monkeypatch, tmp_path):
@@ -43,3 +48,13 @@ def test_module_app_wires_live_login_from_environment(monkeypatch, tmp_path):
 
     assert response.status_code == 200
     assert "вход Planeta.ru" in response.text
+
+
+def test_railway_entrypoint_repairs_volume_ownership_then_drops_root():
+    dockerfile = (ROOT / "Dockerfile.railway").read_text(encoding="utf-8")
+    entrypoint = (ROOT / "docker-entrypoint.sh").read_text(encoding="utf-8")
+
+    assert "gosu" in dockerfile
+    assert 'ENTRYPOINT ["/usr/local/bin/planeta-entrypoint"]' in dockerfile
+    assert "chown -R app:app /data/planeta" in entrypoint
+    assert 'exec gosu app "$@"' in entrypoint

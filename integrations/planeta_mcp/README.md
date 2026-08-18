@@ -50,7 +50,8 @@ For a persistent authenticated browser with a separately writable campaign state
 
 - `PLANETA_SESSION_DIR=/data/planeta` stores the encrypted `session.enc` on the Railway volume.
 - `PLANETA_STATE_PATH=/tmp/planeta_campaign.json` stores the current normalized campaign in a writable runtime path.
-- The graphical Chromium profile is temporary and uses `<PLANETA_STATE_PATH parent>/planeta-live/browser-profile` (for this example, `/tmp/planeta-live/browser-profile`). Its cookies and same-origin local storage are restored from `session.enc` before the draft opens.
+- The graphical Chromium profile uses `<PLANETA_SESSION_DIR>/browser-profile`, preserving the already-authorized version 4 profile as well as cookies and same-origin local storage from `session.enc`.
+- The Railway entrypoint repairs ownership of the mounted session directory, then immediately drops root privileges before starting the service.
 - `PLANETA_SESSION_DURABILITY=durable` reports that the browser session is expected to survive service restarts.
 
 If `PLANETA_SESSION_DIR` is omitted, it defaults to the parent directory of `PLANETA_STATE_PATH` for backward compatibility.
