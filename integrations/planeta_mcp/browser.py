@@ -244,6 +244,8 @@ class PlanetaBrowser:
             if "403" in body_text and any(
                 marker in body_text for marker in ("доступ запрещен", "access denied")
             ):
+                if "войти" in body_text:
+                    return BrowserState.AUTHENTICATION_REQUIRED
                 return BrowserState.PLANETA_ERROR
             if "ошибка модерации" in body_text or "ошибка сервиса" in body_text:
                 return BrowserState.PLANETA_ERROR
