@@ -101,6 +101,28 @@ class RecoveringSharedBrowser(SharedDraftBrowser):
         return BrowserResult(status="ok", reason="draft opened")
 
 
+class EditorStepDiagnosticBrowser:
+    def __init__(self):
+        self.inspect_calls = 0
+        self.navigate_calls = 0
+
+    async def inspect(self):
+        self.inspect_calls += 1
+        if self.inspect_calls == 1:
+            return BrowserResult(status="ui_changed", reason="step-specific editor")
+        return BrowserResult(status="network_error", reason="stop test watcher")
+
+    async def ui_diagnostic_snapshot(self):
+        return {"url": "https://planeta.ru/campaigns/251138/edit/goal"}
+
+    async def navigate_to_draft(self):
+        self.navigate_calls += 1
+        return BrowserResult(status="ok", reason="draft opened")
+
+    async def close(self):
+        return None
+
+
 class FakeRuntime:
     cdp_url = "http://127.0.0.1:9222"
     websockify_url = "ws://127.0.0.1:6080"
@@ -413,6 +435,44 @@ async def test_live_bridge_returns_authenticated_same_origin_page_to_configured_
     assert status["state"] == "draft_ready"
     assert shared_browser.navigate_calls == 1
     assert runtime.page.url == draft_url
+
+
+@pytest.mark.asyncio
+async def test_live_bridge_does_not_redirect_safe_campaign_editor_step(tmp_path):
+    draft_url = "https://planeta.ru/campaigns/251138/edit/about"
+    config = PlanetaConfig(
+        base_url="https://planeta.ru",
+        draft_url=draft_url,
+        headless=False,
+        state_path=tmp_path / "campaign.json",
+    )
+    store = CampaignStore(config.state_path)
+    runtime = FakeRuntime()
+    runtime.page.url = "https://planeta.ru/campaigns/251138/edit/goal"
+    browser = EditorStepDiagnosticBrowser()
+    service = PlanetaCampaignService(
+        store=store,
+        browser=IdleBrowser(),
+        approval_gate=ApprovalGate(b"approval-secret", ttl_seconds=300),
+        audit=AuditLogger(tmp_path / "audit.jsonl"),
+    )
+    coordinator = LiveLoginCoordinator(
+        service=service,
+        config=config,
+        session_store=SessionStore(tmp_path / "session.enc", Fernet.generate_key()),
+        controller=LiveLoginController(ttl_seconds=300),
+        runtime_factory=lambda: runtime,
+        browser_factory=lambda _runtime: browser,
+        poll_interval=0.001,
+    )
+
+    session = await coordinator.start()
+    await coordinator.wait(session.token, timeout=2.0)
+
+    assert browser.navigate_calls == 0
+    assert coordinator.status(session.token)["ui_diagnostic"] == {
+        "url": "https://planeta.ru/campaigns/251138/edit/goal"
+    }
 
 
 @pytest.mark.asyncio

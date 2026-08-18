@@ -30,6 +30,19 @@ def _is_allowed_human_auth_origin(url: str, base_url: str) -> bool:
     return host == base_host or host.endswith(f".{base_host}")
 
 
+_SAFE_EDITOR_STEPS = frozenset({"about", "media", "photo", "goal", "rewards"})
+
+
+def _is_safe_campaign_editor_step(url: str, draft_url: str) -> bool:
+    if _origin(url) != _origin(draft_url):
+        return False
+    parsed = urlsplit(url)
+    draft = urlsplit(draft_url)
+    editor_root, _, _draft_step = draft.path.rstrip("/").rpartition("/")
+    candidate_root, _, candidate_step = parsed.path.rstrip("/").rpartition("/")
+    return candidate_root == editor_root and candidate_step in _SAFE_EDITOR_STEPS
+
+
 class LiveLoginCoordinator:
     """Bridge a human-visible Chromium session to the existing Planeta MCP service."""
 
@@ -218,6 +231,7 @@ class LiveLoginCoordinator:
                     and page_url
                     and _origin(page_url) == _origin(self.config.base_url)
                     and page_url != self.config.draft_url
+                    and not _is_safe_campaign_editor_step(page_url, self.config.draft_url)
                 ):
                     navigation = await shared_browser.navigate_to_draft()
                     self._results[token]["reason"] = navigation.reason
