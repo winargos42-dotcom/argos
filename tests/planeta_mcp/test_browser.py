@@ -56,6 +56,28 @@ async def test_live_browser_requires_explicit_draft_url():
     assert result.status == "configuration_required"
 
 
+@pytest.mark.asyncio
+async def test_classifies_planeta_forbidden_page_as_service_error():
+    class Locator:
+        async def inner_text(self):
+            return "403 Доступ запрещен!"
+
+        async def count(self):
+            return 0
+
+    class ForbiddenPage:
+        url = "https://planeta.ru/campaigns/251138/edit/about"
+
+        def locator(self, _selector):
+            return Locator()
+
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    state = await browser.classify_page(ForbiddenPage())
+
+    assert state.value == "planeta_error"
+
+
 def test_live_browser_rejects_off_domain_draft_url():
     with pytest.raises(ValueError, match="same origin"):
         PlanetaBrowser(

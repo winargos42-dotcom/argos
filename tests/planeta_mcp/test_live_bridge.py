@@ -156,7 +156,7 @@ class DiagnosticUiBrowser:
         return None
 
 
-def test_live_bridge_default_runtime_uses_working_dir(tmp_path):
+def test_live_bridge_default_runtime_uses_durable_session_dir(tmp_path):
     state_path = tmp_path / "work" / "campaign.json"
     session_dir = tmp_path / "persistent"
     config = PlanetaConfig(
@@ -178,8 +178,8 @@ def test_live_bridge_default_runtime_uses_working_dir(tmp_path):
 
     runtime = coordinator._runtime_factory()
 
-    assert runtime.data_dir == state_path.parent / "planeta-live"
-    assert runtime.profile_dir == state_path.parent / "planeta-live" / "browser-profile"
+    assert runtime.data_dir == session_dir
+    assert runtime.profile_dir == session_dir / "browser-profile"
 
 
 @pytest.mark.asyncio

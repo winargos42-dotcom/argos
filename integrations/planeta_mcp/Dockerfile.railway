@@ -10,6 +10,7 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        gosu \
         xvfb \
         x11vnc \
         novnc \
@@ -32,10 +33,12 @@ RUN groupadd --gid 10001 app \
     && chown -R app:app /app /data/planeta
 
 COPY --chown=app:app . /app/integrations/planeta_mcp
+COPY docker-entrypoint.sh /usr/local/bin/planeta-entrypoint
 RUN python -m compileall /app/integrations/planeta_mcp \
-    && python -c "from integrations.planeta_mcp.server import REGISTERED_TOOL_NAMES; from integrations.planeta_mcp.entry_server import app; assert len(REGISTERED_TOOL_NAMES) == 8; assert app is not None"
+    && python -c "from integrations.planeta_mcp.server import REGISTERED_TOOL_NAMES; from integrations.planeta_mcp.entry_server import app; assert len(REGISTERED_TOOL_NAMES) == 8; assert app is not None" \
+    && chmod 0755 /usr/local/bin/planeta-entrypoint
 
-USER app
 EXPOSE 8000
 
+ENTRYPOINT ["/usr/local/bin/planeta-entrypoint"]
 CMD ["uvicorn", "integrations.planeta_mcp.entry_server:app", "--host", "0.0.0.0", "--port", "8000"]
