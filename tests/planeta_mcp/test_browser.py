@@ -178,6 +178,10 @@ async def test_ui_diagnostic_excludes_values_and_url_query():
                 }
             ]
 
+    class BodyLocator:
+        async def inner_text(self):
+            return "Проверка страницы"
+
     class DiagnosticPage:
         url = "https://planeta.ru/campaigns/251138/edit/about?private=secret#fragment"
 
@@ -185,6 +189,8 @@ async def test_ui_diagnostic_excludes_values_and_url_query():
             return "Редактор проекта"
 
         def locator(self, selector):
+            if selector == "body":
+                return BodyLocator()
             assert selector == "input, textarea, button, [contenteditable='true']"
             return DiagnosticLocator()
 
@@ -196,6 +202,7 @@ async def test_ui_diagnostic_excludes_values_and_url_query():
     assert diagnostic == {
         "url": "https://planeta.ru/campaigns/251138/edit/about",
         "title": "Редактор проекта",
+        "bodyText": "Проверка страницы",
         "controls": [
             {
                 "tag": "input",
