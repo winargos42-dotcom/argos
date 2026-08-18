@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field, HttpUrl
@@ -32,8 +33,12 @@ class CampaignPayload(BaseModel):
     title: str
     target_amount: int = Field(gt=0)
     currency: Literal["RUB"] = "RUB"
+    end_date: date | None = None
     summary: str
     story: str
+    direct_support_url: HttpUrl | None = None
+    cover_image_path: str | None = None
+    main_image_path: str | None = None
     evidence_links: list[HttpUrl] = Field(default_factory=list)
     rewards: list[Reward] = Field(default_factory=list)
     budget: list[BudgetItem] = Field(default_factory=list)
@@ -54,6 +59,17 @@ class CampaignPayload(BaseModel):
         require_text("title", self.title)
         require_text("summary", self.summary)
         require_text("story", self.story)
+
+        if self.end_date is None:
+            errors.append("end_date is required")
+            fields.append("end_date")
+
+        if not (self.cover_image_path or "").strip():
+            errors.append("cover_image_path must not be empty")
+            fields.append("cover_image_path")
+        if not (self.main_image_path or "").strip():
+            errors.append("main_image_path must not be empty")
+            fields.append("main_image_path")
 
         if not self.evidence_links:
             errors.append("At least one evidence link is required")

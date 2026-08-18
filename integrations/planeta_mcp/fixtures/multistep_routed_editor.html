@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Черновик | Planeta.ru</title>
+</head>
+<body>
+<script>
+  const step = location.pathname.split("/").filter(Boolean).pop();
+  const stateKey = "planeta-multistep-route-state";
+  const state = JSON.parse(localStorage.getItem(stateKey) || "{}");
+  const persist = () => localStorage.setItem(stateKey, JSON.stringify(state));
+  const saveButton = '<button type="submit">СОХРАНИТЬ</button>';
+
+  setTimeout(() => {
+  if (step === "about") {
+    document.body.innerHTML = `
+      <main>
+        <form id="about-form">
+          <label for="about-name">Название проекта*</label>
+          <input id="about-name" />
+          <label for="about-project">Коротко о проекте*</label>
+          <textarea id="about-project"></textarea>
+          <label for="about-end-date">Дата завершения*</label>
+          <input id="about-end-date" placeholder="ДД.ММ.ГГГГ" />
+          <label id="story-label">Подробное описание проекта*</label>
+          <div aria-labelledby="story-label"
+               class="about-details-module__richText___route"
+               contenteditable="true"></div>
+          ${saveButton}
+        </form>
+      </main>`;
+    document.getElementById("about-name").value = state.title || "";
+    document.getElementById("about-project").value = state.summary || "";
+    document.getElementById("about-end-date").value = state.endDate || "";
+    document.querySelector('[contenteditable="true"]').innerText = state.story || "";
+    document.getElementById("about-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      state.title = document.getElementById("about-name").value;
+      state.summary = document.getElementById("about-project").value;
+      state.endDate = document.getElementById("about-end-date").value;
+      state.story = document.querySelector('[contenteditable="true"]').innerText;
+      state.aboutSaves = (state.aboutSaves || 0) + 1;
+      persist();
+      fetch(location.pathname, {method: "POST", body: "{}"});
+    });
+  } else if (step === "assets") {
+    const previews = `
+      <div class="assets-module__previews___route">
+        <img id="cover-preview" alt="Обложка проекта"
+             style="width:100px;height:100px" ${state.cover ? "" : "hidden"}
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='625'%3E%3C/svg%3E" />
+        <img id="main-preview" alt="Главное фото"
+             style="width:100px;height:100px" ${state.main ? "" : "hidden"}
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='1600'%3E%3C/svg%3E" />
+      </div>`;
+    document.body.innerHTML = `
+      <main>
+        ${previews}
+        <form id="assets-form">
+          <label>Обложка для карточки проекта* <input id="cover-file" type="file" /></label>
+          <label>Главное фото или видео* <input id="main-file" type="file" /></label>
+          <input id="assets-video" placeholder="Ссылка на фото или видео" />
+          ${saveButton}
+        </form>
+      </main>`;
+    let pendingCover = "";
+    let pendingMain = "";
+    document.getElementById("cover-file").addEventListener("change", (event) => {
+      pendingCover = event.target.files[0]?.name || "";
+      document.getElementById("cover-preview").hidden = !pendingCover;
+    });
+    document.getElementById("main-file").addEventListener("change", (event) => {
+      pendingMain = event.target.files[0]?.name || "";
+      document.getElementById("main-preview").hidden = !pendingMain;
+    });
+    document.getElementById("assets-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      state.cover = pendingCover;
+      state.main = pendingMain;
+      state.assetSaves = (state.assetSaves || 0) + 1;
+      persist();
+      fetch(location.pathname, {method: "POST", body: "{}"});
+    });
+  } else if (step === "goal") {
+    document.body.innerHTML = `
+      <main>
+        <form id="goal-form">
+          <label for="editor-goal">Финансовая цель*</label>
+          <input id="editor-goal" placeholder="0 ₽" />
+          ${saveButton}
+        </form>
+      </main>`;
+    document.getElementById("editor-goal").value = state.goal || "";
+    document.getElementById("goal-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      state.goal = document.getElementById("editor-goal").value;
+      state.goalSaves = (state.goalSaves || 0) + 1;
+      persist();
+      fetch(location.pathname, {method: "POST", body: "{}"});
+    });
+  } else if (step === "rewards") {
+    document.body.innerHTML = '<main><button type="button">ДОБАВИТЬ ВОЗНАГРАЖДЕНИЕ</button></main>';
+  } else {
+    state.unsafeVisits = (state.unsafeVisits || 0) + 1;
+    persist();
+    document.body.innerHTML = '<button type="button">Сохранить и отправить на модерацию</button>';
+  }
+  }, 50);
+</script>
+</body>
+</html>

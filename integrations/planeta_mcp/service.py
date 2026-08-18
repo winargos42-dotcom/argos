@@ -147,6 +147,24 @@ class PlanetaCampaignService:
                 "summary": campaign.summary,
                 "story": campaign.story,
             }
+            if "end_date" in result.draft_snapshot:
+                expected["end_date"] = (
+                    campaign.end_date.strftime("%d.%m.%Y")
+                    if campaign.end_date
+                    else None
+                )
+            if "cover_image" in result.draft_snapshot:
+                expected["cover_image"] = (
+                    campaign.cover_image_path.rsplit("/", 1)[-1]
+                    if campaign.cover_image_path
+                    else None
+                )
+            if "main_image" in result.draft_snapshot:
+                expected["main_image"] = (
+                    campaign.main_image_path.rsplit("/", 1)[-1]
+                    if campaign.main_image_path
+                    else None
+                )
             for field, local_value in expected.items():
                 remote_value = result.draft_snapshot.get(field)
                 if remote_value != local_value:
