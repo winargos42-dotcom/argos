@@ -10,6 +10,10 @@
   const stateKey = "planeta-multistep-route-state";
   const state = JSON.parse(localStorage.getItem(stateKey) || "{}");
   const persist = () => localStorage.setItem(stateKey, JSON.stringify(state));
+  const normalizeText = (value) => String(value || "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   const saveButton = '<button type="submit">СОХРАНИТЬ</button>';
 
   setTimeout(() => {
@@ -39,7 +43,9 @@
       state.title = document.getElementById("about-name").value;
       state.summary = document.getElementById("about-project").value;
       state.endDate = document.getElementById("about-end-date").value;
-      state.story = document.querySelector('[contenteditable="true"]').innerText;
+      state.story = normalizeText(
+        document.querySelector('[contenteditable="true"]').innerText
+      );
       state.aboutSaves = (state.aboutSaves || 0) + 1;
       persist();
       fetch(location.pathname, {method: "POST", body: "{}"});
