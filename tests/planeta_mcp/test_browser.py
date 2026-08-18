@@ -159,3 +159,53 @@ async def test_cdp_mode_never_redirects_human_login_page_back_to_draft():
 
     assert early is None
     assert page.url == "https://planeta.ru/nuborn_session"
+
+
+@pytest.mark.asyncio
+async def test_ui_diagnostic_excludes_values_and_url_query():
+    class DiagnosticLocator:
+        async def evaluate_all(self, _script):
+            return [
+                {
+                    "tag": "input",
+                    "type": "text",
+                    "name": "campaign_name",
+                    "id": "campaign-name",
+                    "placeholder": "Название",
+                    "ariaLabel": "",
+                    "testId": "",
+                    "text": "",
+                }
+            ]
+
+    class DiagnosticPage:
+        url = "https://planeta.ru/campaigns/251138/edit/about?private=secret#fragment"
+
+        async def title(self):
+            return "Редактор проекта"
+
+        def locator(self, selector):
+            assert selector == "input, textarea, button, [contenteditable='true']"
+            return DiagnosticLocator()
+
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+    browser._page = DiagnosticPage()
+
+    diagnostic = await browser.ui_diagnostic_snapshot()
+
+    assert diagnostic == {
+        "url": "https://planeta.ru/campaigns/251138/edit/about",
+        "title": "Редактор проекта",
+        "controls": [
+            {
+                "tag": "input",
+                "type": "text",
+                "name": "campaign_name",
+                "id": "campaign-name",
+                "placeholder": "Название",
+                "ariaLabel": "",
+                "testId": "",
+                "text": "",
+            }
+        ],
+    }

@@ -275,6 +275,33 @@ class PlanetaBrowser:
         }
         return BrowserResult(status=state.value, reason=reasons[state])
 
+    async def ui_diagnostic_snapshot(self) -> dict[str, Any]:
+        """Return selector metadata without field values or URL query data."""
+        page = await self._ensure_page()
+        parsed = urlsplit(page.url)
+        safe_url = parsed._replace(query="", fragment="").geturl()
+        controls = await page.locator(
+            "input, textarea, button, [contenteditable='true']"
+        ).evaluate_all(
+            """elements => elements.slice(0, 40).map(element => ({
+                tag: element.tagName.toLowerCase(),
+                type: element.getAttribute('type') || '',
+                name: element.getAttribute('name') || '',
+                id: element.id || '',
+                placeholder: element.getAttribute('placeholder') || '',
+                ariaLabel: element.getAttribute('aria-label') || '',
+                testId: element.getAttribute('data-testid') || '',
+                text: element.tagName === 'BUTTON'
+                    ? String(element.innerText || '').trim().slice(0, 80)
+                    : '',
+            }))"""
+        )
+        return {
+            "url": safe_url,
+            "title": (await page.title())[:160],
+            "controls": controls,
+        }
+
     async def navigate_to_draft(self) -> BrowserResult:
         if not self.draft_url:
             return BrowserResult(status="configuration_required", reason="Planeta.ru draft URL is not configured")
