@@ -299,6 +299,7 @@ class PlanetaBrowser:
         return {
             "url": safe_url,
             "title": (await page.title())[:160],
+            "bodyText": (await page.locator("body").inner_text())[:1000],
             "controls": controls,
         }
 
