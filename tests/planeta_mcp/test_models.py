@@ -20,6 +20,8 @@ def test_argos_reboot_story_contains_fire_evidence_budget_and_recovery_plan():
 
     assert "По словам автора" in story
     assert "3 августа 2026" in story
+    assert "пожар уничтожил компьютер и локальную вычислительную среду проекта" in story
+    assert "уничтожил квартиру" not in story
     for url in (
         "https://github.com/poilopr57-a11y/Argos",
         "https://github.com/winargos42-dotcom/argos",
