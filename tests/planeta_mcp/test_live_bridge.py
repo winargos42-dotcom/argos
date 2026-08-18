@@ -135,6 +135,27 @@ class WriteDeniedSessionStore(SessionStore):
         raise PermissionError("read-only test volume")
 
 
+class DiagnosticUiBrowser:
+    def __init__(self):
+        self.inspect_calls = 0
+
+    async def inspect(self):
+        self.inspect_calls += 1
+        if self.inspect_calls == 1:
+            return BrowserResult(status="ui_changed", reason="unknown editor")
+        return BrowserResult(status="network_error", reason="stop test watcher")
+
+    async def ui_diagnostic_snapshot(self):
+        return {
+            "url": "https://planeta.ru/campaigns/251138/edit/about",
+            "title": "Новый редактор",
+            "controls": [{"tag": "input", "name": "new_title"}],
+        }
+
+    async def close(self):
+        return None
+
+
 def test_live_bridge_default_runtime_uses_working_dir(tmp_path):
     state_path = tmp_path / "work" / "campaign.json"
     session_dir = tmp_path / "persistent"
@@ -218,6 +239,43 @@ def test_human_auth_origin_allows_https_planeta_subdomains_only():
     assert _is_allowed_human_auth_origin("http://id.planeta.ru/login", base) is False
     assert _is_allowed_human_auth_origin("https://planeta.ru.evil.example/login", base) is False
     assert _is_allowed_human_auth_origin("https://example.com/login", base) is False
+
+
+@pytest.mark.asyncio
+async def test_live_bridge_reports_safe_ui_diagnostic(tmp_path):
+    config = PlanetaConfig(
+        base_url="https://planeta.ru",
+        draft_url="https://planeta.ru/campaigns/251138/edit/about",
+        headless=False,
+        state_path=tmp_path / "campaign.json",
+    )
+    service = PlanetaCampaignService(
+        store=CampaignStore(config.state_path),
+        browser=IdleBrowser(),
+        approval_gate=ApprovalGate(b"approval-secret", ttl_seconds=300),
+        audit=AuditLogger(tmp_path / "audit.jsonl"),
+    )
+    runtime = FakeRuntime()
+    diagnostic_browser = DiagnosticUiBrowser()
+    coordinator = LiveLoginCoordinator(
+        service=service,
+        config=config,
+        session_store=SessionStore(tmp_path / "session.enc", Fernet.generate_key()),
+        controller=LiveLoginController(ttl_seconds=300),
+        runtime_factory=lambda: runtime,
+        browser_factory=lambda _runtime: diagnostic_browser,
+        poll_interval=0.001,
+    )
+
+    session = await coordinator.start()
+    await coordinator.wait(session.token, timeout=2.0)
+
+    status = coordinator.status(session.token)
+    assert status["ui_diagnostic"] == {
+        "url": "https://planeta.ru/campaigns/251138/edit/about",
+        "title": "Новый редактор",
+        "controls": [{"tag": "input", "name": "new_title"}],
+    }
 
 
 @pytest.mark.asyncio

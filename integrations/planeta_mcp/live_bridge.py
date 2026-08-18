@@ -110,6 +110,7 @@ class LiveLoginCoordinator:
             "differences": [],
             "session_persisted": None,
             "session_persist_reason": "",
+            "ui_diagnostic": None,
         }
         self._tasks[session.token] = asyncio.create_task(
             self._watch(session.token, runtime, shared_browser)
@@ -134,6 +135,7 @@ class LiveLoginCoordinator:
             "differences": list(result.get("differences", [])),
             "session_persisted": result.get("session_persisted"),
             "session_persist_reason": result.get("session_persist_reason", ""),
+            "ui_diagnostic": result.get("ui_diagnostic"),
         }
 
     def websockify_url(self, token: str) -> str | None:
@@ -196,6 +198,20 @@ class LiveLoginCoordinator:
                 inspected = await shared_browser.inspect()
                 state = inspected.status
                 self._results[token]["reason"] = inspected.reason
+
+                if state == "ui_changed":
+                    diagnostic_snapshot = getattr(
+                        shared_browser, "ui_diagnostic_snapshot", None
+                    )
+                    if diagnostic_snapshot is not None:
+                        try:
+                            self._results[token]["ui_diagnostic"] = (
+                                await diagnostic_snapshot()
+                            )
+                        except Exception as exc:
+                            self._results[token]["ui_diagnostic"] = {
+                                "error": type(exc).__name__
+                            }
 
                 if (
                     state == "ui_changed"
