@@ -433,7 +433,7 @@ def create_app(
             return JSONResponse(status_code=401, content={"detail": "unauthorized"})
         session = await coordinator.start()
         base = _public_base_url()
-        path = "/live-login/"
+        path = "/live-login/mobile"
         browser_url = f"{base}{path}#{session.token}" if base else f"{path}#{session.token}"
         return JSONResponse(
             {
