@@ -48,11 +48,14 @@ PLANETA_STATE_PATH=/data/planeta/campaign.json
 
 For a persistent authenticated browser with a separately writable campaign state:
 
-- `PLANETA_SESSION_DIR=/data/planeta` stores `session.enc` and `browser-profile` on the Railway volume.
+- `PLANETA_SESSION_DIR=/data/planeta` stores the encrypted `session.enc` on the Railway volume.
 - `PLANETA_STATE_PATH=/tmp/planeta_campaign.json` stores the current normalized campaign in a writable runtime path.
+- The graphical Chromium profile is temporary and uses `<PLANETA_STATE_PATH parent>/planeta-live/browser-profile` (for this example, `/tmp/planeta-live/browser-profile`). Its cookies and same-origin local storage are restored from `session.enc` before the draft opens.
 - `PLANETA_SESSION_DURABILITY=durable` reports that the browser session is expected to survive service restarts.
 
 If `PLANETA_SESSION_DIR` is omitted, it defaults to the parent directory of `PLANETA_STATE_PATH` for backward compatibility.
+
+After an authenticated live run, the service attempts to refresh `session.enc` using an atomic replace. If the volume permits reads but not atomic writes, the old encrypted file is preserved, draft fill/sync continues, and live status reports `session_persisted=false` with a bounded `session_persist_reason`. The service never risks the only durable session with an in-place overwrite. Cookies that Planeta.ru has already expired still require a real owner login.
 
 There must be **no** `PLANETA_PASSWORD`, passport, INN, identity-document, cookie, or raw browser-session environment variable.
 

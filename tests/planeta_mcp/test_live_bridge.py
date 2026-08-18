@@ -108,10 +108,16 @@ class FakeRuntime:
     def __init__(self):
         self.started = False
         self.stopped = False
+        self._storage_state = None
+        self.storage_state_at_start = None
         self.page = type("Page", (), {"url": "https://planeta.ru/campaigns/251138/edit/about"})()
+
+    def set_storage_state(self, storage_state):
+        self._storage_state = storage_state
 
     async def start(self):
         self.started = True
+        self.storage_state_at_start = self._storage_state
         return self.page
 
     async def storage_state(self):
@@ -124,7 +130,12 @@ class FakeRuntime:
         self.stopped = True
 
 
-def test_live_bridge_default_runtime_uses_session_dir(tmp_path):
+class WriteDeniedSessionStore(SessionStore):
+    def save_storage_state(self, storage_state):
+        raise PermissionError("read-only test volume")
+
+
+def test_live_bridge_default_runtime_uses_working_dir(tmp_path):
     state_path = tmp_path / "work" / "campaign.json"
     session_dir = tmp_path / "persistent"
     config = PlanetaConfig(
@@ -146,8 +157,57 @@ def test_live_bridge_default_runtime_uses_session_dir(tmp_path):
 
     runtime = coordinator._runtime_factory()
 
-    assert runtime.data_dir == session_dir
-    assert runtime.profile_dir == session_dir / "browser-profile"
+    assert runtime.data_dir == state_path.parent / "planeta-live"
+    assert runtime.profile_dir == state_path.parent / "planeta-live" / "browser-profile"
+
+
+@pytest.mark.asyncio
+async def test_live_bridge_rehydrates_runtime_before_start(tmp_path):
+    config = PlanetaConfig(
+        base_url="https://planeta.ru",
+        draft_url="https://planeta.ru/campaigns/251138/edit/about",
+        headless=False,
+        state_path=tmp_path / "campaign.json",
+    )
+    store = CampaignStore(config.state_path)
+    shared_browser = SharedDraftBrowser()
+    shared_browser.campaign_store = store
+    service = PlanetaCampaignService(
+        store=store,
+        browser=IdleBrowser(),
+        approval_gate=ApprovalGate(b"approval-secret", ttl_seconds=300),
+        audit=AuditLogger(tmp_path / "audit.jsonl"),
+    )
+    session_store = SessionStore(tmp_path / "session.enc", Fernet.generate_key())
+    session_store.save_storage_state(
+        {
+            "cookies": [
+                {
+                    "name": "sid",
+                    "value": "persisted-cookie",
+                    "domain": ".planeta.ru",
+                    "path": "/",
+                }
+            ],
+            "origins": [],
+        }
+    )
+    runtime = FakeRuntime()
+    coordinator = LiveLoginCoordinator(
+        service=service,
+        config=config,
+        session_store=session_store,
+        controller=LiveLoginController(ttl_seconds=300),
+        runtime_factory=lambda: runtime,
+        browser_factory=lambda _runtime: shared_browser,
+        poll_interval=0.001,
+    )
+
+    session = await coordinator.start()
+    await coordinator.wait(session.token, timeout=2.0)
+
+    assert runtime.storage_state_at_start["cookies"][0]["value"] == "persisted-cookie"
+    assert coordinator.status(session.token)["state"] == "draft_ready"
 
 
 def test_human_auth_origin_allows_https_planeta_subdomains_only():
@@ -202,12 +262,57 @@ async def test_live_bridge_captures_session_fills_syncs_and_never_submits(tmp_pa
     assert status["sync_status"] == "ok"
     assert status["differences"] == []
     assert status["durability"] == "ephemeral"
+    assert status["session_persisted"] is True
+    assert status["session_persist_reason"] == ""
     assert session_store.load_storage_state()["cookies"][0]["value"] == "session-cookie"
     assert b"session-cookie" not in (tmp_path / "session.enc").read_bytes()
     assert shared_browser.submit_calls == 0
     assert runtime.started is True
     assert runtime.stopped is True
     assert controller.get(session.token).view_active is False
+
+
+@pytest.mark.asyncio
+async def test_live_bridge_continues_when_session_refresh_is_read_only(tmp_path):
+    config = PlanetaConfig(
+        base_url="https://planeta.ru",
+        draft_url="https://planeta.ru/campaigns/251138/edit/about",
+        headless=False,
+        state_path=tmp_path / "campaign.json",
+    )
+    store = CampaignStore(config.state_path)
+    shared_browser = SharedDraftBrowser()
+    shared_browser.campaign_store = store
+    service = PlanetaCampaignService(
+        store=store,
+        browser=IdleBrowser(),
+        approval_gate=ApprovalGate(b"approval-secret", ttl_seconds=300),
+        audit=AuditLogger(tmp_path / "audit.jsonl"),
+    )
+    session_store = WriteDeniedSessionStore(
+        tmp_path / "session.enc", Fernet.generate_key()
+    )
+    runtime = FakeRuntime()
+    coordinator = LiveLoginCoordinator(
+        service=service,
+        config=config,
+        session_store=session_store,
+        controller=LiveLoginController(ttl_seconds=300),
+        runtime_factory=lambda: runtime,
+        browser_factory=lambda _runtime: shared_browser,
+        poll_interval=0.001,
+    )
+
+    session = await coordinator.start()
+    await coordinator.wait(session.token, timeout=2.0)
+
+    status = coordinator.status(session.token)
+    assert status["state"] == "draft_ready"
+    assert status["fill_status"] == "ok"
+    assert status["sync_status"] == "ok"
+    assert status["session_persisted"] is False
+    assert status["session_persist_reason"] == "PermissionError"
+    assert shared_browser.submit_calls == 0
 
 
 @pytest.mark.asyncio

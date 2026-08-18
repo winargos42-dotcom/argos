@@ -1,11 +1,29 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from playwright.async_api import BrowserContext, Page, Playwright, async_playwright
+
+
+def _serialized_origin(url: str) -> str:
+    parsed = urlsplit(url)
+    scheme = parsed.scheme.casefold()
+    host = (parsed.hostname or "").casefold()
+    port = parsed.port
+    if not scheme or not host:
+        return ""
+    if (
+        port is None
+        or (scheme == "https" and port == 443)
+        or (scheme == "http" and port == 80)
+    ):
+        return f"{scheme}://{host}"
+    return f"{scheme}://{host}:{port}"
 
 
 class LiveBrowserRuntime:
@@ -41,6 +59,7 @@ class LiveBrowserRuntime:
         self._playwright: Playwright | None = None
         self._context: BrowserContext | None = None
         self._page: Page | None = None
+        self._storage_state: dict[str, Any] | None = None
 
     @property
     def page(self) -> Page | None:
@@ -49,6 +68,9 @@ class LiveBrowserRuntime:
     @property
     def started(self) -> bool:
         return self._context is not None
+
+    def set_storage_state(self, storage_state: dict[str, Any] | None) -> None:
+        self._storage_state = storage_state
 
     def xvfb_command(self) -> list[str]:
         return [
@@ -100,6 +122,45 @@ class LiveBrowserRuntime:
         )
         self._processes.append(process)
 
+    async def _rehydrate_context(self) -> None:
+        state = self._storage_state
+        if state is None or self._context is None:
+            return
+
+        cookies = state.get("cookies", [])
+        if cookies:
+            await self._context.add_cookies(cookies)
+
+        if not self.draft_url:
+            return
+        draft_origin = _serialized_origin(self.draft_url)
+        if not draft_origin:
+            return
+        matching = next(
+            (
+                item
+                for item in state.get("origins", [])
+                if _serialized_origin(str(item.get("origin", ""))) == draft_origin
+            ),
+            None,
+        )
+        if not matching or not matching.get("localStorage"):
+            return
+
+        payload = json.dumps(
+            {"origin": draft_origin, "items": matching["localStorage"]},
+            ensure_ascii=True,
+            separators=(",", ":"),
+        )
+        await self._context.add_init_script(
+            script=(
+                f"(() => {{ const payload={payload};"
+                "if(window.location.origin===payload.origin){"
+                "for(const item of payload.items){"
+                "localStorage.setItem(item.name,item.value);}}})();"
+            )
+        )
+
     async def start(self) -> Page:
         if self._context is not None:
             assert self._page is not None
@@ -124,6 +185,7 @@ class LiveBrowserRuntime:
                 viewport={"width": 1365, "height": 768},
             )
             self._page = self._context.pages[0] if self._context.pages else await self._context.new_page()
+            await self._rehydrate_context()
 
             if self.draft_url:
                 await self._page.goto(
