@@ -424,6 +424,19 @@ async def test_about_region_reads_live_hidden_native_select():
 
 
 @pytest.mark.asyncio
+async def test_about_region_does_not_select_through_hidden_native_control():
+    native_select = _FakeNativeRegionSelect("Не выбрано")
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    control = await browser._about_region_control(
+        _FakeLiveRegionScope(native_select),
+        "Тестовый край",
+    )
+
+    assert control is None
+
+
+@pytest.mark.asyncio
 async def test_custom_about_region_refuses_ambiguous_exact_options():
     ui = _FakeRegionUi(
         option_count=2,

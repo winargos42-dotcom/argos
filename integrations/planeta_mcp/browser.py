@@ -359,11 +359,10 @@ class PlanetaBrowser:
         if native_count == 1:
             control = native_select.nth(0)
             current = await self._region_control_value(control)
-            return (
-                control
-                if current in {_ABOUT_REGION_UNSELECTED, expected_region}
-                else None
-            )
+            if current == expected_region:
+                return control
+            if current != _ABOUT_REGION_UNSELECTED:
+                return None
 
         labelled = await self._unique_visible(
             scope.get_by_label(_ABOUT_REGION_LABEL)
