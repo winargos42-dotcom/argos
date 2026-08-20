@@ -352,6 +352,19 @@ class PlanetaBrowser:
     async def _about_region_control(
         self, scope: Locator, expected_region: str
     ) -> Locator | None:
+        native_select = scope.locator(selectors.ABOUT_REGION_SELECT)
+        native_count = await native_select.count()
+        if native_count > 1:
+            return None
+        if native_count == 1:
+            control = native_select.nth(0)
+            current = await self._region_control_value(control)
+            return (
+                control
+                if current in {_ABOUT_REGION_UNSELECTED, expected_region}
+                else None
+            )
+
         labelled = await self._unique_visible(
             scope.get_by_label(_ABOUT_REGION_LABEL)
         )
