@@ -366,6 +366,22 @@ async def test_custom_about_region_selects_exact_configured_option():
 
 
 @pytest.mark.asyncio
+async def test_custom_about_region_accepts_exact_planeta_location_label():
+    ui = _FakeRegionUi()
+    ui.label.text = "Регион, область, край"
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    selected = await browser._set_about_region(
+        _FakeRegionPage(ui),
+        _FakeRegionScope(ui),
+        "Тестовый край",
+    )
+
+    assert selected == "Тестовый край"
+    assert ui.option_clicks == 1
+
+
+@pytest.mark.asyncio
 async def test_custom_about_region_refuses_ambiguous_exact_options():
     ui = _FakeRegionUi(
         option_count=2,
