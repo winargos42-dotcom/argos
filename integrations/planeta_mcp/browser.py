@@ -397,6 +397,8 @@ class PlanetaBrowser:
                 "element => String(element.selectedOptions?.[0]?.textContent || '')"
             )
             return _normalize_region_text(str(value))
+        if tag_name == "BUTTON":
+            return _normalize_region_text(await control.inner_text())
         return _normalize_region_text(await self._control_value(control))
 
     async def _associated_region_popup(
