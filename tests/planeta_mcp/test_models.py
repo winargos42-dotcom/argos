@@ -7,16 +7,26 @@ from integrations.planeta_mcp.defaults import default_argos_reboot_campaign
 from integrations.planeta_mcp.store import CampaignStore
 
 
-def test_argos_reboot_defaults_are_valid():
+def test_argos_reboot_defaults_are_valid(monkeypatch):
+    monkeypatch.delenv("ARGOS_PLANETA_PROJECT_REGION", raising=False)
     campaign = default_argos_reboot_campaign()
     report = campaign.validate_for_planeta()
     assert campaign.title == "ARGOS REBOOT — восстановление независимой AI/FPGA-системы"
     assert campaign.target_amount == 200000
     assert campaign.currency == "RUB"
     assert campaign.end_date == date(2026, 10, 17)
+    assert campaign.region is None
     assert str(campaign.direct_support_url) == "https://pay.cloudtips.ru/p/8df874d0"
     assert report.errors == []
     assert all(reward.physical is False for reward in campaign.rewards)
+
+
+def test_argos_reboot_region_comes_from_private_environment(monkeypatch):
+    monkeypatch.setenv("ARGOS_PLANETA_PROJECT_REGION", "  Тестовый край  ")
+
+    campaign = default_argos_reboot_campaign()
+
+    assert campaign.region == "Тестовый край"
 
 
 def test_argos_reboot_uses_deployable_factual_media_assets():

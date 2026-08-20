@@ -181,9 +181,431 @@ async def test_multistep_about_editor_is_recognized_without_goal_on_same_step(br
     assert result.status == "ok"
 
 
+class _FakeRegionLocator:
+    def __init__(self, ui, kind, *, text="", visible=True):
+        self.ui = ui
+        self.kind = kind
+        self.text = text
+        self.visible = visible
+
+    async def count(self):
+        return 1
+
+    def nth(self, _index):
+        return self
+
+    async def is_visible(self):
+        if self.kind == "listbox":
+            return self.ui.menu_open
+        return self.visible
+
+    async def inner_text(self):
+        return self.text
+
+    async def evaluate(self, script):
+        if "tagName" in script:
+            return "BUTTON"
+        return self.text
+
+    async def get_attribute(self, name):
+        if self.kind == "trigger":
+            if name in {"aria-controls", "aria-owns"}:
+                return self.ui.aria_controls
+            if name == "aria-expanded":
+                return "true" if self.ui.menu_open else "false"
+        if self.kind == "listbox" and name == "id":
+            return "about-region-options"
+        return None
+
+    def locator(self, selector):
+        if self.kind == "label" and "following-sibling" in selector:
+            return _FakeRegionCollection([self.ui.trigger])
+        if self.kind == "listbox" and "role=\"option\"" in selector:
+            return _FakeRegionCollection(items_factory=self.ui.available_options)
+        return _FakeRegionCollection([])
+
+    def get_by_role(self, role, **_kwargs):
+        if self.kind == "listbox" and role == "option":
+            return _FakeRegionCollection(items_factory=self.ui.available_options)
+        return _FakeRegionCollection([])
+
+    def get_by_text(self, _text, **_kwargs):
+        if self.kind == "listbox":
+            return _FakeRegionCollection(items_factory=self.ui.available_options)
+        return _FakeRegionCollection([])
+
+    async def click(self):
+        if self.kind == "trigger":
+            self.ui.menu_open = True
+        elif self.kind == "option":
+            self.ui.option_clicks += 1
+            self.ui.trigger.text = self.text
+            self.ui.menu_open = False
+        elif self.kind == "unrelated":
+            self.ui.unrelated_clicks += 1
+
+
+class _FakeRegionCollection:
+    def __init__(self, items=None, *, items_factory=None):
+        self.items = items or []
+        self.items_factory = items_factory
+
+    def _items(self):
+        return self.items_factory() if self.items_factory else self.items
+
+    async def count(self):
+        return len(self._items())
+
+    def nth(self, index):
+        return self._items()[index]
+
+
+class _FakeRegionScope:
+    def __init__(self, ui):
+        self.ui = ui
+
+    def get_by_label(self, _name):
+        return _FakeRegionCollection([])
+
+    def get_by_role(self, _role, **_kwargs):
+        return _FakeRegionCollection([])
+
+    def locator(self, selector):
+        if selector == "label":
+            return _FakeRegionCollection([self.ui.label])
+        return _FakeRegionCollection([])
+
+
+class _FakeRegionPage:
+    url = "https://planeta.ru/campaigns/251138/edit/about"
+
+    def __init__(self, ui):
+        self.ui = ui
+
+    def locator(self, selector):
+        if selector == '[role="listbox"]':
+            return _FakeRegionCollection([self.ui.listbox])
+        return _FakeRegionCollection([])
+
+    def get_by_role(self, role, **_kwargs):
+        if role == "option" and self.ui.menu_open:
+            return _FakeRegionCollection(items_factory=self.ui.available_options)
+        if role == "button" and self.ui.unrelated is not None:
+            return _FakeRegionCollection([self.ui.unrelated])
+        return _FakeRegionCollection([])
+
+    def get_by_text(self, _text, **_kwargs):
+        if self.ui.unrelated is not None:
+            return _FakeRegionCollection([self.ui.unrelated])
+        return _FakeRegionCollection([])
+
+    async def wait_for_timeout(self, _milliseconds):
+        self.ui.waits += 1
+
+
+class _FakeRegionUi:
+    def __init__(
+        self,
+        *,
+        option_count=1,
+        trigger_text="Не\u00a0выбрано",
+        option_text="Тестовый\u00a0край",
+        option_delay_waits=0,
+        duplicate_after_waits=None,
+        unrelated=False,
+        aria_controls=None,
+    ):
+        self.menu_open = False
+        self.waits = 0
+        self.option_delay_waits = option_delay_waits
+        self.duplicate_after_waits = duplicate_after_waits
+        self.option_clicks = 0
+        self.unrelated_clicks = 0
+        self.aria_controls = aria_controls
+        self.label = _FakeRegionLocator(self, "label", text="Регион")
+        self.trigger = _FakeRegionLocator(self, "trigger", text=trigger_text)
+        self.options = [
+            _FakeRegionLocator(self, "option", text=option_text)
+            for _ in range(option_count)
+        ]
+        self.listbox = _FakeRegionLocator(self, "listbox")
+        self.unrelated = (
+            _FakeRegionLocator(self, "unrelated", text=option_text)
+            if unrelated
+            else None
+        )
+
+    def available_options(self):
+        if not self.menu_open or self.waits < self.option_delay_waits:
+            return []
+        options = list(self.options)
+        if (
+            self.duplicate_after_waits is not None
+            and self.waits >= self.duplicate_after_waits
+            and options
+        ):
+            options.append(
+                _FakeRegionLocator(self, "option", text=options[0].text)
+            )
+        return options
+
+
+@pytest.mark.asyncio
+async def test_custom_about_region_selects_exact_configured_option():
+    ui = _FakeRegionUi()
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    selected = await browser._set_about_region(
+        _FakeRegionPage(ui),
+        _FakeRegionScope(ui),
+        "Тестовый край",
+    )
+
+    assert selected == "Тестовый край"
+    assert ui.trigger.text == "Тестовый\u00a0край"
+
+
+@pytest.mark.asyncio
+async def test_custom_about_region_refuses_ambiguous_exact_options():
+    ui = _FakeRegionUi(
+        option_count=2,
+        trigger_text="Не выбрано",
+        option_text="Тестовый край",
+    )
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    selected = await browser._set_about_region(
+        _FakeRegionPage(ui),
+        _FakeRegionScope(ui),
+        "Тестовый край",
+    )
+
+    assert selected is None
+    assert ui.trigger.text == "Не выбрано"
+    assert ui.option_clicks == 0
+
+
+@pytest.mark.asyncio
+async def test_custom_about_region_never_clicks_unrelated_same_text_button():
+    ui = _FakeRegionUi(
+        option_count=0,
+        trigger_text="Не выбрано",
+        option_text="Тестовый край",
+        unrelated=True,
+    )
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    selected = await browser._set_about_region(
+        _FakeRegionPage(ui),
+        _FakeRegionScope(ui),
+        "Тестовый край",
+    )
+
+    assert selected is None
+    assert ui.unrelated_clicks == 0
+
+
+@pytest.mark.asyncio
+async def test_custom_about_region_waits_for_delayed_associated_option():
+    ui = _FakeRegionUi(
+        trigger_text="Не выбрано",
+        option_text="Тестовый край",
+        option_delay_waits=1,
+    )
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    selected = await browser._set_about_region(
+        _FakeRegionPage(ui),
+        _FakeRegionScope(ui),
+        "Тестовый край",
+    )
+
+    assert selected == "Тестовый край"
+    assert ui.option_clicks == 1
+
+
+@pytest.mark.asyncio
+async def test_custom_about_region_refuses_delayed_duplicate_option():
+    ui = _FakeRegionUi(
+        trigger_text="Не выбрано",
+        option_text="Тестовый край",
+        option_delay_waits=1,
+        duplicate_after_waits=2,
+    )
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    selected = await browser._set_about_region(
+        _FakeRegionPage(ui),
+        _FakeRegionScope(ui),
+        "Тестовый край",
+    )
+
+    assert selected is None
+    assert ui.option_clicks == 0
+
+
+def test_pristine_about_retry_skips_disabled_save():
+    values = {"title": "same", "region": "Тестовый край"}
+
+    action = PlanetaBrowser._safe_step_save_action(
+        initial_values=values,
+        expected_values=values,
+        save_enabled=False,
+    )
+
+    assert action == "skip"
+
+
+def test_pristine_goal_retry_skips_disabled_save():
+    action = PlanetaBrowser._safe_step_save_action(
+        initial_values={"target_amount": "200000"},
+        expected_values={"target_amount": "200000"},
+        save_enabled=False,
+    )
+
+    assert action == "skip"
+
+
+def test_changed_step_with_disabled_save_is_blocked():
+    action = PlanetaBrowser._safe_step_save_action(
+        initial_values={"target_amount": "100000"},
+        expected_values={"target_amount": "200000"},
+        save_enabled=False,
+    )
+
+    assert action == "blocked"
+
+
+def test_pristine_step_with_enabled_save_is_not_saved():
+    values = {"target_amount": "200000"}
+
+    action = PlanetaBrowser._safe_step_save_action(
+        initial_values=values,
+        expected_values=values,
+        save_enabled=True,
+    )
+
+    assert action == "skip"
+
+
+class _FakeAboutField:
+    def __init__(self, state, key, *, enabled=False):
+        self.state = state
+        self.key = key
+        self.enabled = enabled
+
+    async def evaluate(self, _script):
+        return self.state[self.key]
+
+    async def fill(self, value):
+        self.state[self.key] = value
+
+    async def press(self, _key):
+        return None
+
+    async def is_enabled(self):
+        return self.enabled
+
+
+class _PersistenceReadbackBrowser(PlanetaBrowser):
+    def __init__(self, current, persisted):
+        super().__init__(base_url="https://planeta.ru", headless=True)
+        self.current = current
+        self.persisted = persisted
+        self.opened_steps = []
+        self.about_scope = object()
+        self.about = {
+            key: _FakeAboutField(self.current, key)
+            for key in ("title", "summary", "end_date", "story")
+        }
+        self.about["save"] = _FakeAboutField(
+            self.current, "save", enabled=False
+        )
+        self.region_control = object()
+
+    async def _open_editor_step(self, _page, step):
+        self.opened_steps.append(step)
+        if step != "about":
+            raise AssertionError(f"unsafe downstream navigation to {step}")
+        return self.about_scope
+
+    async def _multistep_about_controls(self, _scope):
+        return self.about
+
+    async def _about_region_control(self, _scope, _expected_region):
+        return self.region_control
+
+    async def _region_control_value(self, _control):
+        return self.current.get("region", "")
+
+    async def _reload_safe_editor_step(self, _page, step):
+        assert step == "about"
+        self.current.update(self.persisted)
+        if "save_enabled" in self.persisted:
+            self.about["save"].enabled = self.persisted["save_enabled"]
+        return self.about_scope
+
+
+def _campaign_about_values(campaign, *, region=None):
+    values = {
+        "title": campaign.title,
+        "summary": campaign.summary,
+        "end_date": campaign.end_date.strftime("%d.%m.%Y"),
+        "story": campaign.story,
+        "save": "",
+    }
+    if region is not None:
+        values["region"] = region
+    return values
+
+
+@pytest.mark.asyncio
+async def test_missing_region_pristine_disabled_about_stops_before_assets():
+    campaign = default_argos_reboot_campaign()
+    current = _campaign_about_values(campaign)
+    browser = _PersistenceReadbackBrowser(current, dict(current))
+
+    result = await browser._fill_multistep_draft(object(), campaign)
+
+    assert result.status == "human_action_required"
+    assert browser.opened_steps == ["about"]
+
+
+@pytest.mark.asyncio
+async def test_missing_region_unknown_dirty_state_is_rechecked_after_reload():
+    campaign = default_argos_reboot_campaign()
+    current = _campaign_about_values(campaign)
+    persisted = {**current, "save_enabled": False}
+    browser = _PersistenceReadbackBrowser(current, persisted)
+    browser.about["save"].enabled = True
+
+    result = await browser._fill_multistep_draft(object(), campaign)
+
+    assert result.status == "human_action_required"
+    assert browser.opened_steps == ["about"]
+
+
+@pytest.mark.asyncio
+async def test_unsaved_equal_about_values_that_revert_on_reload_are_rejected():
+    region = "Тестовый край"
+    campaign = default_argos_reboot_campaign().model_copy(
+        update={"region": region}
+    )
+    current = _campaign_about_values(campaign, region=region)
+    persisted = {**current, "title": "Старое сохранённое название"}
+    browser = _PersistenceReadbackBrowser(current, persisted)
+
+    result = await browser._fill_multistep_draft(object(), campaign)
+
+    assert result.status == "ui_changed"
+    assert browser.opened_steps == ["about"]
+
+
 @pytest.mark.asyncio
 async def test_multistep_fill_saves_only_about_assets_and_goal(browser):
-    campaign = default_argos_reboot_campaign()
+    campaign = default_argos_reboot_campaign().model_copy(
+        update={"region": "Тестовый край"}
+    )
     await browser.open_fixture("multistep_editor.html")
 
     result = await browser.fill_draft(campaign)
@@ -199,11 +621,13 @@ async def test_multistep_fill_saves_only_about_assets_and_goal(browser):
         "main_image": "argos-reboot-fire-main.jpg",
     }
     page_state = await browser._page.evaluate(
-        """() => ({
+        r"""() => ({
             activeStep: document.body.dataset.activeStep,
             navigationLog: window.navigationLog,
             saveCounts: window.saveCounts,
             mediaFiles: window.mediaFiles,
+            region: document.querySelector('#about-region').selectedOptions[0]
+              .textContent.replace(/\s+/g, ' ').trim(),
             submitClicks: window.submitClicks,
         })"""
     )
@@ -215,13 +639,119 @@ async def test_multistep_fill_saves_only_about_assets_and_goal(browser):
             "cover": "argos-reboot-cover.jpg",
             "main": "argos-reboot-fire-main.jpg",
         },
+        "region": "Тестовый край",
         "submitClicks": 0,
     }
 
 
 @pytest.mark.asyncio
-async def test_routed_multistep_fill_persists_only_safe_editor_steps():
+async def test_multistep_retry_skips_pristine_disabled_about_and_goal(browser):
+    campaign = default_argos_reboot_campaign().model_copy(
+        update={"region": "Тестовый край"}
+    )
+    await browser.open_fixture("multistep_editor.html")
+    first = await browser.fill_draft(campaign)
+    assert first.status == "ok"
+    await browser._page.evaluate(
+        """() => {
+            document.querySelector('[data-step-form="about"] button[type="submit"]').disabled = true;
+            document.querySelector('[data-step-form="goal"] button[type="submit"]').disabled = true;
+        }"""
+    )
+
+    retried = await browser.fill_draft(campaign)
+
+    assert retried.status == "ok"
+    page_state = await browser._page.evaluate(
+        "({saveCounts: window.saveCounts, reloadCounts: window.reloadCounts})"
+    )
+    save_counts = page_state["saveCounts"]
+    assert save_counts["about"] == 1
+    assert save_counts["goal"] == 1
+    assert page_state["reloadCounts"] == {"about": 1, "goal": 1}
+
+
+@pytest.mark.asyncio
+async def test_missing_region_disabled_about_never_navigates_downstream(browser):
     campaign = default_argos_reboot_campaign()
+    await browser.open_fixture("multistep_editor.html")
+    await browser._page.evaluate(
+        """values => {
+            document.querySelector('#about-name').value = values.title;
+            document.querySelector('#about-project').value = values.summary;
+            document.querySelector('#about-end-date').value = values.endDate;
+            document.querySelector('[contenteditable="true"]').innerText = values.story;
+            document.querySelector('[data-step-form="about"] button[type="submit"]').disabled = true;
+        }""",
+        {
+            "title": campaign.title,
+            "summary": campaign.summary,
+            "endDate": campaign.end_date.strftime("%d.%m.%Y"),
+            "story": campaign.story,
+        },
+    )
+
+    result = await browser.fill_draft(campaign)
+
+    assert result.status == "human_action_required"
+    assert await browser._page.evaluate("window.navigationLog") == ["about"]
+
+
+@pytest.mark.asyncio
+async def test_unsaved_equal_about_dom_is_rejected_after_reload(browser):
+    campaign = default_argos_reboot_campaign().model_copy(
+        update={"region": "Тестовый край"}
+    )
+    await browser.open_fixture("multistep_editor.html")
+    await browser._page.evaluate(
+        """values => {
+            document.querySelector('#about-name').value = values.title;
+            document.querySelector('#about-project').value = values.summary;
+            document.querySelector('#about-end-date').value = values.endDate;
+            document.querySelector('#about-region').selectedIndex = 1;
+            document.querySelector('[contenteditable="true"]').innerText = values.story;
+            document.querySelector('[data-step-form="about"] button[type="submit"]').disabled = true;
+        }""",
+        {
+            "title": campaign.title,
+            "summary": campaign.summary,
+            "endDate": campaign.end_date.strftime("%d.%m.%Y"),
+            "story": campaign.story,
+        },
+    )
+
+    result = await browser.fill_draft(campaign)
+
+    assert result.status == "ui_changed"
+    assert await browser._page.evaluate("window.navigationLog") == ["about"]
+
+
+@pytest.mark.asyncio
+async def test_multistep_read_reports_only_redacted_region_match(browser):
+    campaign = default_argos_reboot_campaign().model_copy(
+        update={"region": "Тестовый край"}
+    )
+    await browser.open_fixture("multistep_editor.html")
+    filled = await browser.fill_draft(campaign)
+    assert filled.status == "ok"
+
+    matching = await browser.read_draft(expected_region=campaign.region)
+    await browser._page.evaluate(
+        "document.querySelector('#about-region').selectedIndex = 0"
+    )
+    mismatching = await browser.read_draft(expected_region=campaign.region)
+
+    assert matching.draft_snapshot["region_match"] is True
+    assert mismatching.draft_snapshot["region_match"] is False
+    assert "region" not in matching.draft_snapshot
+    assert "Тестовый край" not in str(matching.safe_dict())
+
+
+@pytest.mark.asyncio
+async def test_routed_multistep_fill_persists_only_safe_editor_steps():
+    campaign = default_argos_reboot_campaign().model_copy(
+        update={"region": "Тестовый край"}
+    )
     routed_fixture = (FIXTURES / "multistep_routed_editor.html").read_text(
         encoding="utf-8"
     )
@@ -262,7 +792,7 @@ async def test_routed_multistep_fill_persists_only_safe_editor_steps():
     finally:
         await instance.close()
 
-    assert result.status == "ok"
+    assert result.status == "ok", result.reason
     assert fill_requests
     assert {
         path.rsplit("/", 1)[-1] for _, path in fill_requests + read_requests
@@ -291,6 +821,7 @@ async def test_routed_multistep_fill_persists_only_safe_editor_steps():
         "title": campaign.title,
         "summary": campaign.summary,
         "endDate": campaign.end_date.strftime("%d.%m.%Y"),
+        "region": campaign.region,
         "story": campaign.story,
         "aboutSaves": 1,
         "cover": "argos-reboot-cover.jpg",

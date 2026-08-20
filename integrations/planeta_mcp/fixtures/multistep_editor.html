@@ -19,7 +19,8 @@
       <input id="about-end-date" placeholder="ДД.ММ.ГГГГ" />
       <label for="about-region">Регион*</label>
       <select id="about-region">
-        <option selected>Тестовый регион</option>
+        <option value="" selected>Не&nbsp;выбрано</option>
+        <option value="test-region">Тестовый&nbsp;край</option>
       </select>
       <label id="story-label">Подробное описание проекта*</label>
       <div
@@ -75,7 +76,36 @@
     window.submitClicks = 0;
     window.navigationLog = ["about"];
     window.saveCounts = {about: 0, assets: 0, goal: 0, rewards: 0};
+    window.reloadCounts = {about: 0, goal: 0};
     window.mediaFiles = {cover: "", main: ""};
+    window.persistedAbout = {
+      title: "",
+      summary: "",
+      endDate: "",
+      regionIndex: 0,
+      story: "",
+    };
+    window.persistedGoal = "";
+
+    window.reloadEditorStep = (step) => {
+      if (step === "about") {
+        window.reloadCounts.about += 1;
+        document.querySelector("#about-name").value = window.persistedAbout.title;
+        document.querySelector("#about-project").value = window.persistedAbout.summary;
+        document.querySelector("#about-end-date").value = window.persistedAbout.endDate;
+        document.querySelector("#about-region").selectedIndex = window.persistedAbout.regionIndex;
+        document.querySelector('[contenteditable="true"]').innerText = window.persistedAbout.story;
+        document.querySelector('[data-step-form="about"] button[type="submit"]').disabled = true;
+        return true;
+      }
+      if (step === "goal") {
+        window.reloadCounts.goal += 1;
+        document.querySelector("#editor-goal").value = window.persistedGoal;
+        document.querySelector('[data-step-form="goal"] button[type="submit"]').disabled = true;
+        return true;
+      }
+      return false;
+    };
 
     function openStep(step) {
       document.querySelectorAll("[data-step-panel]").forEach((panel) => {
@@ -92,6 +122,18 @@
     document.querySelectorAll("[data-step-form]").forEach((form) => {
       form.addEventListener("submit", (event) => {
         event.preventDefault();
+        if (form.dataset.stepForm === "about") {
+          window.persistedAbout = {
+            title: document.querySelector("#about-name").value,
+            summary: document.querySelector("#about-project").value,
+            endDate: document.querySelector("#about-end-date").value,
+            regionIndex: document.querySelector("#about-region").selectedIndex,
+            story: document.querySelector('[contenteditable="true"]').innerText,
+          };
+        }
+        if (form.dataset.stepForm === "goal") {
+          window.persistedGoal = document.querySelector("#editor-goal").value;
+        }
         window.saveCounts[form.dataset.stepForm] += 1;
       });
     });

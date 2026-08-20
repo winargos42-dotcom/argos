@@ -14,6 +14,8 @@ class FakeBrowser:
         self.fill_calls = 0
         self.reward_fill_calls = 0
         self.reward_read_calls = 0
+        self.expected_region = None
+        self.region_match = True
         self.snapshot = {
             "title": "",
             "target_amount": "",
@@ -52,8 +54,12 @@ class FakeBrowser:
             draft_snapshot={"rewards": self.rewards_snapshot},
         )
 
-    async def read_draft(self):
-        return BrowserResult(status="ok", reason="read", draft_snapshot=self.snapshot)
+    async def read_draft(self, expected_region=None):
+        self.expected_region = expected_region
+        snapshot = dict(self.snapshot)
+        if expected_region:
+            snapshot["region_match"] = self.region_match
+        return BrowserResult(status="ok", reason="read", draft_snapshot=snapshot)
 
     async def read_rewards(self):
         self.reward_read_calls += 1
@@ -122,6 +128,24 @@ async def test_sync_reports_persisted_media_difference(service, campaign):
         "local": "argos-reboot-cover.jpg",
         "planeta": "wrong-cover.jpg",
     }
+
+
+@pytest.mark.asyncio
+async def test_sync_reports_redacted_configured_region_mismatch(service, campaign):
+    campaign = campaign.model_copy(update={"region": "Тестовый край"})
+    await service.prepare_campaign(campaign)
+    await service.fill_draft()
+    service.browser.region_match = False
+
+    synced = await service.sync_draft()
+
+    assert service.browser.expected_region == "Тестовый край"
+    assert synced["differences"]["region"] == {
+        "configured": True,
+        "planeta_matches": False,
+    }
+    assert "Тестовый край" not in str(synced)
+    assert "Тестовый край" not in service.audit.path.read_text(encoding="utf-8")
 
 
 @pytest.mark.asyncio

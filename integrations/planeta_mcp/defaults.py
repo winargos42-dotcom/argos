@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import os
 from datetime import date
 
 from .models import BudgetItem, CampaignPayload, Reward
 
 
 DEFAULT_TITLE = "ARGOS REBOOT — восстановление независимой AI/FPGA-системы"
+PROJECT_REGION_ENV = "ARGOS_PLANETA_PROJECT_REGION"
 
 
 def default_argos_reboot_campaign() -> CampaignPayload:
+    project_region = os.getenv(PROJECT_REGION_ENV, "").strip() or None
     story = """## ARGOS REBOOT
 
 ARGOS — независимая AI/FPGA-система, которую автор развивал как собственную вычислительную и агентную инфраструктуру: локальные модели, память, API/P2P-контур, автоматизация и аппаратные ускорители.
@@ -57,6 +60,7 @@ ARGOS — независимая AI/FPGA-система, которую авто
         target_amount=200000,
         currency="RUB",
         end_date=date(2026, 10, 17),
+        region=project_region,
         summary=(
             "ARGOS REBOOT: восстановление серверной, резервной и GPU/FPGA-инфраструктуры "
             "независимой AI-системы после утраты локальной вычислительной среды."

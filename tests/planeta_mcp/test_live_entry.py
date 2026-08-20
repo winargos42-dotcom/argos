@@ -55,7 +55,7 @@ class SubmitBrowser:
     async def fill_rewards(self, campaign):
         return BrowserResult(status="ok", reason="noop", draft_snapshot={"rewards": []})
 
-    async def read_draft(self):
+    async def read_draft(self, expected_region=None):
         return BrowserResult(status="ok", reason="noop")
 
     async def read_rewards(self):

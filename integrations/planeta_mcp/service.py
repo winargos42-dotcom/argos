@@ -19,7 +19,9 @@ class CampaignValidationError(ValueError):
 class BrowserAdapter(Protocol):
     async def fill_draft(self, campaign: CampaignPayload) -> BrowserResult: ...
     async def fill_rewards(self, campaign: CampaignPayload) -> BrowserResult: ...
-    async def read_draft(self) -> BrowserResult: ...
+    async def read_draft(
+        self, expected_region: str | None = None
+    ) -> BrowserResult: ...
     async def read_rewards(self) -> BrowserResult: ...
     async def submit_for_moderation(self) -> BrowserResult: ...
 
@@ -134,7 +136,8 @@ class PlanetaCampaignService:
 
     async def sync_draft(self) -> dict[str, Any]:
         campaign = self.store.load_required()
-        result = await self.browser.read_draft()
+        configured_region = (campaign.region or "").strip()
+        result = await self.browser.read_draft(configured_region or None)
         self._last_browser_status = result.status
         differences: dict[str, Any] = {}
         reason = result.reason
@@ -169,6 +172,11 @@ class PlanetaCampaignService:
                 remote_value = result.draft_snapshot.get(field)
                 if remote_value != local_value:
                     differences[field] = {"local": local_value, "planeta": remote_value}
+            if configured_region and result.draft_snapshot.get("region_match") is not True:
+                differences["region"] = {
+                    "configured": True,
+                    "planeta_matches": False,
+                }
 
             rewards_result = await self.browser.read_rewards()
             final_status = rewards_result.status

@@ -26,6 +26,17 @@ PLANETA_HEADLESS=true
 PLANETA_SUBMIT_TTL_SECONDS=300
 ```
 
+If the draft requires a project region, configure it only as a private Railway
+variable. An empty or omitted value preserves the existing no-region behavior:
+
+```text
+ARGOS_PLANETA_PROJECT_REGION=<exact region label shown by Planeta.ru>
+```
+
+Do not commit the real region value to the repository, logs, or fixtures. Draft
+sync reports only whether the configured private value matches Planeta.ru; it
+does not include that value in the sync result or audit log.
+
 Once the owner has created/opened a Planeta.ru campaign draft, configure the **exact same-origin draft editor URL**:
 
 ```text

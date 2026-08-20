@@ -54,6 +54,10 @@ def _normalize_editor_text(value: str) -> str:
     return value.strip()
 
 
+def _normalize_region_text(value: str) -> str:
+    return re.sub(r"\s+", " ", _normalize_editor_text(value)).strip()
+
+
 _SEMANTIC_NAMES = {
     "title": re.compile(r"^\s*(?:название(?:\s+проекта)?|заголовок(?:\s+проекта)?)\s*\*?\s*$", re.I),
     "target": re.compile(
@@ -92,6 +96,13 @@ _REWARD_DESCRIPTION = re.compile(r"^\s*описание\s+вознагражде
 _REWARD_PHYSICAL = re.compile(r"^\s*(?:физическое\s+вознаграждение|требуется\s+доставка)\s*$", re.I)
 _SAVE_REWARD = re.compile(r"^\s*сохранить\s+вознаграждение\s*$", re.I)
 _SAFE_STEP_SAVE = re.compile(r"^\s*сохранить\s*$", re.I)
+_ABOUT_REGION_LABEL = re.compile(r"^\s*регион\s*\*?\s*$", re.I)
+_ABOUT_REGION_UNSELECTED = "Не выбрано"
+_REGION_OPTION_WAIT_MS = 3000
+_REGION_OPTION_POLL_MS = 100
+_REGION_OPTION_SETTLE_MS = 200
+_SAFE_SAVE_ENABLE_WAIT_MS = 3000
+_SAFE_SAVE_ENABLE_POLL_MS = 100
 _SAFE_EDITOR_STEPS = frozenset({"about", "assets", "goal", "rewards"})
 _COVER_ASSET = "assets/argos-reboot-cover.jpg"
 _MAIN_ASSET = "assets/argos-reboot-fire-main.jpg"
@@ -334,6 +345,211 @@ class PlanetaBrowser:
             return None
         resolved["save"] = save
         return resolved
+
+    async def _about_region_control(
+        self, scope: Locator, expected_region: str
+    ) -> Locator | None:
+        labelled = await self._unique_visible(
+            scope.get_by_label(_ABOUT_REGION_LABEL)
+        )
+        if labelled is not None:
+            return labelled
+
+        combobox = await self._unique_visible(
+            scope.get_by_role("combobox", name=_ABOUT_REGION_LABEL)
+        )
+        if combobox is not None:
+            return combobox
+
+        matching_labels: list[Locator] = []
+        labels = scope.locator("label")
+        for index in range(await labels.count()):
+            candidate = labels.nth(index)
+            if not await candidate.is_visible():
+                continue
+            if _ABOUT_REGION_LABEL.fullmatch(
+                _normalize_editor_text(await candidate.inner_text())
+            ):
+                matching_labels.append(candidate)
+                if len(matching_labels) > 1:
+                    return None
+        if len(matching_labels) != 1:
+            return None
+
+        associated = matching_labels[0].locator(
+            "xpath=following-sibling::*[1][self::button or @role='combobox'] "
+            "| following-sibling::*[1]//*[self::button or @role='combobox']"
+        )
+        control = await self._unique_visible(associated)
+        if control is None:
+            return None
+        current = await self._region_control_value(control)
+        if current not in {_ABOUT_REGION_UNSELECTED, expected_region}:
+            return None
+        return control
+
+    async def _region_control_value(self, control: Locator) -> str:
+        tag_name = await control.evaluate(
+            "element => String(element.tagName || '').toUpperCase()"
+        )
+        if tag_name == "SELECT":
+            value = await control.evaluate(
+                "element => String(element.selectedOptions?.[0]?.textContent || '')"
+            )
+            return _normalize_region_text(str(value))
+        if tag_name == "BUTTON":
+            return _normalize_region_text(await control.inner_text())
+        return _normalize_region_text(await self._control_value(control))
+
+    async def _associated_region_popup(
+        self, page: Page, control: Locator
+    ) -> tuple[str, Locator | None]:
+        controlled_ids: list[str] = []
+        for attribute in ("aria-controls", "aria-owns"):
+            value = (await control.get_attribute(attribute) or "").strip()
+            controlled_ids.extend(value.split())
+        controlled_ids = list(dict.fromkeys(controlled_ids))
+        if len(controlled_ids) > 1:
+            return "ambiguous", None
+
+        visible: list[Locator] = []
+        listboxes = page.locator('[role="listbox"]')
+        for index in range(await listboxes.count()):
+            candidate = listboxes.nth(index)
+            if not await candidate.is_visible():
+                continue
+            if controlled_ids and await candidate.get_attribute("id") != controlled_ids[0]:
+                continue
+            visible.append(candidate)
+            if len(visible) > 1:
+                return "ambiguous", None
+        if len(visible) == 1:
+            return "found", visible[0]
+        return "missing", None
+
+    async def _region_option_in_popup(
+        self, popup: Locator, expected_region: str
+    ) -> tuple[str, Locator | None]:
+        matches: list[Locator] = []
+        options = popup.locator('[role="option"], button')
+        for index in range(await options.count()):
+            candidate = options.nth(index)
+            if not await candidate.is_visible():
+                continue
+            if _normalize_region_text(await candidate.inner_text()) != expected_region:
+                continue
+            matches.append(candidate)
+            if len(matches) > 1:
+                return "ambiguous", None
+        if len(matches) == 1:
+            return "found", matches[0]
+        return "missing", None
+
+    async def _wait_for_associated_region_option(
+        self, page: Page, control: Locator, expected_region: str
+    ) -> Locator | None:
+        attempts = max(1, _REGION_OPTION_WAIT_MS // _REGION_OPTION_POLL_MS)
+        for _ in range(attempts):
+            popup_state, popup = await self._associated_region_popup(page, control)
+            if popup_state == "ambiguous":
+                return None
+            if popup is not None:
+                option_state, option = await self._region_option_in_popup(
+                    popup, expected_region
+                )
+                if option_state == "ambiguous":
+                    return None
+                if option is not None:
+                    await page.wait_for_timeout(_REGION_OPTION_SETTLE_MS)
+                    settled_popup_state, settled_popup = (
+                        await self._associated_region_popup(page, control)
+                    )
+                    if settled_popup_state != "found" or settled_popup is None:
+                        return None
+                    settled_option_state, settled_option = (
+                        await self._region_option_in_popup(
+                            settled_popup, expected_region
+                        )
+                    )
+                    return (
+                        settled_option
+                        if settled_option_state == "found"
+                        else None
+                    )
+            await page.wait_for_timeout(_REGION_OPTION_POLL_MS)
+        return None
+
+    @staticmethod
+    def _safe_step_save_action(
+        *,
+        initial_values: dict[str, str],
+        expected_values: dict[str, str],
+        save_enabled: bool,
+    ) -> str:
+        if initial_values == expected_values:
+            return "skip"
+        return "save" if save_enabled else "blocked"
+
+    @staticmethod
+    async def _wait_for_enabled(page: Page, control: Locator) -> bool:
+        attempts = max(
+            1, _SAFE_SAVE_ENABLE_WAIT_MS // _SAFE_SAVE_ENABLE_POLL_MS
+        )
+        for _ in range(attempts):
+            if await control.is_enabled():
+                return True
+            await page.wait_for_timeout(_SAFE_SAVE_ENABLE_POLL_MS)
+        return False
+
+    async def _set_about_region(
+        self, page: Page, scope: Locator, expected_region: str
+    ) -> str | None:
+        expected_region = _normalize_region_text(expected_region)
+        if not expected_region:
+            return None
+        control = await self._about_region_control(scope, expected_region)
+        if control is None:
+            return None
+        current = await self._region_control_value(control)
+        if current == expected_region:
+            return current
+
+        tag_name = await control.evaluate(
+            "element => String(element.tagName || '').toUpperCase()"
+        )
+        if tag_name == "SELECT":
+            matching_options: list[tuple[int, Locator]] = []
+            options = control.locator("option")
+            for index in range(await options.count()):
+                option = options.nth(index)
+                if _normalize_region_text(await option.inner_text()) == expected_region:
+                    matching_options.append((index, option))
+                    if len(matching_options) > 1:
+                        return None
+            if len(matching_options) != 1:
+                return None
+            option_index, option = matching_options[0]
+            option_value = await option.get_attribute("value")
+            if option_value is not None:
+                await control.select_option(value=option_value)
+            else:
+                await control.select_option(index=option_index)
+        else:
+            if current != _ABOUT_REGION_UNSELECTED:
+                return None
+            popup_state, _ = await self._associated_region_popup(page, control)
+            if popup_state != "missing":
+                return None
+            await control.click()
+            option = await self._wait_for_associated_region_option(
+                page, control, expected_region
+            )
+            if option is None:
+                return None
+            await option.click()
+
+        selected = await self._region_control_value(control)
+        return selected if selected == expected_region else None
 
     async def _reward_add_button(self, scope: Locator) -> Locator | None:
         for pattern in (_ADD_REWARD, _ADD_REWARD_SHORT):
@@ -590,7 +806,9 @@ class PlanetaBrowser:
             "story": await self._control_value(controls["story"]),
         }
 
-    async def _read_multistep_snapshot(self, page: Page) -> dict[str, str]:
+    async def _read_multistep_snapshot(
+        self, page: Page, expected_region: str | None = None
+    ) -> dict[str, Any]:
         snapshot = await self._read_multistep_about(page)
         goal_scope = await self._open_editor_step(page, "goal")
         if goal_scope is None:
@@ -611,8 +829,19 @@ class PlanetaBrowser:
             raise LookupError("assets")
         snapshot["cover_image"] = Path(_COVER_ASSET).name
         snapshot["main_image"] = Path(_MAIN_ASSET).name
-        if await self._open_editor_step(page, "about") is None:
+        about_scope = await self._open_editor_step(page, "about")
+        if about_scope is None:
             raise LookupError("about")
+        normalized_region = _normalize_region_text(expected_region or "")
+        if normalized_region:
+            region_control = await self._about_region_control(
+                about_scope, normalized_region
+            )
+            snapshot["region_match"] = bool(
+                region_control is not None
+                and await self._region_control_value(region_control)
+                == normalized_region
+            )
         return snapshot
 
     async def _exact_asset_inputs(self, scope: Locator) -> list[Locator] | None:
@@ -633,6 +862,34 @@ class PlanetaBrowser:
         # marker. Use a bounded settle period and rely on the mandatory reload plus
         # exact field/media readback below as the authoritative persistence proof.
         await page.wait_for_timeout(2000)
+        current = urlsplit(page.url)
+        expected_url = urlsplit(expected)
+        if (
+            _origin(page.url) != _origin(expected)
+            or current.path.rstrip("/") != expected_url.path.rstrip("/")
+        ):
+            return None
+        await page.reload(wait_until="domcontentloaded", timeout=30000)
+        return await self._open_editor_step(page, step)
+
+    async def _reload_safe_editor_step(
+        self, page: Page, step: str
+    ) -> Locator | None:
+        if step not in _SAFE_EDITOR_STEPS:
+            return None
+        if self._fixture_loaded:
+            restored = await page.evaluate(
+                """step => (
+                    typeof window.reloadEditorStep === 'function'
+                    && window.reloadEditorStep(step) === true
+                )""",
+                step,
+            )
+            return await self._open_editor_step(page, step) if restored else None
+
+        expected = self._editor_step_url(step)
+        if expected is None:
+            return None
         current = urlsplit(page.url)
         expected_url = urlsplit(expected)
         if (
@@ -779,29 +1036,88 @@ class PlanetaBrowser:
                 status=BrowserState.UI_CHANGED.value,
                 reason="known about controls are missing or ambiguous",
             )
-        await about["title"].fill(payload.title)
-        await about["summary"].fill(payload.summary)
-        await about["end_date"].fill(payload.end_date.strftime("%d.%m.%Y"))
-        await about["end_date"].press("Tab")
-        await about["story"].fill(payload.story)
-        if not await about["save"].is_enabled():
+        configured_region = _normalize_region_text(payload.region or "")
+        expected_about_values = {
+            "title": _normalize_editor_text(payload.title),
+            "summary": _normalize_editor_text(payload.summary),
+            "end_date": payload.end_date.strftime("%d.%m.%Y"),
+            "story": _normalize_editor_text(payload.story),
+        }
+        if configured_region:
+            expected_about_values["region"] = configured_region
+        initial_about_values = {
+            "title": await self._control_value(about["title"]),
+            "summary": await self._control_value(about["summary"]),
+            "end_date": await self._control_value(about["end_date"]),
+            "story": await self._control_value(about["story"]),
+        }
+        if configured_region:
+            initial_region_control = await self._about_region_control(
+                about_scope, configured_region
+            )
+            initial_about_values["region"] = (
+                await self._region_control_value(initial_region_control)
+                if initial_region_control is not None
+                else ""
+            )
+
+        about_changed = initial_about_values != expected_about_values
+        if about_changed:
+            await about["title"].fill(payload.title)
+            await about["summary"].fill(payload.summary)
+            await about["end_date"].fill(payload.end_date.strftime("%d.%m.%Y"))
+            await about["end_date"].press("Tab")
+            await about["story"].fill(payload.story)
+            if configured_region:
+                selected_region = await self._set_about_region(
+                    page, about_scope, configured_region
+                )
+                if selected_region is None:
+                    return BrowserResult(
+                        status=BrowserState.UI_CHANGED.value,
+                        reason=(
+                            "exact project region control or option is missing or ambiguous"
+                        ),
+                    )
+            save_enabled = await self._wait_for_enabled(page, about["save"])
+        else:
+            save_enabled = await about["save"].is_enabled()
+
+        save_action = self._safe_step_save_action(
+            initial_values=initial_about_values,
+            expected_values=expected_about_values,
+            save_enabled=save_enabled,
+        )
+        missing_region_still_required = (
+            save_action == "skip"
+            and not configured_region
+            and not save_enabled
+        )
+        if save_action == "blocked" or missing_region_still_required:
+            reason = "Planeta requires another about field, such as the project region"
+            if configured_region:
+                reason = "Planeta requires another about field after exact region selection"
             return BrowserResult(
                 status=BrowserState.HUMAN_ACTION_REQUIRED.value,
-                reason="Planeta requires another about field, such as the project region",
+                reason=reason,
             )
-        about_scope = await self._save_and_reload_step(
-            page, "about", about_scope, about["save"]
-        )
+
+        if save_action == "save":
+            about_scope = await self._save_and_reload_step(
+                page, "about", about_scope, about["save"]
+            )
+        else:
+            about_scope = await self._reload_safe_editor_step(page, "about")
         if about_scope is None:
             return BrowserResult(
                 status=BrowserState.UI_CHANGED.value,
-                reason="about step could not be reloaded after save",
+                reason="about step could not be reloaded for persistence verification",
             )
         saved_about = await self._multistep_about_controls(about_scope)
         if saved_about is None:
             return BrowserResult(
                 status=BrowserState.UI_CHANGED.value,
-                reason="about controls changed after save",
+                reason="about controls changed after reload",
             )
         saved_about_values = {
             "title": await self._control_value(saved_about["title"]),
@@ -809,16 +1125,42 @@ class PlanetaBrowser:
             "end_date": await self._control_value(saved_about["end_date"]),
             "story": await self._control_value(saved_about["story"]),
         }
-        if saved_about_values != {
-            "title": _normalize_editor_text(payload.title),
-            "summary": _normalize_editor_text(payload.summary),
-            "end_date": payload.end_date.strftime("%d.%m.%Y"),
-            "story": _normalize_editor_text(payload.story),
-        }:
+        if configured_region:
+            saved_region_control = await self._about_region_control(
+                about_scope, configured_region
+            )
+            if saved_region_control is None:
+                return BrowserResult(
+                    status=BrowserState.UI_CHANGED.value,
+                    reason="project region control changed after reload",
+                )
+            saved_about_values["region"] = await self._region_control_value(
+                saved_region_control
+            )
+
+        if saved_about_values != expected_about_values:
+            safe_snapshot = {
+                key: value
+                for key, value in saved_about_values.items()
+                if key != "region"
+            }
+            if configured_region:
+                safe_snapshot["region_match"] = (
+                    saved_about_values.get("region") == configured_region
+                )
             return BrowserResult(
                 status=BrowserState.UI_CHANGED.value,
                 reason="about values were not persisted after save",
-                draft_snapshot=saved_about_values,
+                draft_snapshot=safe_snapshot,
+            )
+        if (
+            save_action == "skip"
+            and not configured_region
+            and not await saved_about["save"].is_enabled()
+        ):
+            return BrowserResult(
+                status=BrowserState.HUMAN_ACTION_REQUIRED.value,
+                reason="Planeta requires another about field, such as the project region",
             )
 
         assets_scope = await self._open_editor_step(page, "assets")
@@ -911,20 +1253,38 @@ class PlanetaBrowser:
                 status=BrowserState.UI_CHANGED.value,
                 reason="known goal controls are missing or ambiguous",
             )
-        await goal.fill(str(payload.target_amount))
-        await goal.press("Tab")
-        if not await goal_save.is_enabled():
+        expected_goal_values = {"target_amount": str(payload.target_amount)}
+        initial_goal_values = {
+            "target_amount": self._normalized_amount(
+                await self._control_value(goal)
+            )
+        }
+        if initial_goal_values != expected_goal_values:
+            await goal.fill(str(payload.target_amount))
+            await goal.press("Tab")
+            goal_save_enabled = await self._wait_for_enabled(page, goal_save)
+        else:
+            goal_save_enabled = await goal_save.is_enabled()
+        goal_save_action = self._safe_step_save_action(
+            initial_values=initial_goal_values,
+            expected_values=expected_goal_values,
+            save_enabled=goal_save_enabled,
+        )
+        if goal_save_action == "blocked":
             return BrowserResult(
                 status=BrowserState.UI_CHANGED.value,
                 reason="goal save remains disabled after the target was filled",
             )
-        goal_scope = await self._save_and_reload_step(
-            page, "goal", goal_scope, goal_save
-        )
+        if goal_save_action == "save":
+            goal_scope = await self._save_and_reload_step(
+                page, "goal", goal_scope, goal_save
+            )
+        else:
+            goal_scope = await self._reload_safe_editor_step(page, "goal")
         if goal_scope is None:
             return BrowserResult(
                 status=BrowserState.UI_CHANGED.value,
-                reason="goal step could not be reloaded after save",
+                reason="goal step could not be reloaded for persistence verification",
             )
         goal = await self._unique_visible(goal_scope.locator(selectors.GOAL_INPUT))
         if goal is None:
@@ -950,7 +1310,7 @@ class PlanetaBrowser:
             draft_snapshot=snapshot,
         )
 
-    async def read_draft(self) -> BrowserResult:
+    async def read_draft(self, expected_region: str | None = None) -> BrowserResult:
         inspected = await self.inspect()
         if inspected.status != "ok":
             return inspected
@@ -960,9 +1320,14 @@ class PlanetaBrowser:
                 return BrowserResult(
                     status="ok",
                     reason="multi-step draft read",
-                    draft_snapshot=await self._read_multistep_snapshot(self._page),
+                    draft_snapshot=await self._read_multistep_snapshot(
+                        self._page, expected_region
+                    ),
                 )
-            return BrowserResult(status="ok", reason="draft read", draft_snapshot=await self._read_snapshot(self._page))
+            snapshot: dict[str, Any] = await self._read_snapshot(self._page)
+            if _normalize_region_text(expected_region or ""):
+                snapshot["region_match"] = False
+            return BrowserResult(status="ok", reason="draft read", draft_snapshot=snapshot)
         except LookupError:
             return BrowserResult(status="ui_changed", reason="known draft selectors are missing or ambiguous")
         except PlaywrightTimeoutError:
