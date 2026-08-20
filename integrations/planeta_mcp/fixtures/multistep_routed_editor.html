@@ -27,6 +27,13 @@
           <textarea id="about-project"></textarea>
           <label for="about-end-date">Дата завершения*</label>
           <input id="about-end-date" placeholder="ДД.ММ.ГГГГ" />
+          <label>Регион*</label>
+          <div class="about-region-control">
+            <button id="about-region-trigger" type="button"></button>
+          </div>
+          <div id="about-region-options" role="listbox" hidden>
+            <button type="button" role="option">Тестовый&nbsp;край</button>
+          </div>
           <label id="story-label">Подробное описание проекта*</label>
           <div aria-labelledby="story-label"
                class="about-details-module__richText___route"
@@ -37,12 +44,25 @@
     document.getElementById("about-name").value = state.title || "";
     document.getElementById("about-project").value = state.summary || "";
     document.getElementById("about-end-date").value = state.endDate || "";
+    let pendingRegion = state.region || "";
+    const regionTrigger = document.getElementById("about-region-trigger");
+    const regionOptions = document.getElementById("about-region-options");
+    regionTrigger.textContent = pendingRegion || "Не\u00a0выбрано";
+    regionTrigger.addEventListener("click", () => {
+      regionOptions.hidden = false;
+    });
+    regionOptions.querySelector('[role="option"]').addEventListener("click", (event) => {
+      pendingRegion = event.target.textContent.replace(/\s+/g, " ").trim();
+      regionTrigger.textContent = pendingRegion;
+      regionOptions.hidden = true;
+    });
     document.querySelector('[contenteditable="true"]').innerText = state.story || "";
     document.getElementById("about-form").addEventListener("submit", (event) => {
       event.preventDefault();
       state.title = document.getElementById("about-name").value;
       state.summary = document.getElementById("about-project").value;
       state.endDate = document.getElementById("about-end-date").value;
+      state.region = pendingRegion;
       state.story = normalizeText(
         document.querySelector('[contenteditable="true"]').innerText
       );

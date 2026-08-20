@@ -56,18 +56,21 @@ class SharedDraftBrowser:
             draft_snapshot={"rewards": self.rewards_snapshot},
         )
 
-    async def read_draft(self):
+    async def read_draft(self, expected_region=None):
         campaign = self.campaign_store.load_required()
+        snapshot = {
+            "title": campaign.title,
+            "target_amount": str(campaign.target_amount),
+            "end_date": campaign.end_date.strftime("%d.%m.%Y"),
+            "summary": campaign.summary,
+            "story": campaign.story,
+        }
+        if expected_region:
+            snapshot["region_match"] = True
         return BrowserResult(
             status="ok",
             reason="read",
-            draft_snapshot={
-                "title": campaign.title,
-                "target_amount": str(campaign.target_amount),
-                "end_date": campaign.end_date.strftime("%d.%m.%Y"),
-                "summary": campaign.summary,
-                "story": campaign.story,
-            },
+            draft_snapshot=snapshot,
         )
 
     async def read_rewards(self):

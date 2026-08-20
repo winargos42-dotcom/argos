@@ -34,6 +34,7 @@ class CampaignPayload(BaseModel):
     target_amount: int = Field(gt=0)
     currency: Literal["RUB"] = "RUB"
     end_date: date | None = None
+    region: str | None = None
     summary: str
     story: str
     direct_support_url: HttpUrl | None = None
