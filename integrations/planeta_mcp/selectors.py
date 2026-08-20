@@ -18,6 +18,7 @@ SUBMIT_MODERATION_BUTTON = '[data-testid="submit-moderation"], button[name="subm
 ABOUT_TITLE_INPUT = "#about-name"
 ABOUT_SUMMARY_INPUT = "#about-project"
 ABOUT_END_DATE_INPUT = 'input[placeholder="ДД.ММ.ГГГГ"]'
+ABOUT_REGION_SELECT = "select#about-region"
 ABOUT_STORY_EDITOR = (
     '[class*="about-details-module__richText___"][contenteditable="true"], '
     '[class*="about-details-module__richText___"] [contenteditable="true"]'

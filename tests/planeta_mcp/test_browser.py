@@ -260,6 +260,34 @@ class _FakeRegionCollection:
         return self._items()[index]
 
 
+class _FakeNativeRegionSelect:
+    def __init__(self, selected_text):
+        self.selected_text = selected_text
+
+    async def evaluate(self, script):
+        if "tagName" in script:
+            return "SELECT"
+        if "selectedOptions" in script:
+            return self.selected_text
+        return ""
+
+
+class _FakeLiveRegionScope:
+    def __init__(self, native_select):
+        self.native_select = native_select
+
+    def get_by_label(self, _name):
+        return _FakeRegionCollection([])
+
+    def get_by_role(self, _role, **_kwargs):
+        return _FakeRegionCollection([])
+
+    def locator(self, selector):
+        if selector == "select#about-region":
+            return _FakeRegionCollection([self.native_select])
+        return _FakeRegionCollection([])
+
+
 class _FakeRegionScope:
     def __init__(self, ui):
         self.ui = ui
@@ -379,6 +407,33 @@ async def test_custom_about_region_accepts_exact_planeta_location_label():
 
     assert selected == "Тестовый край"
     assert ui.option_clicks == 1
+
+
+@pytest.mark.asyncio
+async def test_about_region_reads_live_hidden_native_select():
+    native_select = _FakeNativeRegionSelect("Тестовый край")
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    control = await browser._about_region_control(
+        _FakeLiveRegionScope(native_select),
+        "Тестовый край",
+    )
+
+    assert control is native_select
+    assert await browser._region_control_value(control) == "Тестовый край"
+
+
+@pytest.mark.asyncio
+async def test_about_region_does_not_select_through_hidden_native_control():
+    native_select = _FakeNativeRegionSelect("Не выбрано")
+    browser = PlanetaBrowser(base_url="https://planeta.ru", headless=True)
+
+    control = await browser._about_region_control(
+        _FakeLiveRegionScope(native_select),
+        "Тестовый край",
+    )
+
+    assert control is None
 
 
 @pytest.mark.asyncio
