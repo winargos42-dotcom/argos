@@ -792,7 +792,7 @@ async def test_routed_multistep_fill_persists_only_safe_editor_steps():
     finally:
         await instance.close()
 
-    assert result.status == "ok"
+    assert result.status == "ok", result.reason
     assert fill_requests
     assert {
         path.rsplit("/", 1)[-1] for _, path in fill_requests + read_requests
