@@ -96,7 +96,10 @@ _REWARD_DESCRIPTION = re.compile(r"^\s*описание\s+вознагражде
 _REWARD_PHYSICAL = re.compile(r"^\s*(?:физическое\s+вознаграждение|требуется\s+доставка)\s*$", re.I)
 _SAVE_REWARD = re.compile(r"^\s*сохранить\s+вознаграждение\s*$", re.I)
 _SAFE_STEP_SAVE = re.compile(r"^\s*сохранить\s*$", re.I)
-_ABOUT_REGION_LABEL = re.compile(r"^\s*регион\s*\*?\s*$", re.I)
+_ABOUT_REGION_LABEL = re.compile(
+    r"^\s*регион(?:\s*,\s*область\s*,\s*край)?\s*\*?\s*$",
+    re.I,
+)
 _ABOUT_REGION_UNSELECTED = "Не выбрано"
 _REGION_OPTION_WAIT_MS = 3000
 _REGION_OPTION_POLL_MS = 100
