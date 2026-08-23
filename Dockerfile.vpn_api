@@ -1,0 +1,47 @@
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV CODEX_HOME=/codex-home
+ENV CODEX_INSTALL_DIR=/usr/local/bin
+ENV CODEX_NON_INTERACTIVE=1
+
+# Debian slim uses PyMuPDF manylinux wheels. Alpine/musl tries to build/link
+# MuPDF locally and needs a much larger native toolchain on GCP.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    iproute2 \
+    iptables \
+    wireguard-tools \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --upgrade --no-cache-dir pip setuptools wheel \
+    && pip install --no-cache-dir --default-timeout=120 \
+    fastapi \
+    "uvicorn[standard]" \
+    aiohttp \
+    psutil \
+    python-telegram-bot==20.7 \
+    PyMuPDF \
+    lz4
+
+# Install the official OpenAI Codex CLI for Railway-hosted agent workflows.
+RUN curl -fsSL https://chatgpt.com/codex/install.sh | sh \
+    && codex --version
+
+# Copy the application code
+COPY ./src/vpn_api.py /app/vpn_api.py
+COPY ./src/vpn_service /app/src/vpn_service
+COPY ./src/argos_miniapp_router.py /app/src/argos_miniapp_router.py
+COPY ./railway.json /app/railway.json
+
+ENV PYTHONPATH=/app
+ENV ARGOS_VPN_DRY_RUN=true
+
+# Expose the port
+EXPOSE 8004
+
+# Run the API normally. Codex authentication persists in /codex-home.
+CMD ["python", "-u", "-c", "import os; port = os.getenv('PORT', '8004'); import uvicorn; uvicorn.run('vpn_api:app', host='0.0.0.0', port=int(port), log_level='info')"]

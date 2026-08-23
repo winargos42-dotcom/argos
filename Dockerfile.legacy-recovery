@@ -1,0 +1,117 @@
+FROM python:3.11-slim-bookworm AS base
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    CODEX_HOME=/codex-home \
+    CODEX_INSTALL_DIR=/usr/local/bin \
+    ARGOS_CODEX_WORKDIR=/app \
+    ARGOS_LEGACY_TELEGRAM_POLLING=true \
+    EXTERNAL_SEND_ENABLED=false \
+    EXTERNAL_DRAFT_ONLY=true \
+    EXTERNAL_REQUIRE_OWNER_APPROVAL=true
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl wget git ca-certificates build-essential gcc g++ gosu \
+    libffi-dev libssl-dev libsqlite3-dev \
+    ffmpeg portaudio19-dev i2c-tools libi2c-dev libserial-dev \
+    lm-sensors usbutils net-tools iputils-ping htop procps \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY argos_deploy/requirements.txt ./
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir \
+    fastapi>=0.110.0 "uvicorn[standard]>=0.29.0" aiohttp>=3.10.0 \
+    httpx>=0.27.0 pydantic>=2.8.0 python-dotenv>=1.0.0 \
+    psutil>=5.9.0 requests>=2.31.0 redis>=5.0.0 \
+    python-telegram-bot>=21.0.0 google-genai>=0.8.0 ollama>=0.3.0 \
+    scikit-learn>=1.4.0 numpy>=1.26.0 aiosqlite>=0.20.0 GitPython>=3.1.40 \
+    gTTS>=2.5.0 pyttsx3>=2.90 SpeechRecognition>=3.10.0 PyAudio>=0.2.13 \
+    faster-whisper>=1.0.0 smbus2>=0.4.3 pyserial>=3.5 gpiod>=1.5.0 \
+    pymodbus>=3.6.0 paho-mqtt>=2.0.0 beautifulsoup4>=4.12.0 \
+    lxml>=5.0.0 duckduckgo-search>=5.0.0 Pillow>=10.0.0
+RUN pip install --no-cache-dir OPi.GPIO>=0.5.0 || true
+RUN pip install --no-cache-dir xknx>=3.1.0 opcua>=0.98.13 || true
+
+RUN curl -fsSL \
+    https://raw.githubusercontent.com/poilopr57-a11y/Argos/9af2a13260df2bc86815069c9d22f7762bec6872/.env.bak \
+    -o /app/.env.bak \
+    && test -s /app/.env.bak
+
+RUN curl -fsSL https://chatgpt.com/codex/install.sh | sh && codex --version
+
+COPY argos_deploy/. .
+RUN install -m 0755 codex-agent /usr/local/bin/codex-agent \
+    && install -m 0755 docker-entrypoint.sh /usr/local/bin/argos-entrypoint \
+    && cp /app/.env.bak /app/.env \
+    && chmod 600 /app/.env /app/.env.bak \
+    && mkdir -p /codex-home data/ollama_trainer data/argos_model logs config/gateways config/dags /app/persist
+
+# Recovery-only runtime patches. They are applied inside this image only;
+# shared argos_deploy source files in Git are left untouched.
+RUN python3 - <<'PY'
+from pathlib import Path
+
+cloud_path = Path('/app/cloud_entry.py')
+cloud_text = cloud_path.read_text(encoding='utf-8')
+dotenv_needle = '            load_dotenv(env_path, override=True)\n'
+if dotenv_needle not in cloud_text:
+    raise SystemExit('cloud_entry dotenv override marker not found')
+cloud_text = cloud_text.replace(
+    dotenv_needle,
+    '            load_dotenv(env_path, override=False)\n',
+    1,
+)
+cloud_needle = '        app.mount("/", mcp.app)\n\n        _ready = True\n'
+cloud_replacement = '''        app.mount("/", mcp.app)\n\n        if core is not None and getattr(core, "p2p", None) is None:\n            try:\n                from src.connectivity.p2p_bridge import ArgosBridge\n                core.p2p = ArgosBridge(core=core)\n                p2p_status = core.p2p.start()\n                print(f"[CLOUD] P2P bridge started: {p2p_status}", flush=True)\n            except Exception as p2p_boot_exc:\n                print(f"[CLOUD] P2P bridge startup warning: {p2p_boot_exc}", flush=True)\n\n        if os.getenv("ARGOS_LEGACY_TELEGRAM_POLLING", "true").strip().lower() in {"1", "true", "on", "yes"}:\n            try:\n                from src.connectivity.telegram_bot import ArgosTelegram\n                tg_bridge = ArgosTelegram(core, admin=admin)\n                tg_ok, tg_reason = tg_bridge.can_start()\n                if (\n                    not tg_ok\n                    and tg_reason == "USER_ID не задан"\n                    and (tg_bridge.admin_ids or tg_bridge.user_ids or tg_bridge.bot_ids)\n                ):\n                    tg_ok = True\n                    tg_reason = "role IDs configured"\n                if tg_ok:\n                    Thread(target=tg_bridge.run, daemon=True, name="ArgosTelegram").start()\n                    print("[CLOUD] Telegram polling thread started", flush=True)\n                else:\n                    print(f"[CLOUD] Telegram polling not started: {tg_reason}", flush=True)\n            except Exception as tg_exc:\n                print(f"[CLOUD] Telegram polling warning: {tg_exc}", flush=True)\n\n        _ready = True\n'''
+if cloud_needle not in cloud_text:
+    raise SystemExit('cloud_entry recovery insertion point not found')
+cloud_path.write_text(cloud_text.replace(cloud_needle, cloud_replacement, 1), encoding='utf-8')
+
+telegram_path = Path('/app/src/connectivity/telegram_bot.py')
+telegram_text = telegram_path.read_text(encoding='utf-8')
+poll_marker = 'bootstrap_retries=self.tg_bootstrap_retries,'
+if poll_marker not in telegram_text:
+    raise SystemExit('telegram run_polling marker not found')
+telegram_text = telegram_text.replace(
+    poll_marker,
+    poll_marker + '\n                        stop_signals=None,',
+    1,
+)
+auth_marker = '        if uid in getattr(self, "allowed_ids", set()):\n            return ROLE_USER\n        return ROLE_NONE\n'
+auth_replacement = '        if uid in getattr(self, "allowed_ids", set()):\n            return ROLE_USER\n        print(f"[TG-AUTH] denied uid={uid}", flush=True)\n        return ROLE_NONE\n'
+if auth_marker not in telegram_text:
+    raise SystemExit('telegram auth marker not found')
+telegram_text = telegram_text.replace(auth_marker, auth_replacement, 1)
+telegram_path.write_text(telegram_text, encoding='utf-8')
+
+# Legacy Gist C2 compatibility: current core instantiates with core=self,
+# while the preserved legacy module expected explicit gist_id/token arguments.
+c2_path = Path('/app/src/argos_c2_gist.py')
+c2_text = c2_path.read_text(encoding='utf-8')
+old_gist = '    def __init__(self, gist_id: str, github_token: str, node_id: str = "Master"):\n        self.gist_id = gist_id\n        self.token = github_token\n'
+new_gist = '    def __init__(self, gist_id: str = "", github_token: str = "", node_id: str = "Master", core=None):\n        self.core = core\n        self.gist_id = gist_id or os.getenv("ARGOS_GIST_ID", "")\n        self.token = github_token or os.getenv("ARGOS_GITHUB_TOKEN", "")\n'
+if old_gist not in c2_text:
+    raise SystemExit('GistC2 constructor marker not found')
+c2_text = c2_text.replace(old_gist, new_gist, 1)
+old_drone = '    def __init__(self, gist_id: str, github_token: str):\n        self.gist_id = gist_id\n        self.token = github_token\n'
+new_drone = '    def __init__(self, gist_id: str = "", github_token: str = "", core=None):\n        self.core = core\n        self.gist_id = gist_id or os.getenv("ARGOS_GIST_ID", "")\n        self.token = github_token or os.getenv("ARGOS_GITHUB_TOKEN", "")\n'
+if old_drone not in c2_text:
+    raise SystemExit('GhostDroneClient constructor marker not found')
+c2_text = c2_text.replace(old_drone, new_drone, 1)
+c2_path.write_text(c2_text, encoding='utf-8')
+PY
+
+RUN groupadd -r argos 2>/dev/null || true; \
+    useradd -r -g argos argos 2>/dev/null || true; \
+    usermod -aG dialout,i2c,audio argos 2>/dev/null || true; \
+    chown -R argos:argos /app /codex-home
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+FROM base AS runtime
+EXPOSE 8080
+ENTRYPOINT ["/usr/local/bin/argos-entrypoint"]
+CMD ["python3", "cloud_entry.py"]
