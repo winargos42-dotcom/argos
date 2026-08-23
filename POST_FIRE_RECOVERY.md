@@ -160,6 +160,63 @@ for u in https://reboot-static-production.up.railway.app \
 done
 ```
 
+## Оркестратор: полный запуск по README
+
+README описывает главную точку входа как `python main.py --no-gui` с режимами
+`--mobile`, `--dashboard`, `--wake`, `--full`, `--shell`, `--root`, скрипт
+`launch.sh` и `health_check.py`. Ничего этого в репозитории не было: `main.py`
+здесь **всегда** был Railway-сервисом (с первого коммита 09.05.2026), а
+оркестратор `ArgosOrchestrator` (1 206 строк) жил только в форке.
+
+Восстановлено под именем **`argos_main.py`**, а не `main.py` — иначе сломался бы
+рабочий деплой: `Procfile` и `railway.json` запускают `uvicorn main:app`.
+`launch.sh` восстановлен с правкой вызова на `argos_main.py`.
+
+Вместе с ним вернулись `health_check.py`, `genesis.py`, `main_kivy.py`,
+`amd_gpu_patch.py`, `src/mcp_api.py` (169 КБ), интерфейсы
+`src/interface/{argos_shell,gui,kivy_local_ui,mobile_ui,web_engine}.py`,
+`src/launch_config.py` и `src/security/{encryption,git_guard,root_manager}.py`.
+
+Проверка запуска:
+
+```
+$ python argos_main.py --status
+ARGOS работает: PID 955, MCP http://127.0.0.1:8000/mcp (ok)
+Web UI: http://127.0.0.1:8080/
+
+$ curl http://127.0.0.1:8000/health
+{"ok":true,"uptime_seconds":50,"ai_mode":"Auto","cpu_pct":0.0,"ram_pct":5.6}
+```
+
+`health_check.py` даёт 35/44: синтаксис всех 142 модулей в порядке, ключевые
+импорты проходят; ошибки — отсутствующие pip-пакеты (`scikit-learn`, `numpy`,
+`cryptography`) и `pyproject.toml` с `build.py` в корне (`build.py` лежит в
+`scripts/`). `SkillLoader` поднимает **24 навыка**.
+
+Замечания по запущенному экземпляру:
+
+- Telegram-бот не стартует без `TELEGRAM_BOT_TOKEN` в окружении — и это правильно,
+  пока токены из репозитория не отозваны.
+- Работающий ARGOS пишет в файлы, которые лежат под git: `AGENTS.md`
+  (строка `## Pi Shutdown — …`, причём с испорченной кодировкой на Linux),
+  `data/sysmon_metrics.json`, `config/p2p_health_history.json`. Из-за этого
+  рабочее дерево грязнится при каждом запуске; рантайм-состояние стоит вынести
+  из-под контроля версий.
+- В `data/sysmon_metrics.json` в git лежит **последний замер со сгоревшего
+  ноутбука**: CPU 99.5 %, температуры 87–90 °C, ThinkPad. Запуск ARGOS
+  перезаписывает эту запись — при работе с репозиторием её стоит беречь.
+
+## Инфраструктура сборки — только в форке
+
+В `winargos42-dotcom/argos-1` лежат 19 workflow, которых нет в основном
+репозитории: `build_windows.yml` (сборка .exe через PyInstaller, вместе с
+`argos.spec`), `build_apk.yml` и `android-apk.yml`, `docker.yml`,
+`release.yml`, `publish_pypi.yml`, `secret-scan.yml`, `status_report.yml` и другие.
+Основной репозиторий сейчас имеет только три: Planeta MCP CI, Railway deploy и
+ROM build. Артефакты прошлых сборок в форке из этой сессии недоступны — репозиторий
+не подключён к сессии для GitHub API; и артефакты Actions в любом случае хранятся
+ограниченное время.
+
 ## Требует действий: секреты в публичном репозитории
 
 Эти файлы лежат в открытом репозитории и переживают любое восстановление —
