@@ -256,6 +256,36 @@ gh api repos/winargos42-dotcom/Argos-1/actions/artifacts/8783751615/zip > argos-
 Либо со страницы прогона:
 https://github.com/winargos42-dotcom/Argos-1/actions/runs/30606382271
 
+## Проверка тестами: восстановление ничего не сломало
+
+PR добавляет 139 файлов, но CI репозитория на них не срабатывает — `planeta-mcp-ci.yml`
+триггерится только по путям `integrations/planeta_mcp/**`, `tests/planeta_mcp/**`,
+`scripts/smoke_planeta_mcp.py`. Поэтому набор прогнан вручную:
+
+```
+python -m pytest tests/planeta_mcp -q
+116 passed, 1 failed
+```
+
+Единственное падение — `test_browser_attaches_to_existing_cdp_context`: playwright из
+`integrations/planeta_mcp/requirements.txt` ожидает Chromium build 1234, а в тестовом
+контейнере предустановлен 1194. Это несовпадение окружения, не кода: на CI, где
+`playwright install` ставит нужную сборку, прогоны на `main` зелёные.
+
+Тесты жёстко прописывают `executable_path="/usr/bin/chromium"`
+(`tests/planeta_mcp/test_browser.py:21`), поэтому вне GitHub-раннера нужен симлинк на
+реальный бинарь Chromium — иначе падают все 24 браузерных теста.
+
+## Девять модулей: подтверждено, что их нет нигде публично
+
+Поиск по коду GitHub (`filename:topology_id.py`, `filename:circuit_breaker.py`,
+`filename:conflict_aggregator.py path:src/integrations` и остальные) не находит ни одного
+из девяти ни в одном публичном репозитории — все совпадения принадлежат посторонним
+проектам. `winargos42-dotcom/argos-chinatech-russia` проверен: это отдельный FastAPI-сервис
+(`app/`, alembic, migrations), кода ARGOS в нём нет.
+
+Остаётся непроверенным приватный `Argoswin/Ar` — если модули уцелели, то там.
+
 ## Требует действий: секреты в публичном репозитории
 
 Эти файлы лежат в открытом репозитории и переживают любое восстановление —
