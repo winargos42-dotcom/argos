@@ -82,9 +82,35 @@ stop_services() {
     echo "Готово."
 }
 
+start_orchestrator() {
+    # Полный ARGOS: argos_main.py поднимает MCP (:8000), Web UI (:8080), агентов,
+    # Dreamer, P2P и остальное. Telegram-бот стартует, только если задан
+    # TELEGRAM_BOT_TOKEN — пока старые токены из репозитория не отозваны, не задавайте.
+    if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
+        log "ВНИМАНИЕ: TELEGRAM_BOT_TOKEN задан — бот будет поднят."
+    fi
+    mkdir -p "$LOGS"
+    setsid nohup "$PY" argos_main.py --no-gui > "$LOGS/argos_main.log" 2>&1 < /dev/null &
+    log "оркестратор запускается, лог: $LOGS/argos_main.log"
+    if t=$(wait_health "http://127.0.0.1:$MCP_PORT/health" 60); then
+        log "MCP поднялся за ${t} с"
+    else
+        log "MCP не ответил за 60 с — смотри $LOGS/argos_main.log"
+    fi
+    "$PY" argos_main.py --status || true
+}
+
 case "${1:-}" in
     --check) check_services; exit $? ;;
     --stop)  stop_services;  exit 0 ;;
+    --full)
+        if [ ! -x "$PY" ]; then
+            echo "Сначала выполните: bash scripts/argos_recovery.sh"
+            exit 1
+        fi
+        start_orchestrator
+        exit 0
+        ;;
 esac
 
 echo "============================================================"
@@ -108,6 +134,10 @@ echo "[2/5] Зависимости"
 "$PIP" install --quiet --disable-pip-version-check -r requirements-brain.txt
 # Нужны восстановленным модулям ядра: web_scrapper, quantum, event_bus, context_manager.
 "$PIP" install --quiet --disable-pip-version-check beautifulsoup4 psutil redis packaging python-dotenv
+# aiohttp — без него src/mcp_api.py не импортируется и оркестратор не поднимает
+# MCP-эндпоинт (молча: _start_mcp_with_guard глотает исключение).
+# numpy и cryptography нужны health_check.py, иначе он валит две проверки.
+"$PIP" install --quiet --disable-pip-version-check aiohttp numpy cryptography
 log "установлены"
 
 echo
