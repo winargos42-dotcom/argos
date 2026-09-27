@@ -1,0 +1,29 @@
+{
+  "files": {
+    "coral_collector.py": {
+      "old_sha256": null,
+      "new_sha256": "4882633b0658f6276c65a64e5534e6b16336bcb9e3ad7e7d98c55d0dd07e7428"
+    },
+    "entities.py": {
+      "old_sha256": "0dfae6aa6791e23368f8a901845ab5183a3035fff119e6e5a6fe929b5965325d",
+      "new_sha256": "1bd00fcd5c4b46620a208360a9769a1113a60c349ee052035aa0e0054e48b169"
+    },
+    "collectors.py": {
+      "old_sha256": "20e3784ff275ae103829e854a6af0c41420cd1c54702ed4415bc0ebf3ac2a76b",
+      "new_sha256": "0c55ea3cc6c7ffdde0a042c0ba160add24374d32e6183e2a72feb2b7cab4a006"
+    },
+    "main.py": {
+      "old_sha256": "12daa994a482688c9909abda06f437ceee8ea90de7501ae6314b98744407a06a",
+      "new_sha256": "8e911a7ec6cbaf4acb69e8b8765f99458e2a6f7020e0bef50708bb0193a2dcc3"
+    }
+  },
+  "collector_service": "argos-ha-nodes.service",
+  "changed_files": [
+    "coral_collector.py",
+    "entities.py",
+    "collectors.py",
+    "main.py"
+  ],
+  "restart_returncode": 0,
+  "active": true
+}

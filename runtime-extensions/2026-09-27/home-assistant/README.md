@@ -37,6 +37,10 @@ Live ARGOS and HA APIs agreed on 91 entity IDs and state counts. At the recorded
 
 Unavailable telemetry is not a claim that all devices were repaired. At inventory time, 26 Tuya entities were unavailable; their physical cause was not established. Four old MQTT Coral status entities had a separate collector configuration problem. That collector is an independent follow-up and does not alter this snapshot evidence. Other unknown states include scene and backup metadata, which do not by themselves prove a disconnected device.
 
+Follow-up read-only [Tuya diagnostics](tuya-diagnosis-aggregate.json) confirmed that the integration is loaded and cloud MQTT connected. The cloud reports 12 of 14 devices offline; all 26 unavailable entities belong to those offline devices. The other two devices account for 14 available entities. This does not indicate HA authentication/setup failure; the physical cause of the device outages is still unknown. Check those devices and their hub in the Tuya app, power and network before considering any reconfiguration. No pairing, reset, reauthentication or device action was performed.
+
+The separate [node collector repair](../ha-node-collector/README.md) subsequently restored the four Coral diagnostics using the verified signed accelerator API. Its live API→MQTT→HA check measured **49 available, 26 unavailable and 16 unknown out of 91 entities**. The original dashboard proof above remains the unmodified earlier observation.
+
 ## Rollback
 
 1. Check current source hashes against `manifest.json`; restore the saved source copies (or reverse this patch only when its hunks still match), remove only the newly introduced snapshot module, then restart ARGOS at an idle queue.

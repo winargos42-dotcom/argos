@@ -1,0 +1,81 @@
+{
+  "format": "argos-ha-coral-collector-repair-v1",
+  "files": {
+    "requirements-test.txt": {
+      "sha256": "8427390653dfba44cd2815d283a9e2fbb39590b380d358550e8caa3f66852e38",
+      "bytes": 21
+    },
+    "pytest.ini": {
+      "sha256": "c809c969ec7e11b9ff37784e9c6fcc0b7c5148d168e18b05aed797e03fbd6ead",
+      "bytes": 27
+    },
+    "README.md": {
+      "sha256": "4e02eaa59e427ad2cd852ca79506a637e19178f325d70bdff8c69e061b271d17",
+      "bytes": 5958
+    },
+    "patch.diff": {
+      "sha256": "6ad1147652c997aed32d20cb45deff54c641be9d0b8b389d2218e4c77f827ae9",
+      "bytes": 8842
+    },
+    "tests/test_coral_config.py": {
+      "sha256": "a0ac59b1ebf5bbe5d048838f15b01ced02e3cd548265dc9ad31977e9acaf95fc",
+      "bytes": 1576
+    },
+    "tests/test_signed_pipeline.py": {
+      "sha256": "469ffbe8a6069a02bd6128bffe44800c50c98e8a868e23a7d5fdf2ce3a0066bf",
+      "bytes": 4099
+    },
+    "tests/test_coral_collector.py": {
+      "sha256": "8c3de2e253913fa4d169f2c2eb1c2ec2547ed964207365fbc3adb9c277d08b02",
+      "bytes": 5638
+    },
+    "reference/network_coral.py": {
+      "sha256": "aa457518021eea783d1baae5a5ea21449aa26359d6eefae1a224abc4d06e8431",
+      "bytes": 10857
+    },
+    "reference/runtime_registry.py": {
+      "sha256": "8366aadaa473c24a231b9c0babe03b7a8938a02c12a01254d745c2c4478925b9",
+      "bytes": 8028
+    },
+    "candidate/coral_collector.py": {
+      "sha256": "4882633b0658f6276c65a64e5534e6b16336bcb9e3ad7e7d98c55d0dd07e7428",
+      "bytes": 4757
+    },
+    "candidate/publisher.py": {
+      "sha256": "d8d90ca3e643e155bef0aebef09af90fd5eb18b0d7c54029ad28fe2ede7565de",
+      "bytes": 2423
+    },
+    "candidate/entities.py": {
+      "sha256": "1bd00fcd5c4b46620a208360a9769a1113a60c349ee052035aa0e0054e48b169",
+      "bytes": 5295
+    },
+    "candidate/collectors.py": {
+      "sha256": "0c55ea3cc6c7ffdde0a042c0ba160add24374d32e6183e2a72feb2b7cab4a006",
+      "bytes": 6466
+    },
+    "candidate/main.py": {
+      "sha256": "8e911a7ec6cbaf4acb69e8b8765f99458e2a6f7020e0bef50708bb0193a2dcc3",
+      "bytes": 5630
+    },
+    "evidence/live-chain-proof.json": {
+      "sha256": "36d080540451f62e476222a0d5e3273b111ef1ee24bfb48e053871e4f3e9c39a",
+      "bytes": 4531
+    },
+    "evidence/deployment-receipt.json": {
+      "sha256": "c6e00e4c69a8ec0f675c57c3c95abc04530316520cf22cbf80d181ef7ae9bafc",
+      "bytes": 975
+    },
+    "evidence/candidate-get-proof.json": {
+      "sha256": "cc26dffba3bee8ace52e23d7ba8c617cfe477395a4f829038fc5218320231748",
+      "bytes": 328
+    },
+    "evidence/baseline-observation.json": {
+      "sha256": "827f441b5c1390f944b794f360017e380485d929391f99c8affe5d8987425a21",
+      "bytes": 979
+    },
+    "evidence/red-tests.txt": {
+      "sha256": "45428066f4fd41e0e16713999c85c30861d83dcbcb3a066a1994123f605c6852",
+      "bytes": 13411
+    }
+  }
+}

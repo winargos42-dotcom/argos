@@ -1,0 +1,13 @@
+{
+  "candidate_observation": {
+    "connected": true,
+    "service_ready": true,
+    "role": "accelerator",
+    "uptime_seconds": 87278,
+    "authenticated": true,
+    "status_source": "coral_accelerator_api",
+    "readiness_scope": "signed_status",
+    "inference_verified": false
+  },
+  "elapsed_seconds": 0.090311367996037
+}

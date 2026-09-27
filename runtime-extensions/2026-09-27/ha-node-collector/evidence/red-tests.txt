@@ -1,0 +1,206 @@
+FFFFFFFFFFFFFFFFFFFFFF                                                   [100%]
+=================================== FAILURES ===================================
+____________ test_main_uses_accelerator_collector_and_never_old_p2p ____________
+tests/test_coral_collector.py:36: in test_main_uses_accelerator_collector_and_never_old_p2p
+    assert main.observe(main.NODES[1])['role']=='accelerator'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+candidate/main.py:40: in observe
+    return collect_p2p('192.168.1.94', 55771, '/etc/argos/p2p-network.key', AUTH_MODULE, node['id'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1176: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1180: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/unittest/mock.py:1241: in _execute_mock_call
+    raise effect
+E   AssertionError: legacy P2P was contacted
+___________ test_verified_endpoint_signed_status_and_truthful_scope ____________
+tests/test_coral_collector.py:40: in test_verified_endpoint_signed_status_and_truthful_scope
+    result=collect(dep)
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+__________ test_ip_change_uses_new_verified_endpoint_each_observation __________
+tests/test_coral_collector.py:49: in test_ip_change_uses_new_verified_endpoint_each_observation
+    collect(dep)
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_ test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-not_configured0] _
+tests/test_coral_collector.py:63: in test_unverified_or_stale_registry_fails_closed_before_connection
+    change(dep.snap);r=collect(dep)
+                       ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_ test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale0] _
+tests/test_coral_collector.py:63: in test_unverified_or_stale_registry_fails_closed_before_connection
+    change(dep.snap);r=collect(dep)
+                       ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_ test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale1] _
+tests/test_coral_collector.py:63: in test_unverified_or_stale_registry_fails_closed_before_connection
+    change(dep.snap);r=collect(dep)
+                       ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_ test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale2] _
+tests/test_coral_collector.py:63: in test_unverified_or_stale_registry_fails_closed_before_connection
+    change(dep.snap);r=collect(dep)
+                       ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_ test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale3] _
+tests/test_coral_collector.py:63: in test_unverified_or_stale_registry_fails_closed_before_connection
+    change(dep.snap);r=collect(dep)
+                       ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_ test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale4] _
+tests/test_coral_collector.py:63: in test_unverified_or_stale_registry_fails_closed_before_connection
+    change(dep.snap);r=collect(dep)
+                       ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_ test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-not_configured1] _
+tests/test_coral_collector.py:63: in test_unverified_or_stale_registry_fails_closed_before_connection
+    change(dep.snap);r=collect(dep)
+                       ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+__________ test_registry_invalidated_during_request_discards_success ___________
+tests/test_coral_collector.py:72: in test_registry_invalidated_during_request_discards_success
+    assert collect(dep)['error']=='stale'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+________ test_registry_address_changed_during_request_discards_success _________
+tests/test_coral_collector.py:79: in test_registry_address_changed_during_request_discards_success
+    assert collect(dep)['error']=='stale'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_________________ test_invalid_status_cannot_mark_ready[None] __________________
+tests/test_coral_collector.py:85: in test_invalid_status_cannot_mark_ready
+    assert collect(dep)['error']=='invalid_response'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_______________ test_invalid_status_cannot_mark_ready[payload1] ________________
+tests/test_coral_collector.py:85: in test_invalid_status_cannot_mark_ready
+    assert collect(dep)['error']=='invalid_response'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_______________ test_invalid_status_cannot_mark_ready[payload2] ________________
+tests/test_coral_collector.py:85: in test_invalid_status_cannot_mark_ready
+    assert collect(dep)['error']=='invalid_response'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_______________ test_invalid_status_cannot_mark_ready[payload3] ________________
+tests/test_coral_collector.py:85: in test_invalid_status_cannot_mark_ready
+    assert collect(dep)['error']=='invalid_response'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_______________ test_invalid_status_cannot_mark_ready[payload4] ________________
+tests/test_coral_collector.py:85: in test_invalid_status_cannot_mark_ready
+    assert collect(dep)['error']=='invalid_response'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_______________ test_invalid_status_cannot_mark_ready[payload5] ________________
+tests/test_coral_collector.py:85: in test_invalid_status_cannot_mark_ready
+    assert collect(dep)['error']=='invalid_response'
+           ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+________ test_error_classification_is_sanitized_and_does_not_guess_auth ________
+tests/test_coral_collector.py:89: in test_error_classification_is_sanitized_and_does_not_guess_auth
+    r=collect(dep)
+      ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_________________ test_credentials_missing_are_not_configured __________________
+tests/test_coral_collector.py:96: in test_credentials_missing_are_not_configured
+    assert c.collect_coral(NODE,dependencies=missing)['error']=='not_configured'
+           ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+________ test_mqtt_exposes_new_source_scope_without_claiming_inference _________
+tests/test_coral_collector.py:99: in test_mqtt_exposes_new_source_scope_without_claiming_inference
+    raw=collect(dep);state=entities.normalize_state(raw)
+        ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+_______________ test_stale_probe_offlines_previous_mqtt_success ________________
+tests/test_coral_collector.py:111: in test_stale_probe_offlines_previous_mqtt_success
+    epoch=bridge.connect();assert bridge.update(node,collect(dep),epoch,100.)
+                                                     ^^^^^^^^^^^^
+tests/test_coral_collector.py:30: in collect
+    def collect(dep): return c.collect_coral(NODE,dependencies=dep.load)
+                             ^^^^^^^^^^^^^^^
+E   AttributeError: module 'collectors' has no attribute 'collect_coral'
+=========================== short test summary info ============================
+FAILED tests/test_coral_collector.py::test_main_uses_accelerator_collector_and_never_old_p2p
+FAILED tests/test_coral_collector.py::test_verified_endpoint_signed_status_and_truthful_scope
+FAILED tests/test_coral_collector.py::test_ip_change_uses_new_verified_endpoint_each_observation
+FAILED tests/test_coral_collector.py::test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-not_configured0]
+FAILED tests/test_coral_collector.py::test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale0]
+FAILED tests/test_coral_collector.py::test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale1]
+FAILED tests/test_coral_collector.py::test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale2]
+FAILED tests/test_coral_collector.py::test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale3]
+FAILED tests/test_coral_collector.py::test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-stale4]
+FAILED tests/test_coral_collector.py::test_unverified_or_stale_registry_fails_closed_before_connection[<lambda>-not_configured1]
+FAILED tests/test_coral_collector.py::test_registry_invalidated_during_request_discards_success
+FAILED tests/test_coral_collector.py::test_registry_address_changed_during_request_discards_success
+FAILED tests/test_coral_collector.py::test_invalid_status_cannot_mark_ready[None]
+FAILED tests/test_coral_collector.py::test_invalid_status_cannot_mark_ready[payload1]
+FAILED tests/test_coral_collector.py::test_invalid_status_cannot_mark_ready[payload2]
+FAILED tests/test_coral_collector.py::test_invalid_status_cannot_mark_ready[payload3]
+FAILED tests/test_coral_collector.py::test_invalid_status_cannot_mark_ready[payload4]
+FAILED tests/test_coral_collector.py::test_invalid_status_cannot_mark_ready[payload5]
+FAILED tests/test_coral_collector.py::test_error_classification_is_sanitized_and_does_not_guess_auth
+FAILED tests/test_coral_collector.py::test_credentials_missing_are_not_configured
+FAILED tests/test_coral_collector.py::test_mqtt_exposes_new_source_scope_without_claiming_inference
+FAILED tests/test_coral_collector.py::test_stale_probe_offlines_previous_mqtt_success
+22 failed in 0.40s

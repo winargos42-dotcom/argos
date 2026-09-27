@@ -1,0 +1,54 @@
+{
+  "runtime_registry_present": true,
+  "machine_fresh": true,
+  "api_fresh": true,
+  "state_age_seconds": 5.1,
+  "old_observations": {
+    "gateway": {
+      "connected": true,
+      "service_ready": true,
+      "role": "gateway",
+      "uptime_seconds": 221
+    },
+    "coral": {
+      "connected": false,
+      "service_ready": false,
+      "role": "worker",
+      "error": "not_configured"
+    }
+  },
+  "signed_get_status": {
+    "ok": true,
+    "uptime_s": 86819,
+    "models": {
+      "objects": {
+        "tpu": true,
+        "calls": 712,
+        "input": [
+          300,
+          300
+        ],
+        "avg_ms": 30.83
+      },
+      "faces": {
+        "tpu": true,
+        "calls": 0,
+        "input": [
+          320,
+          320
+        ],
+        "avg_ms": null
+      },
+      "classify": {
+        "tpu": true,
+        "calls": 0,
+        "input": [
+          224,
+          224
+        ],
+        "avg_ms": null,
+        "kind": "classify"
+      }
+    }
+  }
+}

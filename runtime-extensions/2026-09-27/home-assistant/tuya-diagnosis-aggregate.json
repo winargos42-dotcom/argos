@@ -1,0 +1,32 @@
+{
+  "source": "Home Assistant authenticated config entries and read-only Tuya diagnostics",
+  "entries": [
+    {
+      "integration_state": "loaded",
+      "disabled": false,
+      "diagnostics_http_status": 200,
+      "cloud_mqtt_connected": true,
+      "devices": 14,
+      "cloud_device_status": {
+        "offline": 12,
+        "online": 2
+      },
+      "entity_states_in_diagnostics": {
+        "unavailable": 26,
+        "available": 14
+      },
+      "device_entity_correlation": [
+        {
+          "device_status": "offline",
+          "entity_state": "unavailable",
+          "entities": 26
+        },
+        {
+          "device_status": "online",
+          "entity_state": "available",
+          "entities": 14
+        }
+      ]
+    }
+  ]
+}
