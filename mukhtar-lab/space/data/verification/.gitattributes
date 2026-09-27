@@ -1,0 +1,2 @@
+# Preserve source artifact bytes: manifest SHA256 includes original CRLF.
+*.json -text whitespace=cr-at-eol

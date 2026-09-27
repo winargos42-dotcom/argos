@@ -134,4 +134,3 @@ def cpg_metrics(rast):
                 best_lag = lag
         out[f"lag_{a}_{b}"] = best_lag
     return out
-
