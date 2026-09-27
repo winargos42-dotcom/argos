@@ -1,0 +1,55 @@
+--- a/src/execution_outcome.py
++++ b/src/execution_outcome.py
+@@ -1,13 +1,11 @@
+ """Классификация результата выполнения задачи для честного статуса панели."""
+-
+-_SUCCESS_PREFIXES = ("✅", "🗑️", "📝", "💾", "⏰", "📌", "🖼", "🔒", "ℹ️",
+-                      "📦", "🪙", "🏠", "📡", "🌍", "🔑", "📷", "🌱", "🎙", "🔊",
+-                      "запомнил", "заметка сохранена")
+ 
+ _FAILED_PREFIXES = (
+     "❌", "⛔", "ошибка", "error", "blocked", "[tool ",
+     "не найден", "факт не найден", "заметок с названием", "невозможно",
+     "не удалось", "stats unavailable", "запрос не обработан:",
++    "🏠 home assistant сейчас недоступен", "📷 камера не дала кадр",
++    "📷 не удалось", "📡 рой: шина недоступна",
+ )
+ 
+ 
+@@ -20,10 +18,8 @@
+     normalized = answer.strip().casefold()
+     if not normalized:
+         return answer, "failed"
+-    if normalized.startswith(_SUCCESS_PREFIXES):
+-        return answer, "succeeded"
++    if status in ("succeeded", "failed", "unverified"):
++        return answer, status
+     if normalized.startswith(_FAILED_PREFIXES):
+         return answer, "failed"
+-    if status in ("succeeded", "failed", "unverified"):
+-        return answer, status
+     return answer, "unverified"
+--- a/src/network_runtime.py
++++ b/src/network_runtime.py
+@@ -493,18 +493,14 @@
+                         # Пустой/нераспознанный ввод — показываем подсказку навыка,
+                         # а не «Команда навыка не выполнена».
+                         return {'answer': clean(handler.hint or 'Навык не вернул ответа. Скажи «помощь».', 16384),
+-                                'execution_status': 'completed'}
++                                'execution_status': 'unverified'}
+                     raise NetworkConflict('Навык не вернул текстовый результат')
+-                answer, status = classify_execution(answer)
++                answer, status = classify_execution(result)
+                 if status == 'failed':
+                     if isinstance(handler, _SelectedSkill):
+                         return {'answer': clean(answer, 16384), 'execution_status': 'failed'} if answer.strip() else handler.failed()
+                     raise NetworkConflict('Навык не подтвердил обработку запроса')
+-                # Скилы, чей ответ начинается с маркера успеха (✅ 🖼 📝 💾 и т.п.),
+-                # САМИ подтвердили результат — отдаём succeeded. Остальные честно unverified.
+-                if status == 'succeeded':
+-                    return {'answer': clean(answer, 16384), 'execution_status': 'succeeded'}
+-                return {'answer': clean(answer, 16384), 'execution_status': 'unverified'}
++                return {'answer': clean(answer, 16384), 'execution_status': status}
+             return self._function(data, terminal_revision=handler if data['action'] == 'terminal.exec' else None)
+         except Exception:
+             # Handler exceptions can contain request URLs, tokens, and prompts.

@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-27",
+  "space_revision": "8629eda6f089a5172b5799a9597b8cedf1290e6f",
+  "git_source_revision": "c35799233fa2059c5c529bfbae855cb11d2ee1fb",
+  "uploaded_files": 172,
+  "verified_files": 172,
+  "runtime": "RUNNING",
+  "python": "3.12",
+  "browser": "Chromium",
+  "ui_checks": [
+    "MuJoCo calculation and ZIP",
+    "PRC calculation and JSON",
+    "ARC search",
+    "ARC LS20 known-route replay: native WIN, 309 actions, 7 levels",
+    "Non-LS20 games exclude LS20 route",
+    "Vision recorded result and raw download",
+    "B09 recorded result",
+    "Mobile viewport without horizontal overflow"
+  ],
+  "javascript_errors": [],
+  "external_nonblocking_resource_errors": [
+    "HF organization-avatar endpoint returned 404"
+  ],
+  "scope": "UI live MuJoCo smoke duration 2 s; not a 20 s benchmark or autonomous ARC result",
+  "download_sha256": {
+    "public-vision_depth_looming.json": "1e40b8cedfbfe95a4cbf567231f808506cccad1d7508a0630c09c02aebf53b6d",
+    "public-arc-run.zip": "b59d4de72b8dffa2a20090d0839a01bcf1bc1ecd222c094026be292a0b2cea5c",
+    "public-run.zip": "fe1f157b5f39b7341ec5836452aec38387dd1e1c352e26757b956e292abb5b5b",
+    "public-prc.json": "14711e5f3493c76c8d53e87ea4635f3cfea8346f67bc95ef1b5a41a77dc9b774"
+  }
+}
