@@ -1,0 +1,133 @@
+<mujoco model="argos_roach">
+  <!-- ================= ARGOS-Roach model parameters (UNITS: m, kg, rad, s) =================
+  body      : box 0.16 x 0.12 x 0.035 m, mass 0.7 kg
+  coxa      : box length 0.05 m, mass 0.035 kg, yaw joint range (-0.8, 0.8) rad
+  femur     : capsule length 0.08 m, r 0.012 m, mass 0.055 kg, range (-1.3, 1.3) rad
+  tibia     : capsule length 0.08 m, r 0.01 m, mass 0.045 kg, range (-2.6, 2.6) rad
+  foot      : sphere r 0.016 m, mass 0.005 kg
+  total mass: 1.54 kg ; leg span ~0.28 m tip-to-tip
+  actuators : 18 position servos, kp 60.0 N*m/rad, gear 1, |force| <= 2.5 N*m
+  standing q0 (rad): coxa 0, femur s*0.8, tibia -s*1.45  (s=+1 right, -1 left)
+  timestep 0.002 s, Euler integrator, pyramidal friction cone.
+  Body moves ONLY via foot-floor contact (free joint, no external forces).
+============================================================================================ -->
+  <compiler angle="radian"/>
+
+  <option jacobian="dense"/>
+
+  <worldbody>
+    <geom name="floor" size="10 10 0.1" type="plane" friction="0.8" rgba="0.7 0.7 0.7 1"/>
+    <body name="body" pos="0 0 0.15">
+      <joint type="free"/>
+      <geom name="body_geom" size="0.08 0.06 0.0175" type="box" rgba="0.25 0.35 0.55 1" mass="0.7"/>
+      <body name="coxa0" pos="0.07 0.065 -0.02">
+        <joint name="j_coxa0" range="-0.8 0.8" damping="0.5" frictionloss="0.02"/>
+        <geom name="coxa0" size="0.011 0.025 0.011" pos="0 0.025 0" type="box" rgba="0.55 0.42 0.3 1" mass="0.035"/>
+        <body name="femur0" pos="0 0.05 0">
+          <joint name="j_femur0" range="-1.3 1.3" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+          <geom name="femur0" size="0.012 0.04" pos="0 0 -0.04" type="capsule" rgba="0.45 0.38 0.3 1" mass="0.055"/>
+          <body name="tibia0" pos="0 0 -0.08">
+            <joint name="j_tibia0" range="-2.6 2.6" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+            <geom name="tibia0" size="0.01 0.04" pos="0 0 -0.04" type="capsule" rgba="0.38 0.33 0.27 1" mass="0.045"/>
+            <geom name="foot0" size="0.016" pos="0 0 -0.0752" priority="1" rgba="0.2 0.2 0.2 1" mass="0.005"/>
+          </body>
+        </body>
+      </body>
+      <body name="coxa1" pos="0.07 -0.065 -0.02">
+        <joint name="j_coxa1" range="-0.8 0.8" damping="0.5" frictionloss="0.02"/>
+        <geom name="coxa1" size="0.011 0.025 0.011" pos="0 -0.025 0" type="box" rgba="0.55 0.42 0.3 1" mass="0.035"/>
+        <body name="femur1" pos="0 -0.05 0">
+          <joint name="j_femur1" range="-1.3 1.3" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+          <geom name="femur1" size="0.012 0.04" pos="0 0 -0.04" type="capsule" rgba="0.45 0.38 0.3 1" mass="0.055"/>
+          <body name="tibia1" pos="0 0 -0.08">
+            <joint name="j_tibia1" range="-2.6 2.6" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+            <geom name="tibia1" size="0.01 0.04" pos="0 0 -0.04" type="capsule" rgba="0.38 0.33 0.27 1" mass="0.045"/>
+            <geom name="foot1" size="0.016" pos="0 0 -0.0752" priority="1" rgba="0.2 0.2 0.2 1" mass="0.005"/>
+          </body>
+        </body>
+      </body>
+      <body name="coxa2" pos="0 -0.065 -0.02">
+        <joint name="j_coxa2" range="-0.8 0.8" damping="0.5" frictionloss="0.02"/>
+        <geom name="coxa2" size="0.011 0.025 0.011" pos="0 -0.025 0" type="box" rgba="0.55 0.42 0.3 1" mass="0.035"/>
+        <body name="femur2" pos="0 -0.05 0">
+          <joint name="j_femur2" range="-1.3 1.3" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+          <geom name="femur2" size="0.012 0.04" pos="0 0 -0.04" type="capsule" rgba="0.45 0.38 0.3 1" mass="0.055"/>
+          <body name="tibia2" pos="0 0 -0.08">
+            <joint name="j_tibia2" range="-2.6 2.6" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+            <geom name="tibia2" size="0.01 0.04" pos="0 0 -0.04" type="capsule" rgba="0.38 0.33 0.27 1" mass="0.045"/>
+            <geom name="foot2" size="0.016" pos="0 0 -0.0752" priority="1" rgba="0.2 0.2 0.2 1" mass="0.005"/>
+          </body>
+        </body>
+      </body>
+      <body name="coxa3" pos="0 0.065 -0.02">
+        <joint name="j_coxa3" range="-0.8 0.8" damping="0.5" frictionloss="0.02"/>
+        <geom name="coxa3" size="0.011 0.025 0.011" pos="0 0.025 0" type="box" rgba="0.55 0.42 0.3 1" mass="0.035"/>
+        <body name="femur3" pos="0 0.05 0">
+          <joint name="j_femur3" range="-1.3 1.3" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+          <geom name="femur3" size="0.012 0.04" pos="0 0 -0.04" type="capsule" rgba="0.45 0.38 0.3 1" mass="0.055"/>
+          <body name="tibia3" pos="0 0 -0.08">
+            <joint name="j_tibia3" range="-2.6 2.6" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+            <geom name="tibia3" size="0.01 0.04" pos="0 0 -0.04" type="capsule" rgba="0.38 0.33 0.27 1" mass="0.045"/>
+            <geom name="foot3" size="0.016" pos="0 0 -0.0752" priority="1" rgba="0.2 0.2 0.2 1" mass="0.005"/>
+          </body>
+        </body>
+      </body>
+      <body name="coxa4" pos="-0.07 0.065 -0.02">
+        <joint name="j_coxa4" range="-0.8 0.8" damping="0.5" frictionloss="0.02"/>
+        <geom name="coxa4" size="0.011 0.025 0.011" pos="0 0.025 0" type="box" rgba="0.55 0.42 0.3 1" mass="0.035"/>
+        <body name="femur4" pos="0 0.05 0">
+          <joint name="j_femur4" range="-1.3 1.3" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+          <geom name="femur4" size="0.012 0.04" pos="0 0 -0.04" type="capsule" rgba="0.45 0.38 0.3 1" mass="0.055"/>
+          <body name="tibia4" pos="0 0 -0.08">
+            <joint name="j_tibia4" range="-2.6 2.6" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+            <geom name="tibia4" size="0.01 0.04" pos="0 0 -0.04" type="capsule" rgba="0.38 0.33 0.27 1" mass="0.045"/>
+            <geom name="foot4" size="0.016" pos="0 0 -0.0752" priority="1" rgba="0.2 0.2 0.2 1" mass="0.005"/>
+          </body>
+        </body>
+      </body>
+      <body name="coxa5" pos="-0.07 -0.065 -0.02">
+        <joint name="j_coxa5" range="-0.8 0.8" damping="0.5" frictionloss="0.02"/>
+        <geom name="coxa5" size="0.011 0.025 0.011" pos="0 -0.025 0" type="box" rgba="0.55 0.42 0.3 1" mass="0.035"/>
+        <body name="femur5" pos="0 -0.05 0">
+          <joint name="j_femur5" range="-1.3 1.3" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+          <geom name="femur5" size="0.012 0.04" pos="0 0 -0.04" type="capsule" rgba="0.45 0.38 0.3 1" mass="0.055"/>
+          <body name="tibia5" pos="0 0 -0.08">
+            <joint name="j_tibia5" range="-2.6 2.6" armature="0.01" damping="0.8" frictionloss="0.02" axis="1 0 0"/>
+            <geom name="tibia5" size="0.01 0.04" pos="0 0 -0.04" type="capsule" rgba="0.38 0.33 0.27 1" mass="0.045"/>
+            <geom name="foot5" size="0.016" pos="0 0 -0.0752" priority="1" rgba="0.2 0.2 0.2 1" mass="0.005"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="coxa0" body2="tibia0"/>
+    <exclude body1="coxa1" body2="tibia1"/>
+    <exclude body1="coxa2" body2="tibia2"/>
+    <exclude body1="coxa3" body2="tibia3"/>
+    <exclude body1="coxa4" body2="tibia4"/>
+    <exclude body1="coxa5" body2="tibia5"/>
+  </contact>
+
+  <actuator>
+    <general name="a_coxa0" joint="j_coxa0" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_femur0" joint="j_femur0" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_tibia0" joint="j_tibia0" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_coxa1" joint="j_coxa1" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_femur1" joint="j_femur1" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_tibia1" joint="j_tibia1" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_coxa2" joint="j_coxa2" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_femur2" joint="j_femur2" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_tibia2" joint="j_tibia2" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_coxa3" joint="j_coxa3" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_femur3" joint="j_femur3" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_tibia3" joint="j_tibia3" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_coxa4" joint="j_coxa4" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_femur4" joint="j_femur4" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_tibia4" joint="j_tibia4" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_coxa5" joint="j_coxa5" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_femur5" joint="j_femur5" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+    <general name="a_tibia5" joint="j_tibia5" ctrlrange="-1.5 1.5" forcerange="-2.5 2.5" biastype="affine" gainprm="60" biasprm="0 -60"/>
+  </actuator>
+</mujoco>
