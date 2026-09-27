@@ -1,0 +1,19 @@
+{"n_held": 4}
+/opt/argos-roach/fly_bridge/eval_t2_closed.py:143: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  print(json.dumps({'t2_mlp_train_loss': round(float(loss), 5),
+{"t2_mlp_train_loss": 0.43587, "n_frames": 6400}
+{"scenario": 0, "variant": "teacher", "goal_reached": false, "final_dist": 0.685, "max_y_dev": 0.681, "fell": false, "mean_abs_yaw_err": 0.64, "final_abs_yaw_err": 1.73, "mean_abs_turn": 0.786, "n_cmds": 400}
+{"scenario": 0, "variant": "fixed", "goal_reached": false, "final_dist": 0.738, "max_y_dev": 0.623, "fell": false, "mean_abs_yaw_err": 0.821, "final_abs_yaw_err": 2.372, "mean_abs_turn": 0.0, "n_cmds": 400}
+{"scenario": 0, "variant": "t2", "goal_reached": false, "final_dist": 0.733, "max_y_dev": 0.595, "fell": false, "mean_abs_yaw_err": 0.815, "final_abs_yaw_err": 2.392, "mean_abs_turn": 0.362, "n_cmds": 400}
+{"scenario": 1, "variant": "teacher", "goal_reached": false, "final_dist": 0.343, "max_y_dev": 0.098, "fell": false, "mean_abs_yaw_err": 0.415, "final_abs_yaw_err": 2.949, "mean_abs_turn": 0.634, "n_cmds": 400}
+{"scenario": 1, "variant": "fixed", "goal_reached": false, "final_dist": 0.761, "max_y_dev": 0.291, "fell": false, "mean_abs_yaw_err": 0.871, "final_abs_yaw_err": 2.832, "mean_abs_turn": 0.0, "n_cmds": 400}
+{"scenario": 1, "variant": "t2", "goal_reached": false, "final_dist": 0.705, "max_y_dev": 0.049, "fell": false, "mean_abs_yaw_err": 0.771, "final_abs_yaw_err": 3.088, "mean_abs_turn": 0.171, "n_cmds": 400}
+{"scenario": 2, "variant": "teacher", "goal_reached": false, "final_dist": 0.49, "max_y_dev": 0.07, "fell": false, "mean_abs_yaw_err": 0.047, "final_abs_yaw_err": 0.099, "mean_abs_turn": 0.812, "n_cmds": 400}
+{"scenario": 2, "variant": "fixed", "goal_reached": false, "final_dist": 0.942, "max_y_dev": 0.812, "fell": false, "mean_abs_yaw_err": 0.982, "final_abs_yaw_err": 2.372, "mean_abs_turn": 0.0, "n_cmds": 400}
+{"scenario": 2, "variant": "t2", "goal_reached": false, "final_dist": 0.556, "max_y_dev": 0.211, "fell": false, "mean_abs_yaw_err": 0.672, "final_abs_yaw_err": 2.84, "mean_abs_turn": 0.16, "n_cmds": 400}
+{"scenario": 3, "variant": "teacher", "goal_reached": false, "final_dist": 0.553, "max_y_dev": 0.379, "fell": false, "mean_abs_yaw_err": 0.641, "final_abs_yaw_err": 2.497, "mean_abs_turn": 0.607, "n_cmds": 400}
+{"scenario": 3, "variant": "fixed", "goal_reached": false, "final_dist": 0.618, "max_y_dev": 0.273, "fell": false, "mean_abs_yaw_err": 0.732, "final_abs_yaw_err": 2.795, "mean_abs_turn": 0.0, "n_cmds": 400}
+{"scenario": 3, "variant": "t2", "goal_reached": false, "final_dist": 0.635, "max_y_dev": 0.26, "fell": false, "mean_abs_yaw_err": 0.736, "final_abs_yaw_err": 2.824, "mean_abs_turn": 0.252, "n_cmds": 400}
+{"test": "t2_closed_loop", "summary": {"teacher": {"goal_rate": 0.0, "mean_final_dist": 0.518, "falls": 0, "mean_max_y_dev": 0.307, "mean_abs_yaw_err": 0.436, "mean_abs_turn": 0.71}, "fixed": {"goal_rate": 0.0, "mean_final_dist": 0.765, "falls": 0, "mean_max_y_dev": 0.5, "mean_abs_yaw_err": 0.851, "mean_abs_turn": 0.0}, "t2": {"goal_rate": 0.0, "mean_final_dist": 0.657, "falls": 0, "mean_max_y_dev": 0.279, "mean_abs_yaw_err": 0.748, "mean_abs_turn": 0.236}}}
+T2_CLOSED_DONE

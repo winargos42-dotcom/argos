@@ -1,0 +1,50 @@
+{
+  "info": {
+    "side": "R",
+    "neurons": 49695,
+    "synapses": 6357259,
+    "hex_columns": 892,
+    "lamina_inputs": 1785,
+    "vpn_readout": 4612,
+    "ticks": 8,
+    "frames": 3,
+    "drive": 2.0,
+    "weights": "conversion (untrained)",
+    "rec_scale": 20.0
+  },
+  "n_train": 3000,
+  "n_test": 1000,
+  "dataset": "MNIST",
+  "results": {
+    "raw_pixels": {
+      "acc": 0.882,
+      "dim": 784
+    },
+    "random_projection": {
+      "acc": 0.899,
+      "dim": 9224
+    },
+    "fly": {
+      "acc": 0.874,
+      "C": 1.0,
+      "dim": 9224,
+      "rate_all": 0.06629,
+      "vpn_rate": 0.07139,
+      "vpn_ever_fired": 0.6529,
+      "cells_ever_fired": 0.6829,
+      "sec": 173.0
+    },
+    "twin": {
+      "acc": 0.905,
+      "C": 1.0,
+      "dim": 9224,
+      "rate_all": 0.0262,
+      "vpn_rate": 0.02778,
+      "vpn_ever_fired": 0.8248,
+      "cells_ever_fired": 0.7346,
+      "sec": 49.6
+    }
+  },
+  "fly_minus_twin": -0.031,
+  "total_sec": 245.3
+}

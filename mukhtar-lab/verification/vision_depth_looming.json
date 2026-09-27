@@ -1,0 +1,47 @@
+{
+  "info": {
+    "task": "looming",
+    "classes": 4,
+    "chance": 0.25,
+    "frames": 6,
+    "ticks": 12,
+    "rec_scale": 20.0,
+    "neurons": 49695,
+    "vpn_readout": 4612,
+    "weights": "conversion (untrained)",
+    "n_train": 1600,
+    "n_test": 800
+  },
+  "results": {
+    "pixels_stacked": {
+      "acc": 0.84
+    },
+    "random_projection": {
+      "acc": 0.8375
+    },
+    "fly": {
+      "acc": 0.29,
+      "C": 0.1,
+      "vpn_rate": 0.00761,
+      "vpn_ever_fired": 0.503,
+      "sec": 57.8
+    },
+    "twin": {
+      "acc": 0.53625,
+      "C": 0.01,
+      "vpn_rate": 0.02778,
+      "vpn_ever_fired": 0.972,
+      "sec": 49.2
+    },
+    "fly_static": {
+      "acc": 0.32875,
+      "C": 0.01,
+      "vpn_rate": 0.03948,
+      "vpn_ever_fired": 0.7071,
+      "sec": 61.3
+    }
+  },
+  "fly_minus_twin": -0.2463,
+  "fly_minus_best_baseline": -0.55,
+  "total_sec": 227.8
+}
