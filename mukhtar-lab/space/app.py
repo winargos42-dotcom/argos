@@ -1,15 +1,14 @@
 """ARGOS-MUKHTAR-Lab — embodied connectome testbed (Gradio Space).
 
-Честность исполнения: тяжёлые MuJoCo-прогоны НЕ запускаются в браузере —
-показываются результаты, заранее полученные на ноде (npy/json/jsonl).
-Прямо в Space исполняется только interactive-lite: изолированный
-MaleCNS CPG-модуль (5 клеток, numpy) с knockout.
+MuJoCo и изолированный CPG исполняются на сервере Space. Сохранённые
+проверенные прогоны доступны отдельно от новых запусков.
 """
 
 import json
 import math
 import os
 from pathlib import Path
+import tempfile
 
 from benchmark_data import BenchmarkData
 
@@ -28,124 +27,8 @@ except (OSError, ValueError, KeyError, TypeError) as exc:
     BENCH = None
     BENCH_ERROR = str(exc)
 
-# ─────────────────────────── константы CPG M0 ───────────────────────────
-NAMES = ["DgR", "E1", "E2", "I1", "I2"]
-IDX = {nm: i for i, nm in enumerate(NAMES)}
-BASE_EDGES = {
-    ("DgR", "E1"): 1.55, ("DgR", "E2"): 0.01, ("DgR", "I2"): 0.07,
-    ("E1", "E2"): 4.65, ("E2", "E1"): 0.11, ("E1", "DgR"): 0.01,
-    ("E2", "I1"): 0.38, ("E1", "I1"): 0.06,
-    ("E1", "I2"): 0.84, ("E2", "I2"): 2.15,
-    ("I1", "E1"): -5.26, ("I1", "E2"): -1.21, ("I1", "I2"): -0.02,
-    ("I2", "E1"): -3.28, ("I2", "E2"): -0.56,
-}
-BETA = 0.9
-THR = 1.0
-_ERF_K = math.sqrt(math.pi) / 2.0
-_erf = np.vectorize(math.erf)
-
-EXPERIMENTS = ["normal", "KO_DNg100", "KO_E1", "KO_E2", "KO_I1",
-               "KO_I2", "KO_I1I2"]
-DRIVES = [0.4, 0.8, 1.2, 1.6]
-KO_MAP = {"normal": (), "KO_DNg100": ("DgR",), "KO_E1": ("E1",),
-          "KO_E2": ("E2",), "KO_I1": ("I1",), "KO_I2": ("I2",),
-          "KO_I1I2": ("I1", "I2")}
-
-
-# ─────────────────────────── CPG live (numpy) ───────────────────────────
-def sim_cpg(drive=0.8, ko=(), ticks=500, beta=BETA, thr=THR):
-    W = np.zeros((5, 5), dtype=np.float32)
-    for (pre, post), w in BASE_EDGES.items():
-        W[IDX[post], IDX[pre]] = w
-    for nm in ko:
-        W[IDX[nm], :] = 0.0
-        W[:, IDX[nm]] = 0.0
-    mem = np.zeros(5, dtype=np.float32)
-    spk = np.zeros(5, dtype=np.float32)
-    cur = np.zeros(5, dtype=np.float32)
-    cur[IDX["DgR"]] = drive
-    rast = np.zeros((ticks, 5), dtype=np.float32)
-    for t in range(ticks):
-        rec = W @ spk
-        pre = beta * mem + cur + rec
-        s = (pre >= thr).astype(np.float32)
-        for nm in ko:
-            s[IDX[nm]] = 0.0
-        # soft_clamp(pre - s*thr, 30.0): 30*erf(x*(sqrt(pi)/2)/30)
-        mem = (30.0 * _erf((pre - s * thr) * (_ERF_K / 30.0))
-               ).astype(np.float32)
-        spk = s
-        rast[t] = s
-    return rast
-
-
-def cpg_metrics(rast):
-    rates = {nm: rast[:, IDX[nm]] for nm in NAMES[1:]}
-    out = {}
-    for nm, r in rates.items():
-        out[f"{nm}_rate_mean"] = round(float(r.mean()), 3)
-    e_all = rates["E1"] + rates["E2"]
-    i_all = rates["I1"] + rates["I2"]
-    total = e_all + i_all
-    spec = np.abs(np.fft.rfft(total - total.mean()))
-    freqs = np.fft.rfftfreq(len(total), d=1.0)
-    band = (freqs > 0.005) & (freqs < 0.15)
-    if band.any() and spec[band].sum() > 1e-9:
-        k = int(np.argmax(spec[band]))
-        out["osc_period_ticks"] = round(float(1.0 / freqs[band][k]), 1)
-        out["osc_power"] = round(
-            float(spec[band][k] / max(1e-9, spec[band].mean())), 1)
-    else:
-        out["osc_period_ticks"] = None
-        out["osc_power"] = 0.0
-    e = e_all - e_all.mean()
-    i = i_all - i_all.mean()
-    best_corr = None
-    for lag in range(2, min(60, len(e) // 2)):
-        ea, ib = e[:-lag], i[lag:]
-        if ea.std() < 1e-9 or ib.std() < 1e-9:
-            continue
-        c = float(np.corrcoef(ea, ib)[0, 1])
-        if np.isfinite(c) and (best_corr is None or abs(c) > abs(best_corr)):
-            best_corr = c
-    out["alt_corr_max"] = (round(best_corr, 3)
-                              if best_corr is not None else None)
-
-    for nm, r in rates.items():
-        r = r - r.mean()
-        ac = []
-        for lag in range(3, 61):
-            a, b = r[:-lag], r[lag:]
-            if a.std() < 1e-9 or b.std() < 1e-9:
-                continue
-            c = float(np.corrcoef(a, b)[0, 1])
-            if np.isfinite(c):
-                ac.append(c)
-        out[f"{nm}_autocorr_p1"] = (round(max(ac, key=abs), 3)
-                                         if ac else None)
-
-    for a, b in [("E1", "E2"), ("E1", "I1"), ("E2", "I1"),
-                 ("E1", "I2"), ("E2", "I2")]:
-        ra = rates[a] - rates[a].mean()
-        rb = rates[b] - rates[b].mean()
-        if ra.std() < 1e-9 or rb.std() < 1e-9:
-            out[f"lag_{a}_{b}"] = None
-            continue
-        best_lag = None
-        best_corr = None
-        for lag in range(-60, 61):
-            if lag >= 0:
-                aa, bb = ra[lag:], rb[:len(ra) - lag]
-            else:
-                aa, bb = ra[:len(ra) + lag], rb[-lag:]
-            if len(aa) < 2 or aa.std() < 1e-9 or bb.std() < 1e-9:
-                continue
-            c = float(np.corrcoef(aa, bb)[0, 1])
-            if np.isfinite(c) and (best_corr is None or abs(c) > abs(best_corr)):
-                best_corr = c
-                best_lag = lag
-        out[f"lag_{a}_{b}"] = best_lag
-    return out
+from cpg_engine import (NAMES, IDX, BASE_EDGES, BETA, THR, EXPERIMENTS,
+                        DRIVES, KO_MAP, sim_cpg, cpg_metrics)
 
 
 # ─────────────────────────── данные бенчей ──────────────────────────────
@@ -165,8 +48,50 @@ SCENARIOS = {
                        "(0.486 м), R1b foot-catch проходит (1.238 м).",
     "B03-gap20": "Яма 20 мм: сравнение BASE и поиска опоры R3 v2. "
                  "Пиковая и конечная просадка измерены отдельно.",
+    "B04-rough4_10": "Семь полос высотой 4–10 мм, шаг 50 мм. Доступен живой MuJoCo-запуск.",
 }
 MODES = ["BASE", "R1b", "R3v2", "R1b+R3v2", "R4"]
+
+
+def run_locomotion(scenario, mode, duration):
+    from live_locomotion import run_trial, plot_trajectory
+    from gradio.processing_utils import save_file_to_cache
+    with tempfile.TemporaryDirectory(prefix='mukhtar-live-') as directory:
+        result = run_trial(scenario, mode, duration, output=Path(directory) / 'run')
+        download = save_file_to_cache(result['archive'], demo.GRADIO_CACHE)
+    return ({'execution': 'live_mujoco', 'result': result['metrics'],
+             'wall_time_s': result['manifest']['wall_time_s'],
+             'source_sha256': result['manifest']['source_sha256']},
+            plot_trajectory(result), download)
+
+
+def run_prc_experiment(drive, target, amplitude):
+    from prc_lab import run_prc, plot_prc, prc_json
+    from gradio.processing_utils import save_file_to_cache
+    result = run_prc(drive, target, amplitude)
+    with tempfile.TemporaryDirectory(prefix='mukhtar-prc-') as directory:
+        path = Path(directory) / 'prc.json'
+        path.write_text(prc_json(result))
+        download = save_file_to_cache(path, demo.GRADIO_CACHE)
+    summary = {'status': result['status'], 'reason': result['reason'],
+               'period_ticks': result['baseline']['period_ticks'],
+               'shifts_ticks': [t['shift_ticks'] for t in result['trials']],
+               'protocol': result['protocol']}
+    return summary, plot_prc(result), download
+
+
+def run_arc_experiment(game, budget, mode):
+    from arc_space import run_arc
+    from gradio.processing_utils import save_file_to_cache
+    with tempfile.TemporaryDirectory(prefix='mukhtar-arc-ui-') as directory:
+        summary, figure, archive = run_arc(game, budget, mode, output_dir=directory)
+        download = save_file_to_cache(archive, demo.GRADIO_CACHE)
+    return summary, figure, download
+
+
+def inspect_verification(name):
+    from verification_lab import load_experiment, plot_experiment, render_summary, raw_path
+    return plot_experiment(name), render_summary(name), load_experiment(name)['data'], raw_path(name)
 
 
 def loco_metrics(scenario, mode):
@@ -347,14 +272,13 @@ def cpg_live(drive, ko_experiment):
 
 
 BENCH_TABLE = [
-    ["B04-rough4_10", "общая адаптация ног", "planned", "—"],
-    ["B05-turn", "T2 steering", "planned", "—"],
-    ["B06-stuck", "recovery", "planned", "—"],
+    ["B04-rough4_10", "полосы 4–10 мм", "live MuJoCo", "Запустить в Locomotion"],
+    ["B05-turn", "T2 steering", "recorded", "Исходные измерения в Neural records"],
     ["B07-cpg-ko", "причинность CPG", "materials",
      "cpg_m0: KO×7 × drive×4"],
-    ["B08-cpg-prc", "фазовый reset", "planned", "cpg_prc.py"],
-    ["B09-six-cpg", "все 6 MaleCNS-модулей", "planned", "—"],
-    ["B10-looming", "visual escape (LC16→MDN)", "future", "—"],
+    ["B08-cpg-prc", "фазовый ответ", "live CPG", "Измерить во вкладке PRC"],
+    ["B09-six-cpg", "активность 6 модулей рядом с походкой", "recorded shadow", "Neural records"],
+    ["Vision-looming", "распознавание приближения", "recorded", "Сравнение fly/twin/baselines в Vision"],
 ]
 
 
@@ -420,7 +344,7 @@ ROADMAP = """## Развитие Мухтара (реальная история
 
 
 def build():
-    with gr.Blocks(title="ARGOS-MUKHTAR Lab") as demo:
+    with gr.Blocks(title="ARGOS-MUKHTAR Lab", delete_cache=(3600, 3600)) as demo:
         gr.Markdown(
             "# ARGOS-MUKHTAR — Embodied connectome testbed\n"
             "Мухтар — стенд, где конкретные нервные цепи насекомого можно "
@@ -432,11 +356,22 @@ def build():
             "contribution to behavior.")
         with gr.Tabs():
             with gr.Tab("▶ Locomotion"):
-                gr.Markdown("### MuJoCo-прогоны schema 2 (заранее исполнены)")
+                gr.Markdown("### MuJoCo — запуск и измерение движения")
                 with gr.Row():
                     scen = gr.Dropdown(list(SCENARIOS), value="B02-footcatch12",
                                        label="Сценарий")
                     mode = gr.Dropdown(MODES, value="R1b", label="Режим")
+                duration = gr.Slider(2, 20, value=20, step=1, label="Длительность прогона, с")
+                live_btn = gr.Button("Запустить MuJoCo", variant="primary")
+                live_metrics = gr.JSON(label="Метрики нового прогона")
+                live_path = gr.Plot(label="Измеренная траектория")
+                live_file = gr.File(label="Скачать прогон: XML, траектория, события, метрики и SHA256",
+                                    interactive=False)
+                live_btn.click(run_locomotion, [scen, mode, duration],
+                               [live_metrics, live_path, live_file],
+                               concurrency_limit=1, concurrency_id='simulation', api_name='run_locomotion')
+                gr.Markdown("### Сохранённые проверенные прогоны schema 2\n"
+                            "Эта таблица относится к ранее выполненному 20-секундному benchmark.")
                 loco_out = gr.Markdown()
                 btn = gr.Button("Показать метрики")
                 btn.click(loco_metrics, [scen, mode], loco_out)
@@ -469,6 +404,22 @@ def build():
                 v_plot = gr.Plot()
                 v_md = gr.Markdown()
                 v_btn.click(cpg_view, [v_exp, v_drive], [v_plot, v_md])
+            with gr.Tab("🧠 PRC"):
+                gr.Markdown("### Измерение фазового ответа CPG\n"
+                            "Однотиковый импульс в выбранную клетку; 12 фаз сравниваются "
+                            "с тем же генератором без импульса. Положительный сдвиг — задержка. "
+                            "Изолированный T1-L, BASE-веса.")
+                with gr.Row():
+                    prc_drive = gr.Slider(0, 1.6, value=0.8, step=0.4, label="Drive PRC")
+                    prc_target = gr.Dropdown(NAMES, value="I2", label="Клетка для импульса")
+                    prc_amplitude = gr.Slider(-5, 5, value=2, step=0.25, label="Амплитуда импульса")
+                prc_btn = gr.Button("Измерить PRC", variant="primary")
+                prc_summary = gr.JSON(label="Измеренный фазовый ответ")
+                prc_plot = gr.Plot()
+                prc_raw = gr.File(label="Скачать PRC: растры, импульсы и протокол", interactive=False)
+                prc_btn.click(run_prc_experiment, [prc_drive, prc_target, prc_amplitude],
+                              [prc_summary, prc_plot, prc_raw], concurrency_limit=1,
+                              concurrency_id='simulation', api_name='run_prc')
             with gr.Tab("📊 Benchmarks"):
                 gr.Markdown("### MUKHTAR-Bench — schema 2")
                 gr.Dataframe(benchmark_table(),
@@ -487,20 +438,51 @@ def build():
             with gr.Tab("📈 Roadmap"):
                 gr.Markdown(ROADMAP)
             with gr.Tab("🎮 ARC"):
-                gr.Markdown(
-                    "### ARC — второе тело Мухтара\n\n"
-                    "Search only vs Search + Mukhtar ranker: уровни, "
-                    "действия, повторы, счёт, задержка. Раздел появится "
-                    "вместе с первыми воспроизводимыми прогонами "
-                    "ARC-ранкера — сейчас данных для честной таблицы нет.")
+                from arc_space import GAMES
+                gr.Markdown("### ARC-AGI-3 — локальные игры\n"
+                            "Игра запускается заново в офлайн-движке. `search` — существующий поисковый агент; "
+                            "`route_replay` — воспроизведение известного маршрута LS20, не самостоятельное решение. "
+                            "Число пройденных уровней и победу сообщает игровой движок. "
+                            "Обученный нейронный ранжировщик здесь не используется.")
+                with gr.Row():
+                    arc_game = gr.Dropdown(GAMES, value=GAMES[0], label="Игра ARC")
+                    arc_mode = gr.Dropdown(['search', 'route_replay'], value='search', label="Политика ARC")
+                    arc_budget = gr.Slider(1, 400, value=200, step=1, label="Бюджет действий ARC")
+                arc_game.change(lambda game: gr.update(
+                    choices=['search', 'route_replay'] if game == GAMES[0] else ['search'],
+                    value='search'), [arc_game], [arc_mode])
+                arc_btn = gr.Button("Запустить ARC", variant="primary")
+                arc_summary = gr.JSON(label="Результат игрового движка")
+                arc_plot = gr.Plot(label="Настоящие кадры игры")
+                arc_file = gr.File(label="Скачать ARC: кадры, действия, метрики и SHA256", interactive=False)
+                arc_btn.click(run_arc_experiment, [arc_game, arc_budget, arc_mode],
+                              [arc_summary, arc_plot, arc_file], concurrency_limit=1,
+                              concurrency_id='simulation', api_name='run_arc')
             with gr.Tab("👁 Vision"):
-                gr.Markdown("### Visual reflex (LC16 → MDN)\n\n"
-                            "Looming-детектор → backward walking. "
-                            "Планируется как первый визуальный рефлекс; "
-                            "вкладка появится после первых прогонов.")
+                from verification_lab import list_experiments
+                vision_names = [name for name in list_experiments() if name.startswith('vision_')]
+                gr.Markdown("### Vision — анализ результатов экспериментов\n"
+                            "Сохранённые измерения optic-lobe; это не подключённая к телу камера.")
+                vision_name = gr.Dropdown(vision_names, value=vision_names[0], label="Эксперимент Vision")
+                vision_btn = gr.Button("Открыть Vision")
+                vision_plot, vision_info = gr.Plot(), gr.Markdown()
+                vision_data = gr.JSON(label="Данные Vision")
+                vision_file = gr.File(label="Исходный файл Vision", interactive=False)
+                vision_btn.click(inspect_verification, [vision_name],
+                                 [vision_plot, vision_info, vision_data, vision_file])
+            with gr.Tab("🧪 Neural records"):
+                names = [name for name in list_experiments() if not name.startswith('vision_')]
+                gr.Markdown("### Записанные CPG, steering, CC и olfaction эксперименты")
+                neural_name = gr.Dropdown(names, value=names[0], label="Нейронный эксперимент")
+                neural_btn = gr.Button("Открыть эксперимент")
+                neural_plot, neural_info = gr.Plot(), gr.Markdown()
+                neural_data = gr.JSON(label="Исходные измерения")
+                neural_file = gr.File(label="Исходный файл эксперимента", interactive=False)
+                neural_btn.click(inspect_verification, [neural_name],
+                                 [neural_plot, neural_info, neural_data, neural_file])
     return demo
 
 
-demo = build()
+demo = build().queue(max_size=8)
 if __name__ == "__main__":
     demo.launch()

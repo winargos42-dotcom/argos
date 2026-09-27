@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "recorded_experiment_results",
+  "source_repo": "https://github.com/winargos42-dotcom/argos",
+  "source_revision": "07c6f559a2cf5e9a034d436f89b4dec75d2f6b35",
+  "checkpoint_validation": "not_performed",
+  "artifacts": {
+    "b09_shadow_results.json": {
+      "sha256": "6cc4314fcd28189d2c4c33a4387669e2583ec4655cc8febd492da5728452b2ab",
+      "source_path": "mukhtar-lab/verification/b09_shadow_results.json",
+      "bytes": 4803
+    },
+    "cc_activity.json": {
+      "sha256": "69cf926d84e080f00b6e6b4f1a7504917e184f7f97942a5b2e9c3acbba9364bd",
+      "source_path": "mukhtar-lab/verification/cc_activity.json",
+      "bytes": 2496
+    },
+    "cc_real_control.json": {
+      "sha256": "82d485538419606ef21adea4f13f4efdc17ebdb9fb527c94502889de9c3d9aa5",
+      "source_path": "mukhtar-lab/verification/cc_real_control.json",
+      "bytes": 227
+    },
+    "cpg_m5_base_trained.json": {
+      "sha256": "e8a86c7a89b3c4704440675339cddec34607328a585f257a153ab6b5660c9fc7",
+      "source_path": "mukhtar-lab/verification/cpg_m5_base_trained.json",
+      "bytes": 13758
+    },
+    "olfaction_mb_seed0.json": {
+      "sha256": "3b9d6dbdc53274fcf6fb2e002b3bc5f80c458603bf1f42388c66a6f7f4c3f4e5",
+      "source_path": "mukhtar-lab/verification/olfaction_mb_seed0.json",
+      "bytes": 7871
+    },
+    "olfaction_mb_seed1.json": {
+      "sha256": "009758b56681956da644b282ef34afc69fa7b865a33b83ef4ac20f56b4d2e36e",
+      "source_path": "mukhtar-lab/verification/olfaction_mb_seed1.json",
+      "bytes": 7857
+    },
+    "olfaction_mb_seed2.json": {
+      "sha256": "09fe35ddfa86788310151227ab0cb80e4a33555860ee121df2e6e52e97432721",
+      "source_path": "mukhtar-lab/verification/olfaction_mb_seed2.json",
+      "bytes": 7881
+    },
+    "olfaction_mb_seed3.json": {
+      "sha256": "58dca254c59ae540f95c92b9ced41cd53afa47296adf0840e5af38f5eb60ac77",
+      "source_path": "mukhtar-lab/verification/olfaction_mb_seed3.json",
+      "bytes": 7877
+    },
+    "olfaction_mb_seed4.json": {
+      "sha256": "db5ef5f90906d55f453c34e4f04e4755acaffffd2406d502cdd68c2f75503a74",
+      "source_path": "mukhtar-lab/verification/olfaction_mb_seed4.json",
+      "bytes": 7873
+    },
+    "olfaction_mb_summary.json": {
+      "sha256": "cff2a5e6078643d2178eb428e94f3a49160d6e01b8cd689746067f93da710360",
+      "source_path": "mukhtar-lab/verification/olfaction_mb_summary.json",
+      "bytes": 404
+    },
+    "t2_closed_fresh.txt": {
+      "sha256": "bf3675600457882dfae10bf46083d026ddb4f95001584a48cfd83e2a5d7fd4ae",
+      "source_path": "mukhtar-lab/verification/t2_closed_fresh.txt",
+      "bytes": 3395
+    },
+    "vision_depth_looming.json": {
+      "sha256": "1e40b8cedfbfe95a4cbf567231f808506cccad1d7508a0630c09c02aebf53b6d",
+      "source_path": "mukhtar-lab/verification/vision_depth_looming.json",
+      "bytes": 929
+    },
+    "vision_depth_parallax.json": {
+      "sha256": "8e0342358064d0037dcdcd63cd7bc5440975322dd5858d1c74e5f5f12ff9e4c2",
+      "source_path": "mukhtar-lab/verification/vision_depth_parallax.json",
+      "bytes": 935
+    },
+    "vision_phase0_rec20.json": {
+      "sha256": "621cc6d5afe1251fc1e3fe2942ab1a33f5c8c0b9073b65ec71711401a6c9368f",
+      "source_path": "mukhtar-lab/verification/vision_phase0_rec20.json",
+      "bytes": 1013
+    }
+  }
+}

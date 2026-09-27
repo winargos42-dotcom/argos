@@ -1,3 +1,6 @@
 gradio==6.28.0
 numpy==2.4.6
 matplotlib==3.11.2
+mujoco==3.14.0
+arc-agi==0.9.9
+arcengine==0.9.3

@@ -57,7 +57,6 @@ if 'weight_original' in t.column_names:
     print('has weight_original; sample:', w_orig[known].tolist() if known.any() else None)
 
 # subgraph rows
-m = (pre_t.astype('int64').reshape(-1) != 0)  # placeholder
 sub = df[(df['body_pre'].isin(cpg_set)) & (df['body_post'].isin(cpg_set))]
 print('CPG-subgraph rows in trained export:', len(sub))
 

@@ -1,4 +1,4 @@
-# ARGOS-MUKHTAR — embodied connectome testbed (ветка `mukhtar`)
+# ARGOS-MUKHTAR — embodied connectome testbed
 
 Мухтар — стенд, где конкретные нервные цепи насекомого можно включить,
 отключить, нарушить и проверить, что они реально меняют в поведении
@@ -7,6 +7,21 @@
 ARGOS-MUKHTAR is an embodied connectome testbed that connects anatomically
 identified insect neural circuits to a simulated six-legged body and measures
 their causal contribution to behavior.
+
+## Живая лаборатория
+
+[Space](https://huggingface.co/spaces/AvaSiG/ARGOS-MUKHTAR-Lab) выполняет новые
+MuJoCo-прогоны четырёх сценариев, включая rough 4–10 мм, и сохраняет кинематику,
+события и происхождение кода в скачиваемый ZIP. PRC запускает контроль и
+12 импульсных экспериментов изолированного T1-L. ARC использует настоящий
+офлайн-движок пяти игр: поиск и отдельно воспроизведение известного LS20-маршрута.
+Нейронный ranker к этим режимам не подключён.
+
+Vision и Neural records показывают исходные записанные эксперименты с проверкой
+SHA256; их просмотр не выдаётся за новый запуск нейросети. Подробности,
+ограничения и автономная сборка — в [space/README.md](space/README.md).
+Для полной Space-сборки нужен Python 3.12; исторические бенчмарки ниже
+сохраняют исходное окружение Python 3.11.
 
 ## Структура
 

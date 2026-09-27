@@ -1,0 +1,211 @@
+[
+  {
+    "modules": {
+      "T1L": {
+        "alive": true,
+        "n_bursts": 56,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 991,
+        "first_burst_tick": 2
+      },
+      "T2L": {
+        "alive": true,
+        "n_bursts": 62,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 988,
+        "first_burst_tick": 11
+      },
+      "T3L": {
+        "alive": true,
+        "n_bursts": 58,
+        "period_ticks": 18.0,
+        "period_s": 0.36,
+        "jitter": 0.094,
+        "dropouts": 0,
+        "last_burst_tick": 998,
+        "first_burst_tick": 10
+      },
+      "T1R": {
+        "alive": true,
+        "n_bursts": 62,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 987,
+        "first_burst_tick": 10
+      },
+      "T2R": {
+        "alive": true,
+        "n_bursts": 56,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 991,
+        "first_burst_tick": 2
+      },
+      "T3R": {
+        "alive": true,
+        "n_bursts": 50,
+        "period_ticks": 20.0,
+        "period_s": 0.4,
+        "jitter": 0.0,
+        "dropouts": 0,
+        "last_burst_tick": 983,
+        "first_burst_tick": 3
+      }
+    },
+    "repeat": 0,
+    "cpu_ms_per_tick_6modules": 0.28,
+    "body_x_m": 1.266
+  },
+  {
+    "modules": {
+      "T1L": {
+        "alive": true,
+        "n_bursts": 56,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 991,
+        "first_burst_tick": 2
+      },
+      "T2L": {
+        "alive": true,
+        "n_bursts": 62,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 988,
+        "first_burst_tick": 11
+      },
+      "T3L": {
+        "alive": true,
+        "n_bursts": 58,
+        "period_ticks": 18.0,
+        "period_s": 0.36,
+        "jitter": 0.094,
+        "dropouts": 0,
+        "last_burst_tick": 998,
+        "first_burst_tick": 10
+      },
+      "T1R": {
+        "alive": true,
+        "n_bursts": 62,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 987,
+        "first_burst_tick": 10
+      },
+      "T2R": {
+        "alive": true,
+        "n_bursts": 56,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 991,
+        "first_burst_tick": 2
+      },
+      "T3R": {
+        "alive": true,
+        "n_bursts": 50,
+        "period_ticks": 20.0,
+        "period_s": 0.4,
+        "jitter": 0.0,
+        "dropouts": 0,
+        "last_burst_tick": 983,
+        "first_burst_tick": 3
+      }
+    },
+    "repeat": 1,
+    "cpu_ms_per_tick_6modules": 0.275,
+    "body_x_m": 1.266
+  },
+  {
+    "modules": {
+      "T1L": {
+        "alive": true,
+        "n_bursts": 56,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 991,
+        "first_burst_tick": 2
+      },
+      "T2L": {
+        "alive": true,
+        "n_bursts": 62,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 988,
+        "first_burst_tick": 11
+      },
+      "T3L": {
+        "alive": true,
+        "n_bursts": 58,
+        "period_ticks": 18.0,
+        "period_s": 0.36,
+        "jitter": 0.094,
+        "dropouts": 0,
+        "last_burst_tick": 998,
+        "first_burst_tick": 10
+      },
+      "T1R": {
+        "alive": true,
+        "n_bursts": 62,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 987,
+        "first_burst_tick": 10
+      },
+      "T2R": {
+        "alive": true,
+        "n_bursts": 56,
+        "period_ticks": 17.0,
+        "period_s": 0.34,
+        "jitter": 0.059,
+        "dropouts": 0,
+        "last_burst_tick": 991,
+        "first_burst_tick": 2
+      },
+      "T3R": {
+        "alive": true,
+        "n_bursts": 50,
+        "period_ticks": 20.0,
+        "period_s": 0.4,
+        "jitter": 0.0,
+        "dropouts": 0,
+        "last_burst_tick": 983,
+        "first_burst_tick": 3
+      }
+    },
+    "repeat": 2,
+    "cpu_ms_per_tick_6modules": 0.275,
+    "body_x_m": 1.266
+  },
+  {
+    "T1L_period_repro_std": 0.0,
+    "T2L_period_repro_std": 0.0,
+    "T3L_period_repro_std": 0.0,
+    "T1R_period_repro_std": 0.0,
+    "T2R_period_repro_std": 0.0,
+    "T3R_period_repro_std": 0.0
+  }
+]

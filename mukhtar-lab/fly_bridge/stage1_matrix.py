@@ -251,7 +251,7 @@ def build_gap(xml_path, gap=(0.60, 0.64), depth=0.012):
 
 
 def run(model, make_ctrl, pipeline, duration=20.0, label="",
-        expected_no_reflex=False):
+        expected_no_reflex=False, observer=None):
     """Measure a trial; only an explicit no-reflex oracle labels false events."""
     data = mujoco.MjData(model)
     data.qpos[2] += 0.012
@@ -270,6 +270,8 @@ def run(model, make_ctrl, pipeline, duration=20.0, label="",
     min_foot_z = 9.0
     body_metrics = BodyMetrics()
     x_first_search = None
+    if observer is not None:
+        observer(model, data)
     while t < duration:
         lc = pipeline.update(data)
         n_self += len(pipeline.last_self_pairs)
@@ -298,6 +300,8 @@ def run(model, make_ctrl, pipeline, duration=20.0, label="",
         tg = ctrl.step(t, state)
         data.ctrl[:] = tg
         mujoco.mj_step(model, data)
+        if observer is not None:
+            observer(model, data)
         if data.qpos[2] < 0.10:
             fell = True
         t += dt
