@@ -1,0 +1,9 @@
+{"t": 7.326, "leg": 2, "reason": "R1B_FOOT_CATCH", "contact_pair": ["foot2", "wire"], "contact_kind": "obstacle", "leg_phase": 2.22, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 7.806, "leg": 3, "reason": "R1B_FOOT_CATCH", "contact_pair": ["foot3", "wire"], "contact_kind": "obstacle", "leg_phase": 2.1, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 8.044, "leg": 2, "reason": "R1B_FOOT_CATCH", "contact_pair": ["foot2", "wire"], "contact_kind": "obstacle", "leg_phase": 0.79, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 8.05, "leg": 0, "reason": "R1B_FOOT_CATCH", "contact_pair": ["floor", "foot0"], "contact_kind": "floor", "leg_phase": 0.79, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 8.318, "leg": 4, "reason": "R1B_FOOT_CATCH", "contact_pair": ["foot4", "wire"], "contact_kind": "obstacle", "leg_phase": 2.31, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 8.512, "leg": 1, "reason": "R1B_FOOT_CATCH", "contact_pair": ["floor", "foot1"], "contact_kind": "floor", "leg_phase": 0.8, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 9.038, "leg": 2, "reason": "R1B_FOOT_CATCH", "contact_pair": ["foot2", "wire"], "contact_kind": "obstacle", "leg_phase": 0.79, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 9.412, "leg": 1, "reason": "R1B_FOOT_CATCH", "contact_pair": ["floor", "foot1"], "contact_kind": "floor", "leg_phase": 0.79, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}
+{"t": 9.5, "leg": 5, "reason": "R1B_FOOT_CATCH", "contact_pair": ["foot5", "wire"], "contact_kind": "obstacle", "leg_phase": 1.3, "armed": null, "cooldown_remaining": 0.5, "event_type": "trigger"}

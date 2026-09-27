@@ -9,6 +9,9 @@ MaleCNS CPG-модуль (5 клеток, numpy) с knockout.
 import json
 import math
 import os
+from pathlib import Path
+
+from benchmark_data import BenchmarkData
 
 import matplotlib
 matplotlib.use("Agg")
@@ -18,6 +21,12 @@ import gradio as gr  # noqa: E402
 
 DATA = os.path.join(os.path.dirname(__file__), "data")
 CPG = os.path.join(DATA, "cpg_m0")
+try:
+    BENCH = BenchmarkData(Path(DATA) / "schema2")
+    BENCH_ERROR = None
+except (OSError, ValueError, KeyError, TypeError) as exc:
+    BENCH = None
+    BENCH_ERROR = str(exc)
 
 # ─────────────────────────── константы CPG M0 ───────────────────────────
 NAMES = ["DgR", "E1", "E2", "I1", "I2"]
@@ -141,36 +150,34 @@ def cpg_metrics(rast):
 
 # ─────────────────────────── данные бенчей ──────────────────────────────
 def load_summary():
-    with open(os.path.join(DATA, "summary.json")) as f:
-        return json.load(f)
+    if BENCH is None:
+        raise ValueError(BENCH_ERROR)
+    return BENCH.summary
 
 
 def load_events(bid, ctrl):
-    path = os.path.join(DATA, f"{bid}_{ctrl}_events.jsonl")
-    if not os.path.exists(path):
-        return []
-    with open(path, encoding="utf-8") as f:
-        return [json.loads(line) for line in f]
+    return BENCH.events(bid, ctrl) if BENCH is not None else []
 
 
 SCENARIOS = {
     "B01-flat": "Ровный пол: контроль ложных срабатываний (должно быть 0).",
     "B02-footcatch12": "Поперечная ловушка 12 мм: BASE застревает "
                        "(0.486 м), R1b foot-catch проходит (1.238 м).",
-    "B03-gap20": "Яма 20 мм: BASE теряет опору (падение, просадка 152 мм), "
-                 "R3 v2 ищет опору (fell 0, просадка ~19 мм).",
+    "B03-gap20": "Яма 20 мм: сравнение BASE и поиска опоры R3 v2. "
+                 "Пиковая и конечная просадка измерены отдельно.",
 }
 MODES = ["BASE", "R1b", "R3v2", "R1b+R3v2", "R4"]
 
 
 def loco_metrics(scenario, mode):
-    s = load_summary()
-    rows = [r for r in s["results"] if r["bench_id"] == scenario
-            and r["controller"] == mode]
-    if not rows:
+    if BENCH is None:
+        return f"Данные schema 2 недоступны: {BENCH_ERROR}"
+    r = BENCH.result(scenario, mode)
+    if r is None:
         return "Нет данных: этот режим в этом сценарии не прогонялся " \
                "(или не применим)."
-    r = rows[0]
+    false_events = r["false_events"]
+    false_label = "не оценено" if false_events is None else str(false_events)
     lines = [
         f"## {scenario} / {mode}",
         "",
@@ -178,27 +185,53 @@ def loco_metrics(scenario, mode):
         "",
         "| Метрика | Значение |",
         "|---|---|",
-        f"| distance, м | {r.get('x')} |",
-        f"| falls | {r.get('fell')} |",
-        f"| false reflex events | {r.get('false_events')} |",
-        f"| body drop, мм | {r.get('body_drop_mm')} |",
+        f"| distance, м | {r['distance_m']} |",
+        f"| falls | {int(r['fell'])} |",
+        f"| Начала эпизодов | {r['trigger_count']} |",
+        f"| Активные записи | {r['active_tick_count']} |",
+        f"| Ложные срабатывания | {false_label} |",
+        f"| Просадка: пик, мм | {r['peak_body_drop_mm']} |",
+        f"| Просадка: итог, мм | {r['final_body_drop_mm']} |",
         f"| min foot z, мм | {r.get('min_foot_z_mm')} |",
-        f"| max tilt, град | {r.get('max_tilt_deg')} |",
-        f"| reflex events (событий) | "
-        f"{json.dumps(r.get('events', {}), ensure_ascii=False)} |",
+        f"| Наклон: максимум, ° | {r['max_tilt_deg']} |",
+        f"| Начала по reason | {json.dumps(r['event_triggers'], ensure_ascii=False)} |",
+        f"| Активные записи по reason | {json.dumps(r['event_active_ticks'], ensure_ascii=False)} |",
         f"| time to first search, с | {r.get('time_to_first_search_s')} |",
         f"| search duration, мс | {r.get('search_duration_ms')} |",
         f"| ground found | {r.get('ground_found')} |",
         f"| seed | {r.get('seed')} |",
+        f"| Длительность, с | {r['duration_s']} |",
         "",
-        "*Полный прогон исполнен на ноде (MuJoCo), здесь — заранее "
-        "полученный результат.*",
+        "Начало эпизода и продолжение на следующем тике считаются отдельно. "
+        "Ложность оценивается только в flat-контроле, где рефлексы не ожидаются; "
+        "в остальных сценариях отсутствие оценки не означает ноль ошибок.",
+        "",
+        "*Схема 2: заранее исполненный MuJoCo-прогон, SHA256 файлов проверены.*",
     ]
     return "\n".join(lines)
 
 
+def provenance_markdown():
+    if BENCH is None:
+        return f"Данные schema 2 недоступны: {BENCH_ERROR}"
+    manifest = BENCH.manifest
+    runtime = manifest["runtime"]
+    return "\n".join([
+        "### Происхождение результатов schema 2",
+        f"- Git revision: `{manifest['git_revision']}`",
+        f"- Source SHA256: `{manifest['source_sha256']}`",
+        f"- Длительность: {manifest['duration_s']} с; стабилизация: {manifest['settling_s']} с",
+        f"- Seed: {manifest['seed']}; {manifest['seed_policy']}",
+        "- Runtime: " + ", ".join(f"{name} {value}" for name, value in runtime.items()),
+        f"- Сформировано: {manifest['created_at']}",
+        "- Контроллеры аналитические; neural checkpoint не используется.",
+        "Сырые события содержат начала эпизодов и активные тики, а не полную траекторию тела.",
+    ])
+
+
 def reflex_timeline():
-    ev = load_events("B02-footcatch12", "R1b")
+    ev = [event for event in load_events("B02-footcatch12", "R1b")
+          if event["event_type"] == "trigger"]
     if not ev:
         return None
     fig, ax = plt.subplots(figsize=(9, 3.2))
@@ -213,7 +246,7 @@ def reflex_timeline():
     ax.set_yticklabels([f"leg {i}" for i in range(6)])
     ax.set_xlabel("t, с")
     ax.set_ylabel("нога")
-    ax.set_title("B02-footcatch12 / R1b — 9 триггеров foot-catch")
+    ax.set_title(f"B02-footcatch12 / R1b — {len(ev)} начал эпизодов foot-catch")
     ax.axvspan(7.0, 9.0, color="tab:orange", alpha=0.15,
                label="стена 12 мм")
     ax.legend(loc="upper left")
@@ -221,6 +254,20 @@ def reflex_timeline():
     fig.tight_layout()
     plt.close(fig)
     return fig
+
+
+def reflex_summary():
+    if BENCH is None:
+        return f"Данные schema 2 недоступны: {BENCH_ERROR}"
+    baseline = BENCH.result("B02-footcatch12", "BASE")
+    reflex = BENCH.result("B02-footcatch12", "R1b")
+    if baseline is None or reflex is None:
+        return "Нет данных для сравнения BASE и R1b."
+    return (f"- **BASE:** {baseline['distance_m']} м, падение: {int(baseline['fell'])}\n"
+            f"- **R1b foot-catch:** {reflex['distance_m']} м, "
+            f"падение: {int(reflex['fell'])}\n"
+            f"- **Начала эпизодов:** {reflex['trigger_count']}; "
+            "ложность срабатываний в этом сценарии не оценена.")
 
 
 REFLEX_CHAIN = """## R1b foot-catch: цепочка срабатывания (B02)
@@ -231,8 +278,7 @@ REFLEX_CHAIN = """## R1b foot-catch: цепочка срабатывания (B0
 4. **contact cleared** — стопа перенесена
 5. **nominal gait** — фаза продолжается
 
-*BASE: стопа упирается в стену 12 мм, походка деградирует → 0.486 м.*
-*R1b: 9 триггеров → 1.238 м, 0 падений.*
+*Численные результаты и начала эпизодов выше взяты из проверенного прогона schema 2.*
 """
 
 
@@ -301,12 +347,6 @@ def cpg_live(drive, ko_experiment):
 
 
 BENCH_TABLE = [
-    ["B01-flat", "отсутствие ложных рефлексов", "confirmed",
-     "0/0/0 (BASE/R1b/R3v2)"],
-    ["B02-footcatch12", "R1b foot-catch", "confirmed",
-     "0.486 → 1.238 м, проход"],
-    ["B03-gap20", "R3 v2 searching", "confirmed",
-     "fell 1→0, просадка 152→19 мм"],
     ["B04-rough4_10", "общая адаптация ног", "planned", "—"],
     ["B05-turn", "T2 steering", "planned", "—"],
     ["B06-stuck", "recovery", "planned", "—"],
@@ -318,12 +358,39 @@ BENCH_TABLE = [
 ]
 
 
+def benchmark_table():
+    rows = []
+    for scenario, description, modes in (
+        ("B01-flat", "отсутствие ложных рефлексов", ("BASE", "R1b", "R3v2")),
+        ("B02-footcatch12", "R1b foot-catch", ("BASE", "R1b")),
+        ("B03-gap20", "R3 v2 searching", ("BASE", "R3v2")),
+    ):
+        results = [BENCH.result(scenario, mode) if BENCH is not None else None
+                   for mode in modes]
+        if any(row is None for row in results):
+            rows.append([scenario, description, "нет данных", "—"])
+        elif scenario == "B01-flat":
+            rows.append([scenario, description, "measured / schema 2",
+                         "/".join(str(row["false_events"]) for row in results) +
+                         " (BASE/R1b/R3v2)"])
+        elif scenario == "B02-footcatch12":
+            rows.append([scenario, description, "measured / schema 2",
+                         f"{results[0]['distance_m']} → {results[1]['distance_m']} м"])
+        else:
+            rows.append([scenario, description, "measured / schema 2",
+                         f"fell {int(results[0]['fell'])}→{int(results[1]['fell'])}, "
+                         f"пиковая просадка {results[0]['peak_body_drop_mm']}→"
+                         f"{results[1]['peak_body_drop_mm']} мм"])
+    return rows + BENCH_TABLE
+
+
 def view_raw(filename):
-    path = os.path.join(DATA, filename)
-    if not os.path.exists(path):
-        return "нет файла"
-    with open(path) as f:
-        text = f.read()
+    if BENCH is None:
+        return f"Данные schema 2 недоступны: {BENCH_ERROR}"
+    try:
+        text = BENCH.read_raw(filename)
+    except ValueError as exc:
+        return str(exc)
     if len(text) > 20000:
         return text[:20000] + "\n… (обрезано)"
     return text
@@ -337,7 +404,7 @@ ROADMAP = """## Развитие Мухтара (реальная история
   R2 retraction, ранний R3 support-loss
 - **v0.2 — foot-catch** — `confirmed`: R1b: ловушка 12 мм 0.486 → 1.238 м
 - **v0.3 — prediction-error R3** — `confirmed`: R3 v2 (AMOS II):
-  яма 20 мм fell 1→0, просадка 152→19 мм
+  яма 20 мм fell 1→0; пиковая и конечная просадка — в таблице schema 2
 - **Global neural metronome + I2 phase reset** — `failed`:
   локальная пертурбация ноги сбивала всю походку (global metronome хуже
   локальных CPG)
@@ -365,7 +432,7 @@ def build():
             "contribution to behavior.")
         with gr.Tabs():
             with gr.Tab("▶ Locomotion"):
-                gr.Markdown("### MuJoCo-прогоны (заранее исполнены на ноде)")
+                gr.Markdown("### MuJoCo-прогоны schema 2 (заранее исполнены)")
                 with gr.Row():
                     scen = gr.Dropdown(list(SCENARIOS), value="B02-footcatch12",
                                        label="Сценарий")
@@ -375,9 +442,7 @@ def build():
                 btn.click(loco_metrics, [scen, mode], loco_out)
             with gr.Tab("⚡ Reflex Bench"):
                 gr.Markdown("### 12-mm foot trap")
-                gr.Markdown(
-                    "- **BASE:** 0.486 м — **stuck**\n"
-                    "- **R1b foot-catch:** 1.238 м — **passed**")
+                gr.Markdown(reflex_summary())
                 tl = gr.Plot(reflex_timeline())
                 gr.Markdown(REFLEX_CHAIN)
             with gr.Tab("🧠 MaleCNS CPG"):
@@ -405,14 +470,15 @@ def build():
                 v_md = gr.Markdown()
                 v_btn.click(cpg_view, [v_exp, v_drive], [v_plot, v_md])
             with gr.Tab("📊 Benchmarks"):
-                gr.Markdown("### MUKHTAR-Bench v1")
-                gr.Dataframe(BENCH_TABLE,
+                gr.Markdown("### MUKHTAR-Bench — schema 2")
+                gr.Dataframe(benchmark_table(),
                              headers=["Bench", "Что проверяет", "Статус",
                                       "Результат"],
                              interactive=False)
+                gr.Markdown(provenance_markdown())
                 gr.Markdown("### View raw")
-                files = sorted(os.listdir(DATA))
-                fsel = gr.Dropdown(files, value="summary.json",
+                files = BENCH.raw_files if BENCH is not None else []
+                fsel = gr.Dropdown(files, value="summary.json" if files else None,
                                    label="Файл")
                 raw_btn = gr.Button("Показать")
                 raw_out = gr.Textbox(lines=18, max_lines=30,
