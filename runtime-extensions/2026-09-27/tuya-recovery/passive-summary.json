@@ -1,0 +1,14 @@
+{
+  "duration_seconds": 25.03,
+  "listened_ports": [
+    6666,
+    6667,
+    7000
+  ],
+  "sent_packets": 0,
+  "counts": {},
+  "known_devices_seen": 0,
+  "known_cloud_offline_seen": 0,
+  "known_gateways_seen": 0,
+  "limitation": "No broadcast seen does not prove device absence or power loss."
+}

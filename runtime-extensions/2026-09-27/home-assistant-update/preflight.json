@@ -1,0 +1,17 @@
+{
+  "target_image": "ghcr.io/home-assistant/home-assistant:2026.9.4",
+  "target_image_id": "sha256:3e6710a7ab2a61311d9d899b719f6c3657791c63e8f4942cec4ebc42401d6b76",
+  "target_repo_digests": [
+    "ghcr.io/home-assistant/home-assistant@sha256:3e6710a7ab2a61311d9d899b719f6c3657791c63e8f4942cec4ebc42401d6b76"
+  ],
+  "version_from_image": "2026.9.4",
+  "compose_only_image_changed": true,
+  "check_config_returncode": 0,
+  "check_config_network": "none",
+  "check_config_live_mount": false,
+  "check_config_seconds": 11.94695547997253,
+  "old_image_still_available": true,
+  "canonical_before_sha256": "4118d79b7a3ba800a20cbc55767a51d941723b2f8666b8291b777a8b9df9b74a",
+  "candidate_sha256": "035196de45f63251a6080fb428bb048b583ea1268c173576bcfe72fbe3fb0e60",
+  "rollback_compose_sha256": "0bc419fb55a4166e35d1d0d25c13bf0e79738f7c10ede6a681d2b51de6cd6612"
+}

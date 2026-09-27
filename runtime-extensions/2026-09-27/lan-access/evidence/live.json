@@ -1,0 +1,34 @@
+{
+  "at": 1790531079.310527,
+  "manual_authenticated_refresh_preserves_verified_lan": true,
+  "memory_current_map_contains_lan": true,
+  "resolve_lan_http": 200,
+  "endpoint_checks": {
+    "localhost": {
+      "/ui": 200,
+      "/health": 200,
+      "/api/ha": 401,
+      "unauthorized_post": 401,
+      "authenticated_ha": 200
+    },
+    "lan_bound": {
+      "/ui": 200,
+      "/health": 200,
+      "/api/ha": 401,
+      "unauthorized_post": 401,
+      "authenticated_ha": 200
+    }
+  },
+  "unauthorized_post_created_jobs": false,
+  "source_hashes_verified": 10,
+  "direct_bpf_guard_passed": true,
+  "native_units": {
+    "argos-lan.socket": "active",
+    "argos-lan.service": "active"
+  },
+  "ordinary_self_lan": {
+    "reachable": true,
+    "http": 200
+  },
+  "valid_key_transferred_to_remote": false
+}

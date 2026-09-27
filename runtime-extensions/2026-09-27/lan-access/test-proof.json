@@ -1,0 +1,19 @@
+{
+  "recorded_at": 1790529535.271303,
+  "portable_discovery_auth_ttl_bpf_tests": {
+    "passed": 15,
+    "failed": 0
+  },
+  "rendered_bridge_tests": {
+    "passed": 5,
+    "failed": 0
+  },
+  "portable_without_runtime_source": {
+    "passed": 11,
+    "skipped_explicit_runtime_integration": 4
+  },
+  "private_material_scan": "pass",
+  "checks_exclude_device_mutations": true,
+  "reviewed_helper_sha256": "a959c9ce97f2b1b6f82348d1429fb5e3862951c50191e4f5b55c5d3dee81296a",
+  "live_verification": "recorded separately after root deployment"
+}

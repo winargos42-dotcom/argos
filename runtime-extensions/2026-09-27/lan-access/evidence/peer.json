@@ -1,0 +1,29 @@
+{
+  "checked_at": 1790531160.8718562,
+  "local": {
+    "health": 200,
+    "no_token": 401,
+    "authenticated": 200,
+    "core_url_unchanged": true
+  },
+  "interface_bound_local_lan": {
+    "authenticated": 200,
+    "real_bearer_stayed_on_x230": true
+  },
+  "registry": {
+    "available": true,
+    "fresh_900s": true,
+    "lan_port": 8081
+  },
+  "known_peer_coral": {
+    "health": 200,
+    "ready": true,
+    "ui": 200,
+    "no_token": 401,
+    "wrong_token": 401,
+    "real_bearer_transmitted": false
+  },
+  "installed_bpf_check": "passed",
+  "installed_bpf_sha256": "a959c9ce97f2b1b6f82348d1429fb5e3862951c50191e4f5b55c5d3dee81296a",
+  "read_only": true
+}

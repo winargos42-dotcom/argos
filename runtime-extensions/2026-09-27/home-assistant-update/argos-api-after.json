@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "captured_at": 1790527918.5104387,
+  "registry_endpoints_used": true,
+  "normal_discovery_refresh_required": false,
+  "argos_health_ready": true,
+  "unauthenticated_rejected": true,
+  "ha_version": "2026.9.4",
+  "entity_set_matches_ha": true,
+  "attributes_not_leaked": true,
+  "read_only": true,
+  "counts": {
+    "total": 91,
+    "available": 49,
+    "unavailable": 26,
+    "unknown": 16
+  }
+}

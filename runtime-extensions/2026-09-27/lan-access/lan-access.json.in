@@ -1,0 +1,5 @@
+{
+  "interface": "@LAN_INTERFACE@",
+  "trusted_subnet": "@TRUSTED_SUBNET@",
+  "lan_port": 8081
+}

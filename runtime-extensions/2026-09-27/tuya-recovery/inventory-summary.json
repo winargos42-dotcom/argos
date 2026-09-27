@@ -1,0 +1,140 @@
+{
+  "ha_version": "2026.9.3",
+  "entries": [
+    {
+      "state": "loaded",
+      "disabled": false,
+      "cloud_mqtt_connected": true,
+      "disabled_polling": false,
+      "devices": 14,
+      "online_counts": {
+        "offline": 12,
+        "online": 2
+      },
+      "categories": [
+        {
+          "category": "wg2",
+          "state": "offline",
+          "devices": 2
+        },
+        {
+          "category": "kg",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "mcs",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "wsdcg",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "tdq",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "wnykq",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "infrared_ac",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "infrared_tv",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "wk",
+          "state": "offline",
+          "devices": 1
+        },
+        {
+          "category": "wxkg",
+          "state": "offline",
+          "devices": 2
+        },
+        {
+          "category": "dlq",
+          "state": "online",
+          "devices": 1
+        },
+        {
+          "category": "kg",
+          "state": "online",
+          "devices": 1
+        }
+      ],
+      "topology_flags": [
+        {
+          "field": "sub",
+          "value": "True",
+          "state": "offline",
+          "devices": 9
+        },
+        {
+          "field": "support_local",
+          "value": "True",
+          "state": "offline",
+          "devices": 10
+        },
+        {
+          "field": "sub",
+          "value": "False",
+          "state": "offline",
+          "devices": 3
+        },
+        {
+          "field": "support_local",
+          "value": "False",
+          "state": "offline",
+          "devices": 2
+        },
+        {
+          "field": "sub",
+          "value": "False",
+          "state": "online",
+          "devices": 2
+        },
+        {
+          "field": "support_local",
+          "value": "True",
+          "state": "online",
+          "devices": 2
+        }
+      ],
+      "diagnostic_field_names": [
+        "active_time",
+        "category",
+        "create_time",
+        "function",
+        "home_assistant",
+        "id",
+        "local_strategy",
+        "name",
+        "online",
+        "product_id",
+        "product_name",
+        "quirk",
+        "set_up",
+        "status",
+        "status_range",
+        "sub",
+        "support_local",
+        "time_zone",
+        "update_time",
+        "warnings"
+      ],
+      "registered_devices": 23,
+      "registered_via_device_count": 0
+    }
+  ]
+}

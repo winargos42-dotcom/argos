@@ -1,0 +1,145 @@
+{
+  "passed": true,
+  "elapsed_seconds": 5.487853050231934,
+  "signed_get_before": {
+    "uptime_s": 89524,
+    "models": [
+      "objects",
+      "faces",
+      "classify"
+    ]
+  },
+  "signed_get_after": {
+    "uptime_s": 89530
+  },
+  "mqtt": {
+    "fresh_nonretained": true,
+    "coral_state": {
+      "connected": true,
+      "service_ready": true,
+      "role": "accelerator",
+      "uptime_seconds": 89529,
+      "error": null,
+      "status_source": "coral_accelerator_api",
+      "readiness_scope": "signed_status",
+      "inference_verified": false,
+      "authenticated": true
+    },
+    "retained_coral_state": {
+      "connected": true,
+      "service_ready": true,
+      "role": "accelerator",
+      "uptime_seconds": 89509,
+      "error": null,
+      "status_source": "coral_accelerator_api",
+      "readiness_scope": "signed_status",
+      "inference_verified": false,
+      "authenticated": true
+    },
+    "coral_availability": "ONLINE",
+    "bridge_availability": "ONLINE",
+    "expiry_seconds": 90,
+    "availability_mode": "all"
+  },
+  "ha_owned_diagnostics": {
+    "gateway": {
+      "connected": {
+        "state": "on",
+        "last_updated": "2026-09-27T12:58:07.858895+00:00",
+        "source_attributes": {
+          "status_source": null,
+          "readiness_scope": null,
+          "inference_verified": null,
+          "authenticated": null
+        }
+      },
+      "service_ready": {
+        "state": "on",
+        "last_updated": "2026-09-27T12:58:07.859026+00:00",
+        "source_attributes": {
+          "status_source": null,
+          "readiness_scope": null,
+          "inference_verified": null,
+          "authenticated": null
+        }
+      },
+      "role": {
+        "state": "gateway",
+        "last_updated": "2026-09-27T12:58:07.858315+00:00",
+        "source_attributes": {
+          "status_source": null,
+          "readiness_scope": null,
+          "inference_verified": null,
+          "authenticated": null
+        }
+      },
+      "uptime_seconds": {
+        "state": "2937",
+        "last_updated": "2026-09-27T12:59:48.059959+00:00",
+        "source_attributes": {
+          "status_source": null,
+          "readiness_scope": null,
+          "inference_verified": null,
+          "authenticated": null
+        }
+      }
+    },
+    "coral": {
+      "connected": {
+        "state": "on",
+        "last_updated": "2026-09-27T12:58:07.870498+00:00",
+        "source_attributes": {
+          "status_source": "coral_accelerator_api",
+          "readiness_scope": "signed_status",
+          "inference_verified": false,
+          "authenticated": true
+        }
+      },
+      "service_ready": {
+        "state": "on",
+        "last_updated": "2026-09-27T12:58:07.870576+00:00",
+        "source_attributes": {
+          "status_source": "coral_accelerator_api",
+          "readiness_scope": "signed_status",
+          "inference_verified": false,
+          "authenticated": true
+        }
+      },
+      "role": {
+        "state": "accelerator",
+        "last_updated": "2026-09-27T12:58:07.870385+00:00",
+        "source_attributes": {
+          "status_source": "coral_accelerator_api",
+          "readiness_scope": "signed_status",
+          "inference_verified": false,
+          "authenticated": true
+        }
+      },
+      "uptime_seconds": {
+        "state": "89529",
+        "last_updated": "2026-09-27T12:59:48.141245+00:00",
+        "source_attributes": {
+          "status_source": "coral_accelerator_api",
+          "readiness_scope": "signed_status",
+          "inference_verified": false,
+          "authenticated": true
+        }
+      }
+    }
+  },
+  "local_state_age_seconds": 0.2726402282714844,
+  "argos_health": {
+    "connected": true,
+    "service_ready": true,
+    "role": "gateway",
+    "uptime_seconds": 2937
+  },
+  "source_sha256": {
+    "coral_collector.py": "4882633b0658f6276c65a64e5534e6b16336bcb9e3ad7e7d98c55d0dd07e7428",
+    "collectors.py": "0c55ea3cc6c7ffdde0a042c0ba160add24374d32e6183e2a72feb2b7cab4a006",
+    "main.py": "8e911a7ec6cbaf4acb69e8b8765f99458e2a6f7020e0bef50708bb0193a2dcc3",
+    "entities.py": "1bd00fcd5c4b46620a208360a9769a1113a60c349ee052035aa0e0054e48b169",
+    "publisher.py": "d8d90ca3e643e155bef0aebef09af90fd5eb18b0d7c54029ad28fe2ede7565de"
+  },
+  "actions": "signed GET, MQTT subscribe, HA GET only; no inference, controls, service calls or ACL modifications"
+}

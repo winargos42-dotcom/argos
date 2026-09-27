@@ -1,0 +1,9 @@
+{
+  "native_proxy_roundtrip": true,
+  "same_denied_source_passes_unfiltered_control": true,
+  "native_socket_allow_deny_enforced": true,
+  "temporary_localhost_only": true,
+  "bpf_guard_sha256": "a959c9ce97f2b1b6f82348d1429fb5e3862951c50191e4f5b55c5d3dee81296a",
+  "direct_attachments": true,
+  "recorded_at": 1790527944.8283842
+}

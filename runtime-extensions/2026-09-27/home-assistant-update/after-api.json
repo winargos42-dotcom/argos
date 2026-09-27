@@ -1,0 +1,29 @@
+{
+  "captured_at": 1790513984.2245011,
+  "ha_version": "2026.9.4",
+  "counts": {
+    "total": 91,
+    "unavailable": 26,
+    "unknown": 16,
+    "available": 49
+  },
+  "tuya": [
+    {
+      "state": "loaded",
+      "mqtt_connected": true,
+      "device_counts": {
+        "total": 14,
+        "online": 2,
+        "offline": 12
+      }
+    }
+  ],
+  "state_ids_sha256": "cdfe49db1bbaaa72a458c387ede486b5f053493f2b9e439763225ee2579ed212",
+  "registry_ids_sha256": "eab31400f89ec3f288eb2c9875a357d3ba4ee1322110386ceaa1cd0bd84d62a6",
+  "registered_entity_count": 91,
+  "argos_dashboard_present": true,
+  "all_previous_state_ids_preserved": true,
+  "all_previous_registry_ids_preserved": true,
+  "state_id_set_unchanged": true,
+  "registry_id_set_unchanged": true
+}

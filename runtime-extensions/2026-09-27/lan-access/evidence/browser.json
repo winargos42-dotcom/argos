@@ -1,0 +1,9 @@
+{
+  "localhost_bridge_to_authenticated_argos_and_back_to_ha": true,
+  "mobile_no_overflow": true,
+  "actual_served_lan_bridge_href_matches_verified_lan": true,
+  "lan_authenticated_browser": true,
+  "lan_origin_bridge_login_ha_link_logout": true,
+  "desktop_no_overflow": true,
+  "browser_errors": []
+}

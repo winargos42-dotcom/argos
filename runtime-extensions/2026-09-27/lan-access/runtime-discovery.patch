@@ -1,0 +1,13 @@
+--- a/src/runtime_discovery.py
++++ b/src/runtime_discovery.py
+@@ -434,6 +434,10 @@
+                 local['apis'][kind] = dict(observed[-1]) if observed else {'url': '', 'state': 'unavailable',
+                     'last_verified': 0, 'observed_at': time.time(), 'provenance': 'no_configured_candidate'}
+             local['apis'][kind]['candidates'] = observed
++        from src.lan_discovery import probe_lan
++        lan_api = probe_lan()
++        if lan_api is not None:
++            local['apis']['argos_lan'] = lan_api
+         if include_remote:
+             for node_id, entry in list(known_remote_entries(config).items())[:4]:
+                 try:

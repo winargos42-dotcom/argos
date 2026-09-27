@@ -1,0 +1,14 @@
+[Unit]
+Description=ARGOS authenticated application LAN entry (trusted subnet only)
+
+[Socket]
+ListenStream=0.0.0.0:8081
+BindToDevice=@LAN_INTERFACE@
+IPAddressDeny=any
+IPAddressAllow=@TRUSTED_SUBNET@
+NoDelay=true
+Backlog=64
+Service=argos-lan.service
+
+[Install]
+WantedBy=sockets.target

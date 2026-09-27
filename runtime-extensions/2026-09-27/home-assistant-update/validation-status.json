@@ -1,0 +1,11 @@
+{
+  "deployment": "passed",
+  "ha_api_entity_preservation": "passed",
+  "tuya_authenticated_cloud_status": "passed",
+  "signed_get_mqtt_ha_8_diagnostics": "passed",
+  "argos_health": "passed",
+  "argos_ha_registry_consumer": "passed",
+  "native_dashboard_and_static_bridge_browser": "pending_coordinated_lan_followup",
+  "production_rollback": "not_executed",
+  "backup_restore_integrity": "passed"
+}

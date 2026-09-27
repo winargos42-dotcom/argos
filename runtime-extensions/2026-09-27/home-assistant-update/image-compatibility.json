@@ -1,0 +1,6 @@
+{
+  "environment_inheritance_matches": true,
+  "environment_different_keys": [],
+  "entrypoint_matches": true,
+  "command_matches": true
+}

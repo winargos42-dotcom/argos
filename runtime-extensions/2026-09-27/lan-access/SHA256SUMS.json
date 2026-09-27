@@ -1,0 +1,23 @@
+{
+  "README.md": "f67fa9f977580bd4a01b13dd3a6c87ba363767ade614eb63bd89f9c528b06041",
+  "REVIEWED_SOURCE_HASHES.json": "b8ae17ac21dbb9a23e8fe5cfd15f57fa2698eb8eb05aebd4b7f87bc0ae38b7ee",
+  "candidate/dashboard_builder.py": "c67f9cde9b7c7a4774ac24e86bd0e1a4848cc671c19622850027ad97739d90ae",
+  "candidate/lan_bpf_check.py": "a959c9ce97f2b1b6f82348d1429fb5e3862951c50191e4f5b55c5d3dee81296a",
+  "candidate/lan_discovery.py": "026efe031f986e70991b3eedcb654b84ef214109f32113bbfd34419c71b5298e",
+  "evidence/activation.json": "969bf550847963b47de5c5908e657ee882cbf968d7f1edad6d0a7e6f85efad18",
+  "evidence/browser.json": "e70abef42c60365324b8e2fda6aed7b460bbf60f31217049144c038e2bdb56ff",
+  "evidence/live.json": "5fcca593318ad44c98fbb0096f873f75d71fe7c6693deae9efd4a96882d326f4",
+  "evidence/peer.json": "7c9d4bf4f67b11bfe063895724b9d93e472e1f1928cd0d57bffe88dd92ec5ec4",
+  "ha-bridge-port.patch": "748886e9775bedeb33a5d4b8caabf8572c6974a84aea7d79db09a481be47f955",
+  "home-assistant-README.md": "a4e961ac276e2ba14d0d29460a0cf14aec64a4a07677846aafbfdfb2205a1eff",
+  "lan-access.json.in": "6cd47b3f38a35fcac8502198fd166e07734ce2e0f41665b5fdd3e6475448151f",
+  "native-preflight.json": "d05bf6e23f32b9bf87ed07f0c0a3a34c1ad0842aaacd495703566d544cba13a4",
+  "preflight_native.py": "ba8553fab81faa6fa591f59d6523aa77501a11e5ca537f8c1f0bf993899dc4a9",
+  "runtime-discovery.patch": "064a368fa915f6c4a3c701ef47709e969ffd80b9f6ba6708d50a828d1a137623",
+  "test-proof.json": "3995013d164c7b540d77283b30878705b7030c611a64b2bda45d843cd8d1ebf2",
+  "tests/test_bridge_port.py": "16fc851a0a95cbb936ef89504b005cb36ee58adac4eb9bf4811e4dce6ca887e2",
+  "tests/test_lan_discovery.py": "f6a9e0c6d6e2e8adb460be080fce1755eb6df42ba6016e805635281e3212c624",
+  "tests/test_lan_negative.py": "8d814b3e0a664a517b61359c1a02568d2eaa4392797b28c3dbad795a6d45d773",
+  "units/argos-lan.service": "435f7bad86f9b0dd21cd3765c36ea83c5119134e48080f8e221b08c96a1d9eac",
+  "units/argos-lan.socket.in": "066f8fbc74a954f9174dddd988ef306bff332581278a034a68c9315a8dfdb7c8"
+}

@@ -1,0 +1,7 @@
+{
+  "native_socket_active": true,
+  "core_ready": true,
+  "restarted_only_core": true,
+  "active_jobs_before_restart": 0,
+  "at": 1790530984.3391874
+}

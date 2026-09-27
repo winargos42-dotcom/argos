@@ -12,7 +12,7 @@ Power units preserve W versus VA; kW/kVA are scaled to their matching units. Cli
 
 - `runtime-ha.patch`: four source changes relative to the previously deployed ARGOS runtime. `manifest.json` records baseline and final SHA-256 values. Apply only to matching source, preserving any concurrent changes.
 - `candidate/src/ha_dashboard.py` and `candidate/src/interface/control_panel.html`: the final generic snapshot module and panel for inspection/tests.
-- `dashboard_builder.py`: pure generator; takes actual HA REST state objects and emits no invented device IDs. The corrected `BRIDGE_HTML` uses port 8080 for localhost/127.0.0.1, normalizes IPv6 loopback to 127.0.0.1, and uses port 8081 for other hosts. Install the restricted relay and verified `argos_lan` discovery from the [LAN access follow-up](../lan-access/README.md). The initial bridge had only been verified on localhost; the follow-up records successful LAN-origin login, home-tab loading, HA backlink and logout as well as a real Coral peer check. This bridge does not provide external proxy routing.
+- `dashboard_builder.py`: pure generator; takes actual HA REST state objects. It emits no invented device IDs. `BRIDGE_HTML` uses the existing HTTP backend port 8080 for localhost (IPv6 loopback is normalized to 127.0.0.1) and the restricted LAN relay port 8081 for other hosts. The hostname follows the browser URL. Install the companion `lan-access` extension for the LAN relay and verified `argos_lan` discovery. This bridge does not provide external proxy routing.
 - `tests`: synthetic unit and Chromium browser regressions. No household data or credentials are included.
 - `proof.json`: sanitized live verification result. Screenshots and household inventory remain private.
 
@@ -36,12 +36,6 @@ To install the native dashboard, use the authenticated HA WebSocket API to creat
 Live ARGOS and HA APIs agreed on 91 entity IDs and state counts. At the recorded check: 45 available, 30 unavailable, 16 unknown. The native dashboard displayed 52 existing entities in 6 cards. API authentication, search/filter/refresh, unavailable rendering, logout, the HA→ARGOS link and desktop/mobile layouts passed. Native entity cards exposed zero switches/sliders/select controls; the browser made zero device-service calls. The deployment used one administrative container restart of HA to activate its static directory.
 
 Unavailable telemetry is not a claim that all devices were repaired. At inventory time, 26 Tuya entities were unavailable; their physical cause was not established. Four old MQTT Coral status entities had a separate collector configuration problem. That collector is an independent follow-up and does not alter this snapshot evidence. Other unknown states include scene and backup metadata, which do not by themselves prove a disconnected device.
-
-Follow-up read-only [Tuya diagnostics](tuya-diagnosis-aggregate.json) confirmed that the integration is loaded and cloud MQTT connected. The cloud reports 12 of 14 devices offline; all 26 unavailable entities belong to those offline devices. The other two devices account for 14 available entities. This does not indicate HA authentication/setup failure; the physical cause of the device outages is still unknown. Check those devices and their hub in the Tuya app, power and network before considering any reconfiguration. No pairing, reset, reauthentication or device action was performed.
-
-The separate [node collector repair](../ha-node-collector/README.md) subsequently restored the four Coral diagnostics using the verified signed accelerator API. Its live API→MQTT→HA check measured **49 available, 26 unavailable and 16 unknown out of 91 entities**. The original dashboard proof above remains the unmodified earlier observation.
-
-The [Home Assistant update](../home-assistant-update/README.md) subsequently pinned the container to **2026.9.4**, preserving all 91 entity IDs and the same availability counts. The update and its backup verification are recorded separately; it did not repair the 12 cloud-offline Tuya devices.
 
 ## Rollback
 

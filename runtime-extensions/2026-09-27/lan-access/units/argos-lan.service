@@ -1,0 +1,14 @@
+[Unit]
+Description=ARGOS LAN TCP relay to existing localhost application
+
+[Service]
+ExecStartPre=+/usr/bin/python3 /usr/local/libexec/argos/lan_bpf_check.py argos-lan.socket
+ExecStart=/usr/lib/systemd/systemd-socket-proxyd --connections-max=64 --exit-idle-time=300 127.0.0.1:8080
+DynamicUser=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+RestrictAddressFamilies=AF_INET AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=localhost

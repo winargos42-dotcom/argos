@@ -1,0 +1,58 @@
+{
+  "captured_at": 1790513036.5000741,
+  "container": "homeassistant",
+  "image_reference": "ghcr.io/home-assistant/home-assistant:stable",
+  "old_image_id": "sha256:d8922685169707fd91e8b9729902d975f06157d005e422874d201e0261dda196",
+  "old_image_repo_digests": [
+    "ghcr.io/home-assistant/home-assistant@sha256:d8922685169707fd91e8b9729902d975f06157d005e422874d201e0261dda196"
+  ],
+  "old_image_size_bytes": 3434250446,
+  "running": true,
+  "compose_path": "/home/.argos-storage/homeassistant/docker-compose.yml",
+  "compose_sha256": "4118d79b7a3ba800a20cbc55767a51d941723b2f8666b8291b777a8b9df9b74a",
+  "compose_services": [
+    "homeassistant"
+  ],
+  "compose_label_matches": true,
+  "network_mode": "host",
+  "restart_policy": {
+    "Name": "unless-stopped",
+    "MaximumRetryCount": 0
+  },
+  "privileged": false,
+  "device_count": 0,
+  "mounts": [
+    {
+      "type": "bind",
+      "destination": "/config",
+      "read_write": true
+    },
+    {
+      "type": "bind",
+      "destination": "/etc/localtime",
+      "read_write": false
+    },
+    {
+      "type": "bind",
+      "destination": "/run/dbus",
+      "read_write": false
+    }
+  ],
+  "env_count": 11,
+  "config_size_bytes": 28610829,
+  "disk_free_bytes": {
+    "docker": 35995963392,
+    "config": 35995963392,
+    "staging": 6213935104
+  },
+  "docker_root": "/home/.arch-storage/docker",
+  "config_directory": "/home/.argos-storage/homeassistant/config",
+  "compose_service_nonsecret": {
+    "homeassistant": {
+      "container_name": "homeassistant",
+      "image": "ghcr.io/home-assistant/home-assistant:stable",
+      "network_mode": "host",
+      "restart": "unless-stopped"
+    }
+  }
+}
