@@ -1,0 +1,61 @@
+{
+  "format": "mukhtar-snn-worker-v2-public-bundle-v1",
+  "files": {
+    "README.md": {
+      "sha256": "0697e7346ad5922824529b6f9bd16a467acf2e6795d6ead6cc2f0ada5eceb698",
+      "bytes": 9026
+    },
+    "snn_rank_worker_v2.py": {
+      "sha256": "e366fb50ab4825abea09df6217e2f2fe81ff49209e275ff0bd920f05060e9253",
+      "bytes": 13497
+    },
+    "test_snn_v2.py": {
+      "sha256": "e316ef181e80da33401a2b2acc961eac2f2c3043e168a697dcdbb9afcdc79ae3",
+      "bytes": 6047
+    },
+    "pytest.ini": {
+      "sha256": "390d73b47f086fc8069e289e361b35d760b9c5b05fe1eb7a8e19a59d8769eacf",
+      "bytes": 36
+    },
+    "snn_rank_worker.py": {
+      "sha256": "0fee7c638a513eb5bfc7d48760c2bf86502cb0a1e4d5d2d43ed488d0cf64ace3",
+      "bytes": 6662
+    },
+    "reproduce_old_regressions.py": {
+      "sha256": "b95dbf1e4e139a3f4d72d3a9c9e4946a6b6112e1d4631dbe5bc2c19c56dadfd9",
+      "bytes": 1391
+    },
+    "checkpoint_smoke.py": {
+      "sha256": "4486e40ccb47f7983eb49a269ceba56b263376769d5be51432d59d9e2fdf9655",
+      "bytes": 6096
+    },
+    "red-old-evidence.json": {
+      "sha256": "96d8b760a5f8d29e1d00ab208d668e581c61f8746072a1c1cf914e7824b3873c",
+      "bytes": 2398
+    },
+    "remote-checks.json": {
+      "sha256": "0b13dd445d825436cbe33654283793263da67881d54b56e35ac27677f134eb8c",
+      "bytes": 52144
+    },
+    "checkpoint-smoke.json": {
+      "sha256": "fd904cebc50bf9eb20500c4da9567020f2c3f7a89256037337a76f75c6027fa3",
+      "bytes": 38540
+    },
+    "deployment-verification.json": {
+      "sha256": "0f5d45d1febedce8077cc28e6e52da086e5c7fc77c59c5c473755505be4e230f",
+      "bytes": 13548
+    },
+    "canonical/model.py": {
+      "sha256": "118e32c0efa5bbfea879b35f48ee2757cb0018396249f71e3cbc56de730522a8",
+      "bytes": 4598
+    },
+    "canonical/sparse_mm.py": {
+      "sha256": "b784fa7e737a53e67b34aae0eaa44c588c486599b9edca198c9c287ec2f8e30a",
+      "bytes": 1102
+    },
+    "canonical/sparse_mm_fast.py": {
+      "sha256": "8b47d00a36b27f06964564c47f86dd290ce9105743caa6aaa66ccb3caa1f4204",
+      "bytes": 2956
+    }
+  }
+}
