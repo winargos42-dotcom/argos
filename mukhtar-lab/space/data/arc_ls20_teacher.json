@@ -1,0 +1,31 @@
+{
+  "source": "X230 /home/argos-data/improve/data/ls20_2026-09-26_scorecard.json",
+  "environment": "ls20-9607627b",
+  "card_id": "7356a5cb-b9ff-4419-b7a1-8509b6c68db4",
+  "score": 100,
+  "levels_completed": 7,
+  "level_count": 7,
+  "actions": 309,
+  "resets": 0,
+  "state": "WIN",
+  "completed": true,
+  "level_actions": [
+    13,
+    45,
+    39,
+    43,
+    44,
+    72,
+    53
+  ],
+  "level_baseline_actions": [
+    22,
+    123,
+    73,
+    84,
+    96,
+    192,
+    186
+  ],
+  "caveat": "Teacher/control trajectory only. This is not a Mukhtar-ranker A/B result."
+}
