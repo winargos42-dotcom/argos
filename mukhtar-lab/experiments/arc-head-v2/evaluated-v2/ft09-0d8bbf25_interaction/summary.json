@@ -1,0 +1,21 @@
+{
+  "game_id": "ft09-0d8bbf25",
+  "policy": "interaction",
+  "backend": "native_frame_features",
+  "execution": "offline_local_game",
+  "seed": 0,
+  "budget": 400,
+  "actions": 400,
+  "levels_completed": 0,
+  "final_state": "NOT_FINISHED",
+  "won": false,
+  "unique_frames": 1,
+  "unchanged_frame_actions": 400,
+  "initial_frame_sha256": "715d7283fd89dabc7b1d3b1c979ceb123ae112caeb97b15c03bfbe88d1010eb9",
+  "final_frame_sha256": "715d7283fd89dabc7b1d3b1c979ceb123ae112caeb97b15c03bfbe88d1010eb9",
+  "stop_reason": "budget_exhausted",
+  "inference_ms_mean": 3.405151408078382,
+  "wall_time_s": 3.53125960304169,
+  "checkpoint_sha256": "e3b2f89112d2faa0b8d49c966de975039667bae81f21b1b3b15f509fcce37177",
+  "training_scope": "LS20 levels1..5 only; no SNN; click actions untrained"
+}

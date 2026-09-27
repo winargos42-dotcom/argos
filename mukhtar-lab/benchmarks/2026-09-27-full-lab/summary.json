@@ -1,0 +1,1820 @@
+{
+  "locomotion": [
+    {
+      "ctrl": "B01-flat_BASE",
+      "x": 1.26,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {},
+      "self_contacts": 33946,
+      "min_foot_z_mm": -1.6,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 2.7,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": 0,
+      "false_events_basis": "explicit_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "scenario": "B01-flat",
+      "controller": "BASE",
+      "duration_s": 20.0,
+      "distance_m": 1.26
+    },
+    {
+      "ctrl": "B01-flat_R1b",
+      "x": 1.26,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {},
+      "self_contacts": 33946,
+      "min_foot_z_mm": -1.6,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 2.7,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": 0,
+      "false_events_basis": "explicit_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "scenario": "B01-flat",
+      "controller": "R1b",
+      "duration_s": 20.0,
+      "distance_m": 1.26
+    },
+    {
+      "ctrl": "B01-flat_R3v2",
+      "x": 1.26,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {},
+      "self_contacts": 33946,
+      "min_foot_z_mm": -1.6,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 2.7,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": 0,
+      "false_events_basis": "explicit_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "scenario": "B01-flat",
+      "controller": "R3v2",
+      "duration_s": 20.0,
+      "distance_m": 1.26
+    },
+    {
+      "ctrl": "B01-flat_R1b+R3v2",
+      "x": 1.26,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {},
+      "self_contacts": 33946,
+      "min_foot_z_mm": -1.6,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 2.7,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": 0,
+      "false_events_basis": "explicit_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "scenario": "B01-flat",
+      "controller": "R1b+R3v2",
+      "duration_s": 20.0,
+      "distance_m": 1.26
+    },
+    {
+      "ctrl": "B01-flat_R4",
+      "x": 0.887,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R4_LOAD_HOLD": 10544
+      },
+      "self_contacts": 25449,
+      "min_foot_z_mm": -1.9,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 2.7,
+      "event_active_ticks": {
+        "R4_LOAD_HOLD": 10544
+      },
+      "event_triggers": {
+        "R4_LOAD_HOLD": 108
+      },
+      "active_tick_count": 10544,
+      "trigger_count": 108,
+      "false_events": 108,
+      "false_events_basis": "explicit_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 108,
+      "r4_releases": 108,
+      "r4_hold_mean_ms": 195.3,
+      "r4_hold_max_ms": 402.0,
+      "r4_chatter": 0,
+      "scenario": "B01-flat",
+      "controller": "R4",
+      "duration_s": 20.0,
+      "distance_m": 0.887
+    },
+    {
+      "ctrl": "B02-footcatch12_BASE",
+      "x": 0.486,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {},
+      "self_contacts": 26252,
+      "min_foot_z_mm": -2.2,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 5.5,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "scenario": "B02-footcatch12",
+      "controller": "BASE",
+      "duration_s": 20.0,
+      "distance_m": 0.486
+    },
+    {
+      "ctrl": "B02-footcatch12_R1b",
+      "x": 1.238,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R1B_FOOT_CATCH": 9
+      },
+      "self_contacts": 33167,
+      "min_foot_z_mm": -2.3,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.9,
+      "max_tilt_deg": 5.0,
+      "event_active_ticks": {
+        "R1B_FOOT_CATCH": 9
+      },
+      "event_triggers": {
+        "R1B_FOOT_CATCH": 9
+      },
+      "active_tick_count": 9,
+      "trigger_count": 9,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          8.784,
+          1,
+          "floor",
+          0.002,
+          0
+        ],
+        [
+          8.786,
+          1,
+          "floor",
+          0.004,
+          0
+        ],
+        [
+          8.788,
+          1,
+          "floor",
+          0.006,
+          0
+        ],
+        [
+          8.79,
+          1,
+          "floor",
+          0.008,
+          0
+        ],
+        [
+          8.792,
+          1,
+          "floor",
+          0.01,
+          0
+        ],
+        [
+          8.794,
+          1,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          8.796,
+          1,
+          "floor",
+          0.014,
+          0
+        ]
+      ],
+      "scenario": "B02-footcatch12",
+      "controller": "R1b",
+      "duration_s": 20.0,
+      "distance_m": 1.238
+    },
+    {
+      "ctrl": "B02-footcatch12_R3v2",
+      "x": 0.486,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {},
+      "self_contacts": 26252,
+      "min_foot_z_mm": -2.2,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 5.5,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "scenario": "B02-footcatch12",
+      "controller": "R3v2",
+      "duration_s": 20.0,
+      "distance_m": 0.486
+    },
+    {
+      "ctrl": "B02-footcatch12_R1b+R3v2",
+      "x": 1.257,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R1B_FOOT_CATCH": 10,
+        "R3_SEARCHING": 42
+      },
+      "self_contacts": 32648,
+      "min_foot_z_mm": -2.6,
+      "net_progress": 0.675,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.8,
+      "max_tilt_deg": 5.0,
+      "event_active_ticks": {
+        "R1B_FOOT_CATCH": 10,
+        "R3_SEARCHING": 42
+      },
+      "event_triggers": {
+        "R1B_FOOT_CATCH": 10,
+        "R3_SEARCHING": 1
+      },
+      "active_tick_count": 52,
+      "trigger_count": 11,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": 9.008,
+      "search_duration_ms": 168.0,
+      "ground_found": true,
+      "n_searches": 1,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          8.784,
+          1,
+          "floor",
+          0.002,
+          0
+        ],
+        [
+          8.786,
+          1,
+          "floor",
+          0.004,
+          0
+        ],
+        [
+          8.788,
+          1,
+          "floor",
+          0.006,
+          0
+        ],
+        [
+          8.79,
+          1,
+          "floor",
+          0.008,
+          0
+        ],
+        [
+          8.792,
+          1,
+          "floor",
+          0.01,
+          0
+        ],
+        [
+          8.794,
+          1,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          8.796,
+          1,
+          "floor",
+          0.014,
+          0
+        ],
+        [
+          9.728,
+          2,
+          "floor",
+          0.002,
+          0
+        ],
+        [
+          9.73,
+          2,
+          "floor",
+          0.004,
+          0
+        ],
+        [
+          9.732,
+          2,
+          "floor",
+          0.006,
+          0
+        ],
+        [
+          9.732,
+          5,
+          "floor",
+          0.002,
+          0
+        ],
+        [
+          9.734,
+          2,
+          "floor",
+          0.008,
+          0
+        ]
+      ],
+      "scenario": "B02-footcatch12",
+      "controller": "R1b+R3v2",
+      "duration_s": 20.0,
+      "distance_m": 1.257
+    },
+    {
+      "ctrl": "B02-footcatch12_R4",
+      "x": 0.981,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R4_LOAD_HOLD": 9335
+      },
+      "self_contacts": 25991,
+      "min_foot_z_mm": -3.0,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 3.5,
+      "event_active_ticks": {
+        "R4_LOAD_HOLD": 9335
+      },
+      "event_triggers": {
+        "R4_LOAD_HOLD": 112
+      },
+      "active_tick_count": 9335,
+      "trigger_count": 112,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 112,
+      "r4_releases": 110,
+      "r4_hold_mean_ms": 168.8,
+      "r4_hold_max_ms": 402.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          9.686,
+          5,
+          "floor",
+          0.002,
+          0
+        ],
+        [
+          9.688,
+          5,
+          "floor",
+          0.004,
+          0
+        ],
+        [
+          9.69,
+          5,
+          "floor",
+          0.006,
+          0
+        ],
+        [
+          9.692,
+          5,
+          "floor",
+          0.008,
+          0
+        ],
+        [
+          9.694,
+          5,
+          "floor",
+          0.01,
+          0
+        ],
+        [
+          9.696,
+          5,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          9.698,
+          5,
+          "floor",
+          0.014,
+          0
+        ],
+        [
+          9.7,
+          5,
+          "floor",
+          0.016,
+          0
+        ],
+        [
+          9.702,
+          5,
+          "floor",
+          0.018,
+          0
+        ],
+        [
+          9.704,
+          5,
+          "floor",
+          0.02,
+          0
+        ],
+        [
+          9.706,
+          5,
+          "floor",
+          0.022,
+          0
+        ],
+        [
+          9.708,
+          5,
+          "floor",
+          0.024,
+          0
+        ]
+      ],
+      "scenario": "B02-footcatch12",
+      "controller": "R4",
+      "duration_s": 20.0,
+      "distance_m": 0.981
+    },
+    {
+      "ctrl": "B03-gap20_BASE",
+      "x": 0.939,
+      "metrics_schema_version": 2,
+      "fell": true,
+      "events": {},
+      "self_contacts": 30727,
+      "min_foot_z_mm": -24.0,
+      "net_progress": null,
+      "body_drop_mm": 152.3,
+      "final_body_drop_mm": 152.3,
+      "peak_body_drop_mm": 156.0,
+      "max_tilt_deg": 180.0,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "scenario": "B03-gap20",
+      "controller": "BASE",
+      "duration_s": 20.0,
+      "distance_m": 0.939
+    },
+    {
+      "ctrl": "B03-gap20_R1b",
+      "x": 1.249,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R1B_FOOT_CATCH": 10
+      },
+      "self_contacts": 33010,
+      "min_foot_z_mm": -30.3,
+      "net_progress": null,
+      "body_drop_mm": 18.8,
+      "final_body_drop_mm": 18.8,
+      "peak_body_drop_mm": 20.9,
+      "max_tilt_deg": 16.8,
+      "event_active_ticks": {
+        "R1B_FOOT_CATCH": 10
+      },
+      "event_triggers": {
+        "R1B_FOOT_CATCH": 10
+      },
+      "active_tick_count": 10,
+      "trigger_count": 10,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          9.336,
+          0,
+          "floor",
+          0.002,
+          1
+        ],
+        [
+          9.338,
+          0,
+          "floor",
+          0.004,
+          1
+        ],
+        [
+          9.34,
+          0,
+          "floor",
+          0.006,
+          1
+        ],
+        [
+          9.342,
+          0,
+          "floor",
+          0.008,
+          1
+        ],
+        [
+          9.344,
+          0,
+          "floor",
+          0.01,
+          1
+        ],
+        [
+          9.346,
+          0,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          9.348,
+          0,
+          "floor",
+          0.014,
+          0
+        ],
+        [
+          9.35,
+          0,
+          "floor",
+          0.016,
+          0
+        ],
+        [
+          9.352,
+          0,
+          "floor",
+          0.018,
+          0
+        ],
+        [
+          9.354,
+          0,
+          "floor",
+          0.02,
+          0
+        ],
+        [
+          9.356,
+          0,
+          "floor",
+          0.022,
+          0
+        ],
+        [
+          11.518,
+          1,
+          "floor",
+          0.002,
+          0
+        ]
+      ],
+      "scenario": "B03-gap20",
+      "controller": "R1b",
+      "duration_s": 20.0,
+      "distance_m": 1.249
+    },
+    {
+      "ctrl": "B03-gap20_R3v2",
+      "x": 0.987,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R3_SEARCHING": 1446,
+        "R3_SEARCH_TIMEOUT_RETRACT": 465
+      },
+      "self_contacts": 29079,
+      "min_foot_z_mm": -47.1,
+      "net_progress": 0.306,
+      "body_drop_mm": 19.1,
+      "final_body_drop_mm": 19.1,
+      "peak_body_drop_mm": 24.6,
+      "max_tilt_deg": 21.5,
+      "event_active_ticks": {
+        "R3_SEARCHING": 1446,
+        "R3_SEARCH_TIMEOUT_RETRACT": 465
+      },
+      "event_triggers": {
+        "R3_SEARCHING": 52,
+        "R3_SEARCH_TIMEOUT_RETRACT": 24
+      },
+      "active_tick_count": 1911,
+      "trigger_count": 76,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": 10.306,
+      "search_duration_ms": 1074.0,
+      "ground_found": true,
+      "n_searches": 16,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          9.336,
+          0,
+          "floor",
+          0.002,
+          1
+        ],
+        [
+          9.338,
+          0,
+          "floor",
+          0.004,
+          1
+        ],
+        [
+          9.34,
+          0,
+          "floor",
+          0.006,
+          1
+        ],
+        [
+          9.342,
+          0,
+          "floor",
+          0.008,
+          1
+        ],
+        [
+          9.344,
+          0,
+          "floor",
+          0.01,
+          1
+        ],
+        [
+          9.346,
+          0,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          9.348,
+          0,
+          "floor",
+          0.014,
+          0
+        ],
+        [
+          9.35,
+          0,
+          "floor",
+          0.016,
+          0
+        ],
+        [
+          9.352,
+          0,
+          "floor",
+          0.018,
+          0
+        ],
+        [
+          9.354,
+          0,
+          "floor",
+          0.02,
+          0
+        ],
+        [
+          9.356,
+          0,
+          "floor",
+          0.022,
+          0
+        ],
+        [
+          9.864,
+          5,
+          "floor",
+          0.002,
+          1
+        ]
+      ],
+      "scenario": "B03-gap20",
+      "controller": "R3v2",
+      "duration_s": 20.0,
+      "distance_m": 0.987
+    },
+    {
+      "ctrl": "B03-gap20_R1b+R3v2",
+      "x": 1.19,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R1B_FOOT_CATCH": 13,
+        "R3_SEARCHING": 566,
+        "R3_SEARCH_TIMEOUT_RETRACT": 151
+      },
+      "self_contacts": 31413,
+      "min_foot_z_mm": -55.4,
+      "net_progress": 0.545,
+      "body_drop_mm": 18.8,
+      "final_body_drop_mm": 18.8,
+      "peak_body_drop_mm": 29.2,
+      "max_tilt_deg": 27.2,
+      "event_active_ticks": {
+        "R1B_FOOT_CATCH": 13,
+        "R3_SEARCHING": 566,
+        "R3_SEARCH_TIMEOUT_RETRACT": 151
+      },
+      "event_triggers": {
+        "R1B_FOOT_CATCH": 13,
+        "R3_SEARCHING": 45,
+        "R3_SEARCH_TIMEOUT_RETRACT": 11
+      },
+      "active_tick_count": 730,
+      "trigger_count": 69,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": 10.266,
+      "search_duration_ms": 464.0,
+      "ground_found": true,
+      "n_searches": 8,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          9.336,
+          0,
+          "floor",
+          0.002,
+          1
+        ],
+        [
+          9.338,
+          0,
+          "floor",
+          0.004,
+          1
+        ],
+        [
+          9.34,
+          0,
+          "floor",
+          0.006,
+          1
+        ],
+        [
+          9.342,
+          0,
+          "floor",
+          0.008,
+          1
+        ],
+        [
+          9.344,
+          0,
+          "floor",
+          0.01,
+          1
+        ],
+        [
+          9.346,
+          0,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          9.348,
+          0,
+          "floor",
+          0.014,
+          0
+        ],
+        [
+          9.35,
+          0,
+          "floor",
+          0.016,
+          0
+        ],
+        [
+          9.352,
+          0,
+          "floor",
+          0.018,
+          0
+        ],
+        [
+          9.354,
+          0,
+          "floor",
+          0.02,
+          0
+        ],
+        [
+          9.356,
+          0,
+          "floor",
+          0.022,
+          0
+        ],
+        [
+          12.244,
+          0,
+          "floor",
+          0.002,
+          0
+        ]
+      ],
+      "scenario": "B03-gap20",
+      "controller": "R1b+R3v2",
+      "duration_s": 20.0,
+      "distance_m": 1.19
+    },
+    {
+      "ctrl": "B03-gap20_R4",
+      "x": 0.907,
+      "metrics_schema_version": 2,
+      "fell": true,
+      "events": {
+        "R4_LOAD_HOLD": 8306
+      },
+      "self_contacts": 24693,
+      "min_foot_z_mm": -53.6,
+      "net_progress": null,
+      "body_drop_mm": 107.1,
+      "final_body_drop_mm": 107.1,
+      "peak_body_drop_mm": 107.1,
+      "max_tilt_deg": 142.8,
+      "event_active_ticks": {
+        "R4_LOAD_HOLD": 8306
+      },
+      "event_triggers": {
+        "R4_LOAD_HOLD": 78
+      },
+      "active_tick_count": 8306,
+      "trigger_count": 78,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 78,
+      "r4_releases": 78,
+      "r4_hold_mean_ms": 213.0,
+      "r4_hold_max_ms": 402.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          12.606,
+          2,
+          "floor",
+          0.002,
+          1
+        ],
+        [
+          12.608,
+          2,
+          "floor",
+          0.004,
+          1
+        ],
+        [
+          12.61,
+          2,
+          "floor",
+          0.006,
+          1
+        ],
+        [
+          12.612,
+          2,
+          "floor",
+          0.008,
+          1
+        ],
+        [
+          12.614,
+          2,
+          "floor",
+          0.01,
+          1
+        ],
+        [
+          12.616,
+          2,
+          "floor",
+          0.012,
+          1
+        ],
+        [
+          12.618,
+          2,
+          "floor",
+          0.014,
+          1
+        ],
+        [
+          12.62,
+          2,
+          "floor",
+          0.016,
+          1
+        ],
+        [
+          12.622,
+          2,
+          "floor",
+          0.018,
+          0
+        ],
+        [
+          12.624,
+          2,
+          "floor",
+          0.02,
+          0
+        ],
+        [
+          12.626,
+          2,
+          "floor",
+          0.022,
+          0
+        ],
+        [
+          12.628,
+          2,
+          "floor",
+          0.024,
+          0
+        ]
+      ],
+      "scenario": "B03-gap20",
+      "controller": "R4",
+      "duration_s": 20.0,
+      "distance_m": 0.907
+    },
+    {
+      "ctrl": "B04-rough4_10_BASE",
+      "x": 1.286,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {},
+      "self_contacts": 33523,
+      "min_foot_z_mm": -1.7,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 7.1,
+      "event_active_ticks": {},
+      "event_triggers": {},
+      "active_tick_count": 0,
+      "trigger_count": 0,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "scenario": "B04-rough4_10",
+      "controller": "BASE",
+      "duration_s": 20.0,
+      "distance_m": 1.286
+    },
+    {
+      "ctrl": "B04-rough4_10_R1b",
+      "x": 1.335,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R1B_FOOT_CATCH": 2
+      },
+      "self_contacts": 33733,
+      "min_foot_z_mm": -1.8,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 6.5,
+      "event_active_ticks": {
+        "R1B_FOOT_CATCH": 2
+      },
+      "event_triggers": {
+        "R1B_FOOT_CATCH": 2
+      },
+      "active_tick_count": 2,
+      "trigger_count": 2,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "scenario": "B04-rough4_10",
+      "controller": "R1b",
+      "duration_s": 20.0,
+      "distance_m": 1.335
+    },
+    {
+      "ctrl": "B04-rough4_10_R3v2",
+      "x": 1.286,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R3_SEARCHING": 20
+      },
+      "self_contacts": 33256,
+      "min_foot_z_mm": -1.6,
+      "net_progress": 0.742,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 6.6,
+      "event_active_ticks": {
+        "R3_SEARCHING": 20
+      },
+      "event_triggers": {
+        "R3_SEARCHING": 1
+      },
+      "active_tick_count": 20,
+      "trigger_count": 1,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": 9.154,
+      "search_duration_ms": 80.0,
+      "ground_found": true,
+      "n_searches": 1,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          6.67,
+          1,
+          "obstacle",
+          0.002,
+          0
+        ],
+        [
+          6.672,
+          1,
+          "obstacle",
+          0.004,
+          0
+        ],
+        [
+          6.674,
+          1,
+          "obstacle",
+          0.006,
+          0
+        ],
+        [
+          6.676,
+          1,
+          "obstacle",
+          0.008,
+          0
+        ],
+        [
+          6.678,
+          1,
+          "obstacle",
+          0.01,
+          0
+        ],
+        [
+          6.68,
+          1,
+          "obstacle",
+          0.012,
+          0
+        ],
+        [
+          6.682,
+          1,
+          "obstacle",
+          0.014,
+          0
+        ],
+        [
+          6.684,
+          1,
+          "obstacle",
+          0.016,
+          0
+        ],
+        [
+          6.686,
+          1,
+          "obstacle",
+          0.018,
+          0
+        ],
+        [
+          9.388,
+          4,
+          "obstacle",
+          0.002,
+          0
+        ],
+        [
+          9.39,
+          4,
+          "obstacle",
+          0.004,
+          0
+        ],
+        [
+          9.392,
+          4,
+          "obstacle",
+          0.006,
+          0
+        ]
+      ],
+      "scenario": "B04-rough4_10",
+      "controller": "R3v2",
+      "duration_s": 20.0,
+      "distance_m": 1.286
+    },
+    {
+      "ctrl": "B04-rough4_10_R1b+R3v2",
+      "x": 1.335,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R1B_FOOT_CATCH": 2
+      },
+      "self_contacts": 33733,
+      "min_foot_z_mm": -1.8,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 6.5,
+      "event_active_ticks": {
+        "R1B_FOOT_CATCH": 2
+      },
+      "event_triggers": {
+        "R1B_FOOT_CATCH": 2
+      },
+      "active_tick_count": 2,
+      "trigger_count": 2,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "scenario": "B04-rough4_10",
+      "controller": "R1b+R3v2",
+      "duration_s": 20.0,
+      "distance_m": 1.335
+    },
+    {
+      "ctrl": "B04-rough4_10_R4",
+      "x": 0.989,
+      "metrics_schema_version": 2,
+      "fell": false,
+      "events": {
+        "R4_LOAD_HOLD": 7275
+      },
+      "self_contacts": 27485,
+      "min_foot_z_mm": -2.5,
+      "net_progress": null,
+      "body_drop_mm": 0.0,
+      "final_body_drop_mm": 0.0,
+      "peak_body_drop_mm": 0.0,
+      "max_tilt_deg": 9.3,
+      "event_active_ticks": {
+        "R4_LOAD_HOLD": 7275
+      },
+      "event_triggers": {
+        "R4_LOAD_HOLD": 120
+      },
+      "active_tick_count": 7275,
+      "trigger_count": 120,
+      "false_events": null,
+      "false_events_basis": "unknown_without_no_reflex_oracle",
+      "false_events_scope": "stage1_reason_episode_starts",
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 120,
+      "r4_releases": 120,
+      "r4_hold_mean_ms": 121.2,
+      "r4_hold_max_ms": 402.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          9.008,
+          4,
+          "floor",
+          0.002,
+          0
+        ],
+        [
+          9.01,
+          4,
+          "floor",
+          0.004,
+          0
+        ],
+        [
+          9.012,
+          3,
+          "obstacle",
+          0.002,
+          1
+        ],
+        [
+          9.012,
+          4,
+          "floor",
+          0.006,
+          0
+        ],
+        [
+          9.014,
+          3,
+          "obstacle",
+          0.004,
+          1
+        ],
+        [
+          9.014,
+          4,
+          "floor",
+          0.008,
+          0
+        ],
+        [
+          9.016,
+          3,
+          "obstacle",
+          0.006,
+          1
+        ],
+        [
+          9.016,
+          4,
+          "floor",
+          0.01,
+          0
+        ],
+        [
+          9.018,
+          3,
+          "obstacle",
+          0.008,
+          1
+        ],
+        [
+          9.018,
+          4,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          9.02,
+          3,
+          "obstacle",
+          0.01,
+          1
+        ],
+        [
+          9.02,
+          4,
+          "floor",
+          0.014,
+          0
+        ]
+      ],
+      "scenario": "B04-rough4_10",
+      "controller": "R4",
+      "duration_s": 20.0,
+      "distance_m": 0.989
+    }
+  ],
+  "prc": [
+    {
+      "drive": 0.4,
+      "target": "E1",
+      "status": "ok",
+      "period_ticks": 17.0,
+      "shift_ticks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -1
+      ]
+    },
+    {
+      "drive": 0.4,
+      "target": "I1",
+      "status": "ok",
+      "period_ticks": 17.0,
+      "shift_ticks": [
+        0,
+        0,
+        0,
+        0,
+        3,
+        3,
+        6,
+        6,
+        8,
+        8,
+        11,
+        8
+      ]
+    },
+    {
+      "drive": 0.4,
+      "target": "I2",
+      "status": "ok",
+      "period_ticks": 17.0,
+      "shift_ticks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        3,
+        6,
+        6,
+        6,
+        8,
+        8
+      ]
+    },
+    {
+      "drive": 0.8,
+      "target": "E1",
+      "status": "ok",
+      "period_ticks": 17.0,
+      "shift_ticks": [
+        0,
+        -2,
+        -2,
+        -2,
+        -2,
+        -2,
+        -2,
+        -2,
+        -2,
+        -3,
+        -2,
+        -1
+      ]
+    },
+    {
+      "drive": 0.8,
+      "target": "I1",
+      "status": "ok",
+      "period_ticks": 17.0,
+      "shift_ticks": [
+        -2,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        4,
+        5,
+        5,
+        6,
+        6
+      ]
+    },
+    {
+      "drive": 0.8,
+      "target": "I2",
+      "status": "ok",
+      "period_ticks": 17.0,
+      "shift_ticks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        2,
+        4,
+        4,
+        5
+      ]
+    },
+    {
+      "drive": 1.2,
+      "target": "E1",
+      "status": "ok",
+      "period_ticks": 16.0,
+      "shift_ticks": [
+        4,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "drive": 1.2,
+      "target": "I1",
+      "status": "ok",
+      "period_ticks": 16.0,
+      "shift_ticks": [
+        -1,
+        -1,
+        0,
+        0,
+        1,
+        2,
+        3,
+        3,
+        4,
+        5,
+        5,
+        0
+      ]
+    },
+    {
+      "drive": 1.2,
+      "target": "I2",
+      "status": "ok",
+      "period_ticks": 16.0,
+      "shift_ticks": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        3,
+        3,
+        4,
+        0
+      ]
+    },
+    {
+      "drive": 1.6,
+      "target": "E1",
+      "status": "ok",
+      "period_ticks": 16.0,
+      "shift_ticks": [
+        4,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        -1,
+        0
+      ]
+    },
+    {
+      "drive": 1.6,
+      "target": "I1",
+      "status": "ok",
+      "period_ticks": 16.0,
+      "shift_ticks": [
+        -1,
+        -1,
+        0,
+        0,
+        1,
+        2,
+        3,
+        3,
+        4,
+        5,
+        5,
+        0
+      ]
+    },
+    {
+      "drive": 1.6,
+      "target": "I2",
+      "status": "ok",
+      "period_ticks": 16.0,
+      "shift_ticks": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        3,
+        3,
+        4,
+        0
+      ]
+    }
+  ],
+  "arc": [
+    {
+      "execution": "offline_local_game",
+      "game_id": "ls20-9607627b",
+      "seed": 0,
+      "policy": "existing_search_ranker",
+      "neural_backend": null,
+      "trained_checkpoint": null,
+      "actions": 186,
+      "action_budget": 400,
+      "unique_frames": 130,
+      "unchanged_frame_actions": 57,
+      "levels_completed": 0,
+      "final_state": "GAME_OVER",
+      "won": false,
+      "stop_reason": "terminal_state",
+      "final_frame_sha256": "c9abf790a7b620fa4cfd10e12a7e23798fc93613854b4dc8f1128f1ee336cc9b",
+      "inference_ms_mean": 0.016496316792683735,
+      "wall_time_s": 3.047974473971408,
+      "local_scorecard_closed": true,
+      "claim_scope": "Local practice game only; route replay is not an autonomous solver or held-out result"
+    },
+    {
+      "execution": "offline_local_game",
+      "game_id": "cd82-fb555c5d",
+      "seed": 0,
+      "policy": "existing_search_ranker",
+      "neural_backend": null,
+      "trained_checkpoint": null,
+      "actions": 100,
+      "action_budget": 400,
+      "unique_frames": 65,
+      "unchanged_frame_actions": 36,
+      "levels_completed": 0,
+      "final_state": "GAME_OVER",
+      "won": false,
+      "stop_reason": "terminal_state",
+      "final_frame_sha256": "869e4d7efd425880901b03fcec50c90d371601b4737e9210de8be6a801e54caa",
+      "inference_ms_mean": 0.03911870997399092,
+      "wall_time_s": 1.1776757530169562,
+      "local_scorecard_closed": true,
+      "claim_scope": "Local practice game only; route replay is not an autonomous solver or held-out result"
+    },
+    {
+      "execution": "offline_local_game",
+      "game_id": "vc33-5430563c",
+      "seed": 0,
+      "policy": "existing_search_ranker",
+      "neural_backend": null,
+      "trained_checkpoint": null,
+      "actions": 50,
+      "action_budget": 400,
+      "unique_frames": 51,
+      "unchanged_frame_actions": 0,
+      "levels_completed": 0,
+      "final_state": "GAME_OVER",
+      "won": false,
+      "stop_reason": "terminal_state",
+      "final_frame_sha256": "35abe950720b0cd212c5aff723313d15dde9468fa815c4796a0a07f98fa266f2",
+      "inference_ms_mean": 0.03505753935314715,
+      "wall_time_s": 1.1152492229593918,
+      "local_scorecard_closed": true,
+      "claim_scope": "Local practice game only; route replay is not an autonomous solver or held-out result"
+    },
+    {
+      "execution": "offline_local_game",
+      "game_id": "sc25-635fd71a",
+      "seed": 0,
+      "policy": "existing_search_ranker",
+      "neural_backend": null,
+      "trained_checkpoint": null,
+      "actions": 52,
+      "action_budget": 400,
+      "unique_frames": 37,
+      "unchanged_frame_actions": 16,
+      "levels_completed": 0,
+      "final_state": "GAME_OVER",
+      "won": false,
+      "stop_reason": "terminal_state",
+      "final_frame_sha256": "73bd015f799a98ea673aeb45d8085379320c66b43a288b90b8537be9b2da0955",
+      "inference_ms_mean": 0.03508926825956083,
+      "wall_time_s": 1.2200685879797675,
+      "local_scorecard_closed": true,
+      "claim_scope": "Local practice game only; route replay is not an autonomous solver or held-out result"
+    },
+    {
+      "execution": "offline_local_game",
+      "game_id": "ft09-0d8bbf25",
+      "seed": 0,
+      "policy": "existing_search_ranker",
+      "neural_backend": null,
+      "trained_checkpoint": null,
+      "actions": 400,
+      "action_budget": 400,
+      "unique_frames": 1,
+      "unchanged_frame_actions": 400,
+      "levels_completed": 0,
+      "final_state": "NOT_FINISHED",
+      "won": false,
+      "stop_reason": "budget_exhausted",
+      "final_frame_sha256": "715d7283fd89dabc7b1d3b1c979ceb123ae112caeb97b15c03bfbe88d1010eb9",
+      "inference_ms_mean": 0.033242620556848124,
+      "wall_time_s": 2.6568248990224674,
+      "local_scorecard_closed": true,
+      "claim_scope": "Local practice game only; route replay is not an autonomous solver or held-out result"
+    }
+  ]
+}

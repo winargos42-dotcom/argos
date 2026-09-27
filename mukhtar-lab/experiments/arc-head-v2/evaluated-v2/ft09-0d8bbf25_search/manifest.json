@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-27T11:22:05.360785+00:00",
+  "sources_sha256": {
+    "action_head.py": "714aa9be406f17a64a1acf957d0e823f38a7cf04c405b4bd1265a18ff2e91d58",
+    "experiment_data.py": "4215344f8b8e7e4a404a0a94a2735c303ce097ffbf36be99d9bfa12edf981c2e",
+    "train_experiment.py": "2124945fbd552e14090fc1085dc9ee734f6f8cae6793b64c47cce820815ef295",
+    "interaction_ranker.py": "36b1cffe50b06ea1cc3fe1c5ae897ee888dfe2dc119853a62f6e7f6b24dfec97",
+    "evaluate_policies.py": "e695c9aa321bf68ab6346cf32e71421cf6dd95a03b3904413801e2e2eb6ff757",
+    "protocol/arc_offline.py": "8323b457e787f2318f7a1d5831495d878e0eeb79570a20f7aef70077bda08166",
+    "protocol/arc_runtime/arc3/candidate_generator.py": "89e1da794559d74829a278073c278f2058634d3377940c759e05ac98c5535e5e",
+    "protocol/arc_runtime/arc3/search_policy.py": "49af554c324d67fbd23471cf6a2b952bbc454f3fcaac2d4249cdb40370b5f51f",
+    "protocol/arc_runtime/arc3/world_memory.py": "0fba735e1ad8994854b28aba486b36e2aac7ded7aedad39adde5da9ddb871c3e",
+    "protocol/arc_runtime/environment_files/ft09/0d8bbf25/ft09.py": "aa5b54f48a29da9f276c3df0dc04de728002f523384ab868c85d56d819cd0783",
+    "protocol/arc_runtime/environment_files/ft09/0d8bbf25/metadata.json": "c38f2684fcd4934361693ef0bd805a35327249c3b1f84247e8e0a5360784d8ba"
+  },
+  "artifacts_sha256": {
+    "actions.jsonl": "6e698b1c42bc4d53b5787eda2750b80e5c53601dc1f59374236998036ea45bc5",
+    "frames.npz": "fbd9ab5cf3d1fb4ff8798d0083a2a0aa26cbbf634fd08e1ab5face840d2b5151",
+    "local_scorecard.json": "c551b3a0c57b84dc66980e9b18f3d7c3975ef662df0201237f61a3aac84f28cb",
+    "summary.json": "0a0cdc26ae58cfb62e1ee20407f283575af6d999ef9c77f17abd8b91a22ef3cd"
+  },
+  "checkpoint_sha256": null,
+  "runtime": {
+    "python": "3.12.14",
+    "numpy": "2.4.6",
+    "arc-agi": "0.9.9",
+    "arcengine": "0.9.3"
+  },
+  "protocol": "same local game version, seed0, initial state, 400-action cap, legal candidates, tabu; only ranking differs"
+}

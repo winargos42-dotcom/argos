@@ -1,0 +1,16 @@
+{
+  "INTEGRATION.md": "af227455a3b7f2da6267c2fd16144ec545c2d1a4cc98234d6203cae7fbc55228",
+  "OPERATIONS.md": "5b5e208b7b21008b6224f795ef2d4c1150448f1340f7d55d2167c3698b473472",
+  "README.md": "dcf7cabe8f3b02778eee143841cf7936f16a0f895b6dd1600cf842da1fa47aa6",
+  "app/src/__init__.py": "caa4d77451757caefcb4d30ba357bfd0813c033d81820a0c69280158d6b9c310",
+  "app/src/cloud_auth.py": "6f6ecce9f0f9d5a756f4ad8805b11aedbdd047b5c7c0330845a27d5220bb5f36",
+  "app/src/discovery_api.py": "8458535a184207b5176cc8369c25c59d2387ee42e4802b75e3f3b93f4efe4037",
+  "app/src/memory_index.py": "0bce2f7feb28c8cac4b75b91e7358fca5340d5cb5db6d1376d14f830fee3274b",
+  "app/src/network_coral.py": "aa457518021eea783d1baae5a5ea21449aa26359d6eefae1a224abc4d06e8431",
+  "app/src/runtime_discovery.py": "328cc7c8881d7389dc9962a211814284c3f2829c4b8b6490d64be5754e0a913d",
+  "app/src/runtime_registry.py": "8366aadaa473c24a231b9c0babe03b7a8938a02c12a01254d745c2c4478925b9",
+  "discovery_cli.py": "fe2b30fc8595ea4cc572407d3fa4d8db281a75de014d50ec682cd0acbd25da21",
+  "pyproject.toml": "c9c0f5e2ca4708f19bff2208a9c1ff8fe85aa2cffea27fd462461510d95e2fae",
+  "tests/test_consumers.py": "1917dec7d0431797d64d148defea029f5e7be15c2cecd34c9f72630ef57fc894",
+  "tests/test_discovery.py": "d45183f8e5df8936679d0a58ebb963b200489edd297d43996259e080b44adba5"
+}

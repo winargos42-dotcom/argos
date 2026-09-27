@@ -1,0 +1,37 @@
+{
+  "scope": "Post-hoc diagnostic baselines only; no model retraining/tuning",
+  "train_only_transition_counts": [
+    [
+      36,
+      8,
+      10,
+      8
+    ],
+    [
+      7,
+      27,
+      6,
+      5
+    ],
+    [
+      9,
+      5,
+      23,
+      5
+    ],
+    [
+      11,
+      5,
+      2,
+      16
+    ]
+  ],
+  "train": {
+    "repeat_previous_action_accuracy": 0.5543478260869565,
+    "train_markov_accuracy": 0.5543478260869565
+  },
+  "withheld": {
+    "repeat_previous_action_accuracy": 0.488,
+    "train_markov_accuracy": 0.488
+  }
+}

@@ -1,0 +1,2 @@
+# Unified diff context represents blank source lines with one required space.
+*.patch -text whitespace=-blank-at-eol

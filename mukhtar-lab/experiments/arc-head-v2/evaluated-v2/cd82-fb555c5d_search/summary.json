@@ -1,0 +1,21 @@
+{
+  "game_id": "cd82-fb555c5d",
+  "policy": "search",
+  "backend": "search_rules",
+  "execution": "offline_local_game",
+  "seed": 0,
+  "budget": 400,
+  "actions": 100,
+  "levels_completed": 0,
+  "final_state": "GAME_OVER",
+  "won": false,
+  "unique_frames": 65,
+  "unchanged_frame_actions": 36,
+  "initial_frame_sha256": "e69c5467f71698ff6f34ba9df5b9e0c47d7405e4669df9b7d628c6548ed5daee",
+  "final_frame_sha256": "869e4d7efd425880901b03fcec50c90d371601b4737e9210de8be6a801e54caa",
+  "stop_reason": "terminal_state",
+  "inference_ms_mean": 0.07597740215715021,
+  "wall_time_s": 0.5167075350182131,
+  "checkpoint_sha256": null,
+  "training_scope": null
+}

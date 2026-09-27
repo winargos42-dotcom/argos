@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-27T11:21:59.422955+00:00",
+  "sources_sha256": {
+    "action_head.py": "714aa9be406f17a64a1acf957d0e823f38a7cf04c405b4bd1265a18ff2e91d58",
+    "experiment_data.py": "4215344f8b8e7e4a404a0a94a2735c303ce097ffbf36be99d9bfa12edf981c2e",
+    "train_experiment.py": "2124945fbd552e14090fc1085dc9ee734f6f8cae6793b64c47cce820815ef295",
+    "interaction_ranker.py": "36b1cffe50b06ea1cc3fe1c5ae897ee888dfe2dc119853a62f6e7f6b24dfec97",
+    "evaluate_policies.py": "e695c9aa321bf68ab6346cf32e71421cf6dd95a03b3904413801e2e2eb6ff757",
+    "protocol/arc_offline.py": "8323b457e787f2318f7a1d5831495d878e0eeb79570a20f7aef70077bda08166",
+    "protocol/arc_runtime/arc3/candidate_generator.py": "89e1da794559d74829a278073c278f2058634d3377940c759e05ac98c5535e5e",
+    "protocol/arc_runtime/arc3/search_policy.py": "49af554c324d67fbd23471cf6a2b952bbc454f3fcaac2d4249cdb40370b5f51f",
+    "protocol/arc_runtime/arc3/world_memory.py": "0fba735e1ad8994854b28aba486b36e2aac7ded7aedad39adde5da9ddb871c3e",
+    "protocol/arc_runtime/environment_files/vc33/5430563c/vc33.py": "8afa9f55054b2a2460b6c44ec5c66e120f6d6f4c2289e24d50832a68d1e3fcfd",
+    "protocol/arc_runtime/environment_files/vc33/5430563c/metadata.json": "c53993d6638610fba3ab0c731b6b264bd2c879adf7fbe8bd4e63227b26135a46"
+  },
+  "artifacts_sha256": {
+    "actions.jsonl": "f3fce4606d4bc1aa99fc5dc6fab21b410860c278eb854ad94e7f3fbbfe974769",
+    "frames.npz": "b9048a96bece20a05358105056425c80974c7d1aa962682286ef6c5132958791",
+    "local_scorecard.json": "563133f2894f964b05be71baad71ed4b518066f43bf6ee6ffdbb8c6c98f7c54f",
+    "summary.json": "af985b0db55368017a8a1d7ad8628c1a193963114b45ec37a319a4c6ca1c39bf"
+  },
+  "checkpoint_sha256": "e3b2f89112d2faa0b8d49c966de975039667bae81f21b1b3b15f509fcce37177",
+  "runtime": {
+    "python": "3.12.14",
+    "numpy": "2.4.6",
+    "arc-agi": "0.9.9",
+    "arcengine": "0.9.3"
+  },
+  "protocol": "same local game version, seed0, initial state, 400-action cap, legal candidates, tabu; only ranking differs"
+}

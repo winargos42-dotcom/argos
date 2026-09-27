@@ -1,0 +1,21 @@
+{
+  "execution": "offline_local_game",
+  "game_id": "ls20-9607627b",
+  "seed": 0,
+  "policy": "precomputed_route_replay",
+  "neural_backend": null,
+  "trained_checkpoint": null,
+  "actions": 309,
+  "action_budget": 400,
+  "unique_frames": 310,
+  "unchanged_frame_actions": 0,
+  "levels_completed": 7,
+  "final_state": "WIN",
+  "won": true,
+  "stop_reason": "terminal_state",
+  "final_frame_sha256": "25ff8487db87dd5230c0f5704c32011f0894df50319b165dcd5923b55a0a160e",
+  "inference_ms_mean": 0.01755875477290028,
+  "wall_time_s": 3.573468143993523,
+  "local_scorecard_closed": true,
+  "claim_scope": "Local practice game only; route replay is not an autonomous solver or held-out result"
+}

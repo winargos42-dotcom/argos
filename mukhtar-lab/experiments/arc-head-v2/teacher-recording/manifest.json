@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-27T06:04:58.366420+00:00",
+  "execution": "offline_local_game",
+  "network": "OFFLINE SDK plus blocked DNS/socket connection calls",
+  "observation": "native last frame per action; uint8 colours; intermediate animation frames omitted",
+  "runtime": {
+    "python": "3.14.7",
+    "arc-agi": "0.9.9",
+    "arcengine": "0.9.3",
+    "numpy": "2.5.3"
+  },
+  "sources_sha256": {
+    "/home/argos-data/improve/arc3/search_policy.py": "49af554c324d67fbd23471cf6a2b952bbc454f3fcaac2d4249cdb40370b5f51f",
+    "/home/argos-data/improve/arc3/world_memory.py": "0fba735e1ad8994854b28aba486b36e2aac7ded7aedad39adde5da9ddb871c3e",
+    "/home/argos-data/improve/arc3/candidate_generator.py": "58049cfdc03a9512de3940bdca8a7696bbc2cca6a87cd95dd3008521058f3d44",
+    "/home/argos-data/improve/environment_files/ls20/9607627b/metadata.json": "1ce0fb3a5b2d92a08794a3bb5d8812fcff079419c4baf5cf6b0f1a8ff9716262",
+    "/home/argos-data/improve/environment_files/ls20/9607627b/ls20.py": "298c810da2850d557c95d92a2cbd846df29a45d7134e20888617bedf5dafcd92",
+    "/root/mukhtar-evolution-modules-20260927/arc_offline.py": "8323b457e787f2318f7a1d5831495d878e0eeb79570a20f7aef70077bda08166",
+    "/home/argos-data/improve/data/teacher/teachers_ls20_route.jsonl": "a6e804495e8b9e759302de1f6a2b4f3773a25469d4830f1a325533aa0111ac63"
+  },
+  "artifacts_sha256": {
+    "actions.jsonl": "0e7555de299913ebe33fe9cba6b782ff269fdf9e6d501c78f0093b86fb2fd848",
+    "frames.npz": "5d22dc03b1571610b67ca980907d35086aa6210d802db04f5d5dfb9de7a3895f",
+    "local_scorecard.json": "a04e81d795ea511095b903eeccc1681a26eaeb1c0bf4ec549abe42d578e36cae",
+    "summary.json": "6512e957296aa32d2ebe76b71a7dc1a5045c2052d6c7a2f291c2ef47e9bf4723"
+  }
+}
