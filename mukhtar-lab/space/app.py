@@ -308,12 +308,15 @@ BENCH_TABLE = [
     ["B03-gap20", "R3 v2 searching", "confirmed",
      "fell 1→0, просадка 152→19 мм"],
     ["B04-rough4_10", "общая адаптация ног", "planned", "—"],
-    ["B05-turn", "T2 steering", "planned", "—"],
+    ["B05-turn", "T2 steering", "partial",
+     "held-out: 0.657 м vs fixed 0.765; goal 0/4"],
     ["B06-stuck", "recovery", "planned", "—"],
-    ["B07-cpg-ko", "причинность CPG", "materials",
+    ["B07-cpg-ko", "причинность CPG", "confirmed",
      "cpg_m0: KO×7 × drive×4"],
-    ["B08-cpg-prc", "фазовый reset", "planned", "cpg_prc.py"],
-    ["B09-six-cpg", "все 6 MaleCNS-модулей", "planned", "—"],
+    ["B08-cpg-prc", "фазовый reset", "confirmed",
+     "burst-PRC: I2 stronger than E1"],
+    ["B09-six-cpg", "все 6 MaleCNS-модулей", "confirmed",
+     "shadow: 6/6 alive, 0 dropout, reproducible"],
     ["B10-looming", "visual escape (LC16→MDN)", "future", "—"],
 ]
 
@@ -423,15 +426,24 @@ def build():
             with gr.Tab("🎮 ARC"):
                 gr.Markdown(
                     "### ARC — второе тело Мухтара\n\n"
-                    "Search only vs Search + Mukhtar ranker: уровни, "
-                    "действия, повторы, счёт, задержка. Раздел появится "
-                    "вместе с первыми воспроизводимыми прогонами "
-                    "ARC-ранкера — сейчас данных для честной таблицы нет.")
+                    "**Teacher/control подтверждён:** `ls20` — score **100**, "
+                    "**7/7 уровней**, **309 действий**, **0 resets**, state=`WIN`.\n\n"
+                    "| Контур | Статус | Результат |\n"
+                    "|---|---|---|\n"
+                    "| Teacher route / ls20 | confirmed | 7/7, 309 actions, score 100 |\n"
+                    "| Search-only A | ready | код/память/кандидаты готовы |\n"
+                    "| Search + Mukhtar ranker B | pending | SNN worker/A-B ещё не подтверждены |\n\n"
+                    "Teacher scorecard сохранён как `data/arc_ls20_teacher.json`. "
+                    "Его нельзя трактовать как результат Mukhtar-ranker.")
             with gr.Tab("👁 Vision"):
-                gr.Markdown("### Visual reflex (LC16 → MDN)\n\n"
-                            "Looming-детектор → backward walking. "
-                            "Планируется как первый визуальный рефлекс; "
-                            "вкладка появится после первых прогонов.")
+                gr.Markdown(
+                    "### Vision — изолированный MaleCNS optic-lobe уже проверялся\n\n"
+                    "- MNIST probe: fly 0.874; raw pixels 0.882; random 0.899; twin 0.905.\n"
+                    "- Looming: fly 0.290; pixels 0.840; twin 0.536 — **не готово**.\n"
+                    "- Parallax: fly 0.4175 > pixels 0.3263/random 0.3463, "
+                    "но < twin 0.600.\n\n"
+                    "Камера→LC16/MDN→тело пока **не замкнута**; поэтому "
+                    "визуальный escape остаётся следующим embodied-тестом.")
     return demo
 
 
