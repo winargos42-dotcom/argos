@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "component": "argos-control-panel-ui",
+  "target_relative_path": "src/interface/control_panel.html",
+  "baseline_sha256": "22043e8750897ef319060f32b0128ceb4e8641845090bb8aa77ecf180760ca28",
+  "patched_sha256": "642618a245a79f94ffff8296d562347b53ea95a124b1f00c105cac577816c458",
+  "validation": {
+    "rendered_tests": 6,
+    "fixture_api_only": true,
+    "compatible_runtime_required": true,
+    "existing_chromium_required": true
+  },
+  "files": {
+    "README.md": {
+      "sha256": "1e11ef9abac1ad5ecc8c3fdaba8aa06917d26968871dcb6cf22f638431f0543b",
+      "bytes": 2170
+    },
+    "panel-ui.patch": {
+      "sha256": "e19aec3d44a8f67775e77dc2758a5dc95fb10d79540fbc99e203dc4ed3219304",
+      "bytes": 9187
+    },
+    "tests/test_panel_ui.py": {
+      "sha256": "6a693a0c29b0d006c80040cd6676f81e63bbae31f90f22193e82444e2ce1afd4",
+      "bytes": 5225
+    }
+  }
+}

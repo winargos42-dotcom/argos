@@ -1,0 +1,60 @@
+--- a/src/skills/ha_camera_vision.py
++++ b/src/skills/ha_camera_vision.py
+@@ -30,7 +30,8 @@
+ 
+ 
+ def _ha() -> tuple[str, str]:
+-    url = os.getenv("ARGOS_HA_URL", "http://127.0.0.1:8123").rstrip("/")
++    from src.runtime_registry import api_url
++    url = api_url('home_assistant', os.getenv('ARGOS_HA_URL'), 'http://127.0.0.1:8123')
+     try:
+         with open(os.getenv("ARGOS_HA_TOKEN_FILE", "/etc/argos/ha-token"), encoding="utf-8") as f:
+             return url, f.read().strip()
+@@ -39,18 +40,18 @@
+ 
+ 
+ def list_cameras() -> list[dict]:
+-    """[{entity_id, name, state}] всех камер HA. Пустой список, если их нет или HA недоступен."""
++    """Камеры HA; пустой список означает проверенное отсутствие камер, не ошибку связи."""
+     import requests
+ 
+     url, token = _ha()
+-    if not token:
+-        return []
++    if not token or not url:
++        raise RuntimeError('Home Assistant недоступен или адрес не подтверждён')
+     try:
+         resp = requests.get(f"{url}/api/states", headers={"Authorization": f"Bearer {token}"}, timeout=5)
+         resp.raise_for_status()
+         states = resp.json()
+     except Exception:
+-        return []
++        raise RuntimeError('Home Assistant не вернул список камер') from None
+     cams = []
+     for s in states:
+         if s["entity_id"].startswith("camera."):
+@@ -80,8 +81,8 @@
+     import requests
+ 
+     url, token = _ha()
+-    if not token:
+-        raise RuntimeError("Home Assistant не настроен")
++    if not token or not url:
++        raise RuntimeError("Home Assistant недоступен или адрес не подтверждён")
+     resp = requests.get(f"{url}/api/camera_proxy/{entity_id}",
+                         headers={"Authorization": f"Bearer {token}"}, timeout=10)
+     if resp.status_code != 200 or not resp.content:
+--- a/src/skills/light_vision.py
++++ b/src/skills/light_vision.py
+@@ -46,7 +46,10 @@
+ def _ha_request(method: str, path: str, payload: dict | None = None):
+     import requests
+ 
+-    url = os.getenv("ARGOS_HA_URL", "http://127.0.0.1:8123").rstrip("/")
++    from src.runtime_registry import api_url
++    url = api_url('home_assistant', os.getenv('ARGOS_HA_URL'), 'http://127.0.0.1:8123')
++    if not url:
++        raise RuntimeError('Home Assistant недоступен или адрес не подтверждён')
+     with open(os.getenv("ARGOS_HA_TOKEN_FILE", "/etc/argos/ha-token"), encoding="utf-8") as fh:
+         token = fh.read().strip()
+     resp = requests.request(method, f"{url}/api/{path}", json=payload, timeout=10,

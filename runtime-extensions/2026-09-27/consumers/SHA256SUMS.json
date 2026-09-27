@@ -1,0 +1,11 @@
+{
+  "DEPLOYED_HASH_CHAIN.json": "5c076375a9c1a5c09f661a2953ac2cb009a3aa02e18c261d4dbc7b41716f6ad2",
+  "README.md": "2067bfd890e00d98a6913ed082a6aeb25fa9d2afe7c7d7501e1ffbada042aae6",
+  "budding-unavailable.patch": "725c3a42fa6acc5e75e0688950f2dcd362c8661d22ec2cade9a612631856d228",
+  "ha-consumers.patch": "2910c8197603b97e1f9c09ace60b1252a4b1b0e1122a75191943a6253de2b9e5",
+  "network-handler-binding.patch": "542a7b0347378983f6efe384085331a1ba831ccb408b312713e3b93671cb763b",
+  "network-verified-ip.patch": "10bb167838b89d672bc287216d14a15f29547c46414b846bba74cb1f8aa84eae",
+  "tests/test_budding_unavailable.py": "c00021ddf14b2ce1584e04a5a822f481073622beafa46f3084de9a49fc80fa06",
+  "tests/test_ha_discovery.py": "1559dce4eeccc63d7791a2a344fd6e0079a46bff13215e1dc5ad1dc06433d168",
+  "tests/test_network_verified_ip.py": "3aa9822f0c6b41e50a43221a0a0050869fbb68e0de79712449bab898fff824e1"
+}

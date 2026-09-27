@@ -1,0 +1,46 @@
+--- a/src/network_runtime.py
++++ b/src/network_runtime.py
+@@ -215,17 +215,24 @@
+ 
+     def nodes(self, page=0):
+         local, peers, coral = self._local(), self._peers(), self._coral()
++        from src.runtime_registry import registry_path, machine_host
++        current_map = registry_path().exists()
++        coral_address = ip(machine_host(CORAL_ID)) if current_map else ip(getattr(self.coral, 'host', ''))
++        if current_map and not coral_address:
++            coral = None
+         result = {local['id']: local}
+         result.setdefault(CORAL_ID, {'id': CORAL_ID, 'name': 'Coral PC',
+-            'ip': getattr(self.coral, 'host', CORAL_IP), 'role': 'worker', 'online': coral is not None,
++            'ip': coral_address, 'role': 'worker', 'online': coral is not None,
+             'ready': coral is not None, 'detail': 'Подписанный Coral API' if coral else 'Нет свежего ответа'})
+         for node_id, row in peers.items():
+             if node_id == local['id']:
+                 continue
+             if node_id == CORAL_ID:
+-                result[node_id]['online'] = row['fresh'] or coral is not None
+-                result[node_id]['ip'] = ip(row['addr'])
+-                result[node_id]['detail'] = ('Coral API; без удалённых навыков' if coral else
++                result[node_id]['online'] = coral is not None or (row['fresh'] and (bool(coral_address) or not current_map))
++                if not current_map and not coral_address and row['fresh']:
++                    result[node_id]['ip'] = ip(row['addr'])
++                result[node_id]['detail'] = ('Текущий адрес узла не подтверждён' if current_map and not coral_address else
++                                            'Coral API; без удалённых навыков' if coral else
+                                             'P2P доступен; Coral API не подтверждён' if row['fresh'] else 'Нет свежего ответа')
+             else:
+                 result[node_id] = {'id': node_id, 'name': clean(row.get('hostname', 'Узел'), 48),
+@@ -442,7 +449,13 @@
+             return self._verified({'running': True, 'node': self._local()['id']})
+         if action == 'p2p.connect':
+             row = self._peers().get(node, {})
+-            address = ip(row.get('addr')) or (CORAL_IP if node == CORAL_ID else '')
++            from src.runtime_registry import registry_path, machine_host
++            if node == CORAL_ID and registry_path().exists():
++                address = ip(machine_host(node))
++            else:
++                address = ip(row.get('addr')) if row.get('fresh') else ''
++            if not address:
++                raise NetworkConflict('Текущий адрес узла не подтверждён; обновите карту системы')
+             profile = bridge._request_peer(address, {'action': 'status'}, port=row.get('port'))
+             if not isinstance(profile, dict) or profile.get('node_id') != node:
+                 raise NetworkConflict('UUID узла не совпал с подписанным ответом')

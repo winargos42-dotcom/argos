@@ -1,0 +1,6 @@
+/root/.hermes/tools/python-3.14.7+20260901-linux-x64/lib/python3.14/subprocess.py:1023: RuntimeWarning: line buffering (buffering=1) isn't supported in binary mode, the default buffer size will be used
+  self.stdin = io.open(p2cwrite, 'wb', bufsize)
+/root/.hermes/tools/python-3.14.7+20260901-linux-x64/lib/python3.14/subprocess.py:1029: RuntimeWarning: line buffering (buffering=1) isn't supported in binary mode, the default buffer size will be used
+  self.stdout = io.open(c2pread, 'rb', bufsize)
+{"trained_steps": 927, "mean_loss": 1.3742, "head_out": "/home/argos-data/improve/arc3/results/arc3_head_stable_route.npz"}
+fallback_count 0

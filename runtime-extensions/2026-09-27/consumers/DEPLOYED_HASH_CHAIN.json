@@ -1,0 +1,37 @@
+[
+  {
+    "phase": "ha-routing",
+    "files": {
+      "src/skills/ha_camera_vision.py": {
+        "before": "bf8c9b7344d1e049b91800ce68d067bab76fd662de9e53a66d1a605a67b73dae",
+        "after": "3b0f586ef2c90ecb8baa6febafa95f6686c9d00dae02897c1d48e1d97c4ebc2e"
+      },
+      "src/skills/light_vision.py": {
+        "before": "38035ba349932f79dbd4232185657e3b75dd5ca3c624037f877c31ed8082c399",
+        "after": "62824eca14160163b6c74d82a155b2e085f421733147b729762134eefcd14b1f"
+      }
+    }
+  },
+  {
+    "phase": "node-ip-and-legacy-truth",
+    "files": {
+      "src/skills/budding.py": {
+        "before": "d59edeafbd27565edf081def0be6ae0b01fe02668bd3763b9cb2de806ff0e23c",
+        "after": "5e373fd0517337655b648193d8336071e99b49717085c6ccda31734b47e31263"
+      },
+      "src/network_runtime.py": {
+        "before": "264c6cb3844f2cd5f888164d74943879e4ef13324882d6e2c6144c4bd62423d4",
+        "after": "4bef750bb95c80ac3a9b15bc972319cd5bd974dc059ba35db1bf956d55f4886c"
+      }
+    }
+  },
+  {
+    "phase": "handler-binding",
+    "files": {
+      "src/network_runtime.py": {
+        "before": "4bef750bb95c80ac3a9b15bc972319cd5bd974dc059ba35db1bf956d55f4886c",
+        "after": "54bdb26f193a2125e57aa29ec6073d61f01677974c84bee49e00bfc511bccacb"
+      }
+    }
+  }
+]

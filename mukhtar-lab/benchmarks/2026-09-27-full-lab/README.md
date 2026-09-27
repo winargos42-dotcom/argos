@@ -4,6 +4,17 @@ The complete raw archive, original manifest and exact runner/verifier are in
 [MUKHTAR-Bench](https://huggingface.co/datasets/AvaSiG/MUKHTAR-Bench/tree/2caf07882ae7a8f8752b3ddbd4c2ed0fe7d0b6c8/runs/2026-09-27-full-lab).
 This Git directory keeps the summary and verification report.
 
+Portable rerun from `mukhtar-lab/`, with the Space Python 3.12 dependencies:
+
+```sh
+python tools/run_full_lab.py --out /new/result-directory
+python tools/verify_full_lab.py --results /new/result-directory --report /new/verification.json
+```
+
+The runner locates the code relative to itself. Both output locations must be
+new. A dirty checkout is recorded in each manifest, so modified controllers can
+be investigated without presenting them as a clean published revision.
+
 Actual local calculations: 20 locomotion trials (4 scenarios × 5 controllers,
 20 seconds each), 12 PRC experiments (4 drives × E1/I1/I2), and offline ARC
 search on 5 games (400-action maximum). One deterministic run per configuration;

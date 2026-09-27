@@ -1,0 +1,35 @@
+--- a/src/network_runtime.py
++++ b/src/network_runtime.py
+@@ -35,11 +35,11 @@
+ 
+ class _SelectedSkill:
+     """A reviewed per-card command parser; exceptions never become public text."""
+-    def __init__(self, handler, hint):
+-        self.handler, self.hint = handler, hint
++    def __init__(self, handler, hint, core=None):
++        self.handler, self.hint, self.core = handler, hint, core
+ 
+     def __call__(self, text):
+-        return self.handler(text)
++        return self.handler(*_binding(self.handler, text, self.core))
+ 
+     def failed(self):
+         return {'answer': 'Команда навыка не выполнена.\nПоддерживается: '+self.hint,
+@@ -288,7 +288,7 @@
+                 command_hint = command_provider.adapter_hint(command_name)
+                 handler = None if disabled_reason else command_provider.resolve_skill_handler(command_name, instance, self.core)
+                 if callable(handler):
+-                    handler = _SelectedSkill(handler, command_hint)
++                    handler = _SelectedSkill(handler, command_hint, self.core)
+             elif not callable(handler):
+                 handler = resolve_skill_handler(name, instance, self.core)
+                 adapted = callable(handler)
+@@ -305,7 +305,7 @@
+             if enabled and handler is not None and command_provider is None and not adapted:
+                 # Generic-скилы оборачиваем так же: нераспознанная команда
+                 # вернёт их подсказку, а не общую ошибку.
+-                handler = _SelectedSkill(handler, hint)
++                handler = _SelectedSkill(handler, hint, self.core)
+             if command_provider is not None and not enabled:
+                 hint = disabled_reason or 'Обработчик навыка недоступен; требуется настройка'
+             permissions = getattr(manifest, 'permissions', ()) or ()

@@ -1,0 +1,38 @@
+--- a/src/skills/budding.py
++++ b/src/skills/budding.py
+@@ -126,15 +126,24 @@
+                 "«аргос почка <имя>», «аргос почка <имя> говори <текст>»")
+ 
+     def _snn_say(self, name: str, prompt: str) -> str:
+-        """Инференс SNN-почки на ноде. Пока муха дообучается — честный отказ."""
++        """Проверка старого inference entrypoint без выдуманного статуса обучения."""
++        import shlex
+         out, err = _ssh(f"test -f /opt/argos-data/fly/latest.pt && echo MODEL_OK || echo NO_MODEL; "
+-                        f"systemctl is-active argos-bud-{name} 2>/dev/null || echo NO_SERVICE")
+-        if "NO_MODEL" in out:
+-            return f"🪰 почка «{name}»: модель ещё растёт (муха дообучается). Финиш — после шага 1000."
+-        if "NO_SERVICE" in out:
+-            return f"🪰 почка «{name}»: модель есть, но инференс-демон не поднят (argos-bud-{name})."
+-        out2, err2 = _ssh(f"systemd-run --unit=bud-say-{int(time.time())} --wait "
+-                          f"/root/flyenv/bin/python /root/malecns/code/generate_once.py "
+-                          f"--config /root/node_config2.json --model /opt/argos-data/fly/latest.pt "
+-                          f"--prompt {prompt[:200]!r} 2>&1 | tail -30")
+-        return out2.strip() or f"🪰 почка «{name}»: пустой ответ ({err2.strip()[:100]})"
++                        f"test -f /root/malecns/code/generate_once.py && echo ENTRYPOINT_OK || echo NO_ENTRYPOINT; "
++                        f"test -f /root/node_config2.json && echo CONFIG_OK || echo NO_CONFIG; "
++                        f"test -x /root/flyenv/bin/python && echo PYTHON_OK || echo NO_PYTHON; "
++                        f"systemctl is-active {shlex.quote('argos-bud-' + name)} 2>/dev/null || echo NO_SERVICE")
++        markers = set(out.splitlines())
++        reasons = {'NO_MODEL': 'нет настроенного checkpoint /opt/argos-data/fly/latest.pt',
++                   'NO_ENTRYPOINT': 'нет entrypoint /root/malecns/code/generate_once.py',
++                   'NO_CONFIG': 'нет конфигурации /root/node_config2.json',
++                   'NO_PYTHON': 'нет настроенного Python /root/flyenv/bin/python',
++                   'NO_SERVICE': 'сервис argos-bud-' + name + ' не работает'}
++        missing = [reason for marker, reason in reasons.items() if marker in markers]
++        if missing:
++            return f"❌ Инференс почки «{name}» недоступен: " + '; '.join(missing) + '.'
++        if not {'MODEL_OK', 'ENTRYPOINT_OK', 'CONFIG_OK', 'PYTHON_OK', 'active'} <= markers:
++            return f"❌ Инференс почки «{name}» недоступен: проверка файлов и сервиса не завершена."
++        # Existing weights do not establish this legacy script's model contract.
++        # Do not substitute an unrelated checkpoint or launch an unverified job.
++        return f"❌ Инференс почки «{name}» недоступен: совместимость entrypoint и checkpoint не подтверждена."
