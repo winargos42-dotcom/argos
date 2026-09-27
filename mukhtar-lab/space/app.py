@@ -91,17 +91,30 @@ def cpg_metrics(rast):
         out["osc_power"] = 0.0
     e = e_all - e_all.mean()
     i = i_all - i_all.mean()
-    best = 0.0
+    best_corr = None
     for lag in range(2, min(60, len(e) // 2)):
-        c = float(np.corrcoef(e[:-lag], i[lag:])[0, 1])
-        if abs(c) > abs(best):
-            best = c
-    out["alt_corr_max"] = round(best, 3)
+        ea, ib = e[:-lag], i[lag:]
+        if ea.std() < 1e-9 or ib.std() < 1e-9:
+            continue
+        c = float(np.corrcoef(ea, ib)[0, 1])
+        if np.isfinite(c) and (best_corr is None or abs(c) > abs(best_corr)):
+            best_corr = c
+    out["alt_corr_max"] = (round(best_corr, 3)
+                              if best_corr is not None else None)
+
     for nm, r in rates.items():
         r = r - r.mean()
-        ac = [float(np.corrcoef(r[:-l], r[l:])[0, 1]) for l in
-              range(1, 61)]
-        out[f"{nm}_autocorr_p1"] = round(max(ac[2:], key=abs), 3)
+        ac = []
+        for lag in range(3, 61):
+            a, b = r[:-lag], r[lag:]
+            if a.std() < 1e-9 or b.std() < 1e-9:
+                continue
+            c = float(np.corrcoef(a, b)[0, 1])
+            if np.isfinite(c):
+                ac.append(c)
+        out[f"{nm}_autocorr_p1"] = (round(max(ac, key=abs), 3)
+                                         if ac else None)
+
     for a, b in [("E1", "E2"), ("E1", "I1"), ("E2", "I1"),
                  ("E1", "I2"), ("E2", "I2")]:
         ra = rates[a] - rates[a].mean()
@@ -109,18 +122,20 @@ def cpg_metrics(rast):
         if ra.std() < 1e-9 or rb.std() < 1e-9:
             out[f"lag_{a}_{b}"] = None
             continue
-        bestlag = 0
+        best_lag = None
+        best_corr = None
         for lag in range(-60, 61):
             if lag >= 0:
-                c = float(np.corrcoef(ra[lag:],
-                                      rb[:len(ra) - lag])[0, 1])
+                aa, bb = ra[lag:], rb[:len(ra) - lag]
             else:
-                c = float(np.corrcoef(ra[:len(ra) + lag],
-                                      rb[-lag:])[0, 1])
-            if abs(c) > abs(bestlag) or (abs(c) == abs(bestlag)
-                                          and lag == 0):
-                bestlag = lag if abs(c) > 0 else bestlag
-        out[f"lag_{a}_{b}"] = bestlag
+                aa, bb = ra[:len(ra) + lag], rb[-lag:]
+            if len(aa) < 2 or aa.std() < 1e-9 or bb.std() < 1e-9:
+                continue
+            c = float(np.corrcoef(aa, bb)[0, 1])
+            if np.isfinite(c) and (best_corr is None or abs(c) > abs(best_corr)):
+                best_corr = c
+                best_lag = lag
+        out[f"lag_{a}_{b}"] = best_lag
     return out
 
 
@@ -134,7 +149,8 @@ def load_events(bid, ctrl):
     path = os.path.join(DATA, f"{bid}_{ctrl}_events.jsonl")
     if not os.path.exists(path):
         return []
-    return [json.loads(line) for line in open(path)]
+    with open(path, encoding="utf-8") as f:
+        return [json.loads(line) for line in f]
 
 
 SCENARIOS = {
@@ -203,6 +219,7 @@ def reflex_timeline():
     ax.legend(loc="upper left")
     ax.grid(alpha=0.3)
     fig.tight_layout()
+    plt.close(fig)
     return fig
 
 
@@ -226,7 +243,8 @@ def cpg_view(experiment, drive):
     if not os.path.exists(rast_path):
         return None, "нет данных"
     rast = np.load(rast_path)["raster"]
-    metrics = json.load(open(met_path))
+    with open(met_path, encoding="utf-8") as f:
+        metrics = json.load(f)
     fig, ax = plt.subplots(figsize=(9, 3.4))
     for i, nm in enumerate(NAMES):
         spk_t = np.where(rast[:, i] > 0.5)[0]
@@ -239,6 +257,7 @@ def cpg_view(experiment, drive):
                  f"{metrics.get('osc_period_ticks')}, мощность "
                  f"{metrics.get('osc_power')}")
     fig.tight_layout()
+    plt.close(fig)
     lines = [f"**{experiment}, drive={drive}**",
              "",
              f"osc_period_ticks = {metrics.get('osc_period_ticks')}",
@@ -270,6 +289,7 @@ def cpg_live(drive, ko_experiment):
     ax.set_title(f"live: {ko_experiment}, drive={drive} — период "
                  f"{m.get('osc_period_ticks')}")
     fig.tight_layout()
+    plt.close(fig)
     lines = [f"**live: {ko_experiment}, drive={drive}**", "",
              f"osc_period_ticks = {m.get('osc_period_ticks')}",
              f"osc_power = {m.get('osc_power')}",
