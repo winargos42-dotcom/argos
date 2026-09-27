@@ -1,0 +1,272 @@
+--- /dev/null
++++ b/src/ha_dashboard.py
+@@ -0,0 +1,110 @@
++"""Read-only HA snapshot. No service calls or unfiltered entity attributes."""
++from __future__ import annotations
++
++import math
++import os
++import time
++from pathlib import Path
++
++import requests
++
++OFFLINE = {'unavailable', 'unknown'}
++
++
++def summarize(states, temperature_unit=None):
++    if not isinstance(states, list) or len(states) > 10000:
++        raise ValueError('Invalid HA state list')
++    rows = []
++    for state in states:
++        if (not isinstance(state, dict) or not isinstance(state.get('entity_id'), str)
++                or '.' not in state['entity_id'] or not isinstance(state.get('state'), str)):
++            raise ValueError('Invalid HA state')
++        attrs = state.get('attributes') or {}
++        if not isinstance(attrs, dict):
++            raise ValueError('Invalid HA attributes')
++        rows.append({'entity_id': state['entity_id'], 'domain': state['entity_id'].split('.')[0],
++                     'state': state['state'], 'available': state['state'] not in OFFLINE,
++                     'name': str(attrs.get('friendly_name') or state['entity_id']),
++                     'unit': str(attrs.get('unit_of_measurement') or ''),
++                     'device_class': str(attrs.get('device_class') or ''),
++                     'last_updated': state.get('last_updated'), 'last_changed': state.get('last_changed')})
++    counts = {'total': len(rows), 'available': sum(row['available'] for row in rows),
++              'unavailable': sum(row['state'] == 'unavailable' for row in rows),
++              'unknown': sum(row['state'] == 'unknown' for row in rows)}
++    domains = {domain: sum(row['domain'] == domain for row in rows)
++               for domain in sorted({row['domain'] for row in rows})}
++    lights = sum(row['state'] == 'on' and row['domain'] in ('light', 'switch')
++                 and 'child_lock' not in row['entity_id'] for row in rows)
++    out = {'ok': True, 'online': f"{counts['available']}/{counts['total']}",
++           'counts': counts, 'domains': domains, 'entities': rows,
++           'lights_on': f'{lights} шт', 'voltage': '—', 'power': '—', 'climate': '—'}
++    live = [row for row in rows if row['available'] and row['domain'] == 'sensor']
++    for field, units in [('voltage', [('V', 1, 'В')]),
++                         ('power', [('W', 1, 'Вт'), ('kW', 1000, 'Вт'), ('VA', 1, 'ВА'), ('kVA', 1000, 'ВА')])]:
++        found = False
++        for unit, factor, label in units:
++            for row in live:
++                if row['unit'] != unit:
++                    continue
++                try:
++                    value = float(row['state']) * factor
++                except (ValueError, TypeError):
++                    continue
++                if math.isfinite(value):
++                    out[field] = f'{value:g} {label}'
++                    found = True
++                    break
++            if found:
++                break
++    for state in states:
++        if state['entity_id'].startswith('climate.') and state['state'] not in OFFLINE:
++            current = (state.get('attributes') or {}).get('current_temperature')
++            try:
++                value = float(current) if not isinstance(current, bool) else float('nan')
++            except (ValueError, TypeError):
++                value = float('nan')
++            if math.isfinite(value):
++                unit = temperature_unit if temperature_unit in ('°C', '°F') else ' (единица не подтверждена)'
++                out['climate'] = f"{value:g}{unit} ({state['state']})"
++            else:
++                out['climate'] = state['state']
++            break
++    return out
++
++
++def snapshot():
++    from src.runtime_registry import api_url
++    out = {'ok': False, 'url': '', 'dashboard_path': '/argos-home/overview',
++           'lights_on': '—', 'voltage': '—', 'power': '—', 'climate': '—', 'online': 'офлайн',
++           'entities': [], 'domains': {}, 'counts': {}, 'observed_at': None, 'read_only': True}
++    url = api_url('home_assistant', os.getenv('ARGOS_HA_URL'), 'http://127.0.0.1:8123')
++    if not url:
++        out.update(error='address_unverified', online='адрес не подтверждён')
++        return out
++    try:
++        token = Path(os.getenv('ARGOS_HA_TOKEN_FILE', '/etc/argos/ha-token')).read_text().strip()
++    except OSError:
++        token = ''
++    if not token:
++        out.update(error='token_missing', online='нет токена')
++        return out
++    try:
++        response = requests.get(url + '/api/states', headers={'Authorization': 'Bearer ' + token}, timeout=5)
++        response.raise_for_status()
++        states = response.json()
++        temperature_unit = None
++        if isinstance(states, list) and any(isinstance(row, dict) and str(row.get('entity_id', '')).startswith('climate.') and row.get('state') not in OFFLINE for row in states):
++            try:
++                config = requests.get(url + '/api/config', headers={'Authorization': 'Bearer ' + token}, timeout=3)
++                config.raise_for_status()
++                temperature_unit = config.json().get('unit_system', {}).get('temperature')
++            except (requests.RequestException, ValueError, AttributeError, TypeError):
++                pass
++        out.update(summarize(states, temperature_unit), url=url, observed_at=time.time())
++    except requests.HTTPError as exc:
++        out['error'] = 'authentication_failed' if exc.response is not None and exc.response.status_code in (401, 403) else 'upstream_http_error'
++    except requests.RequestException:
++        out['error'] = 'unreachable'
++    except (ValueError, TypeError):
++        out['error'] = 'invalid_response'
++    return out
+--- a/src/control_api.py
++++ b/src/control_api.py
+@@ -50,64 +50,8 @@
+ 
+     @router.get("/ha")
+     def ha():
+-        out = {"ok": False, "url": "", "lights_on": "—", "voltage": "—", "power": "—",
+-               "climate": "—", "online": "—"}
+-        try:
+-            import os as _os
+-            import requests as _requests
+-            from src.runtime_registry import api_url
+-            _url = api_url("home_assistant", _os.getenv("ARGOS_HA_URL"), "http://127.0.0.1:8123")
+-            if not _url:
+-                out["online"] = "адрес не подтверждён"
+-                return out
+-            out['url'] = _url
+-            _token = ""
+-            _tf = _os.getenv("ARGOS_HA_TOKEN_FILE", "/etc/argos/ha-token")
+-            try:
+-                with open(_tf, encoding="utf-8") as f:
+-                    _token = f.read().strip()
+-            except OSError:
+-                pass
+-            if not _token:
+-                out["online"] = "нет токена"
+-                return out
+-            resp = _requests.get(f"{_url}/api/states",
+-                                 headers={"Authorization": f"Bearer {_token}"}, timeout=3)
+-            resp.raise_for_status()
+-            states = resp.json()
+-            total = len(states)
+-            ok = sum(1 for s in states
+-                     if s.get("state") not in ("unavailable", "unknown"))
+-            out["online"] = f"{ok}/{total}"
+-            lights_on = sum(1 for s in states
+-                            if s.get("entity_id", "").startswith(("light.", "switch."))
+-                            and s.get("state") == "on")
+-            out["lights_on"] = f"{lights_on} шт"
+-            for s in states:
+-                u = (s.get("attributes") or {}).get("unit_of_measurement")
+-                if u == "V" and s.get("state") not in ("unavailable", "unknown"):
+-                    out["voltage"] = f"{s['state']} В"
+-                    break
+-            for s in states:
+-                u = (s.get("attributes") or {}).get("unit_of_measurement")
+-                if u in ("W", "kW", "VA", "kVA") and s.get("state") not in ("unavailable", "unknown"):
+-                    try:
+-                        val = float(s["state"]) * (1000.0 if u in ("kW", "kVA") else 1.0)
+-                        out["power"] = f"{val:.0f} Вт"
+-                    except (ValueError, TypeError):
+-                        out["power"] = f"{s['state']} {u}"
+-                    break
+-            for s in states:
+-                if s.get("entity_id", "").startswith("climate."):
+-                    cur = (s.get("attributes") or {}).get("current_temperature")
+-                    out["climate"] = (f"{cur}°C ({s.get('state')})" if cur is not None
+-                                      else s.get("state"))
+-                    break
+-            out["ok"] = True
+-        except Exception as e:  # noqa: BLE001
+-            out["online"] = "офлайн"
+-            out["error"] = str(e)[:60]
+-        return out
++        from src.ha_dashboard import snapshot
++        return snapshot()
+ 
+     @router.get("/tasks")
+     def tasks(limit: int = 50):
+--- a/src/interface/control_panel.html
++++ b/src/interface/control_panel.html
+@@ -6,6 +6,7 @@
+ <title>ARGOS · Рабочая панель</title>
+ <style>
+ :root{color-scheme:dark;--bg:#101419;--panel:#191f27;--line:#303b49;--muted:#a0afc0;--accent:#8fe7c4;--danger:#ffaaa7}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f0f4f7;font:16px/1.55 system-ui,sans-serif}button,input,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:9px;padding:10px 16px;background:#25303b;color:inherit}button:hover{border-color:var(--accent)}button:disabled{opacity:.5;cursor:wait}button.primary{background:var(--accent);color:#10221b;border-color:var(--accent);font-weight:650}button.danger{color:var(--danger)}input,textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#11171e;color:inherit;padding:12px;outline:none}input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}textarea{resize:vertical;min-height:110px}label{display:block;margin:0 0 8px;font-weight:550}header{border-bottom:1px solid var(--line);padding:21px 0}.wrap{max-width:1160px;margin:auto;padding:0 24px}.bar,.row{display:flex;align-items:center;gap:14px}.bar{justify-content:space-between}.brand{font-weight:750;letter-spacing:.16em;font-size:20px}.brand small{display:block;font-size:11px;letter-spacing:.09em;color:var(--muted);font-weight:500}.status{font-size:13px;color:var(--muted)}.dot{display:inline-block;background:var(--accent);height:7px;width:7px;border-radius:50%;margin-right:7px}main{padding-top:32px!important;padding-bottom:40px!important}h1{font-size:28px;letter-spacing:-.025em;margin:0 0 7px}h2{font-size:17px;margin:0 0 16px}p{margin:0 0 16px}.muted{color:var(--muted);font-size:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;min-width:0}.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,1fr);gap:22px;margin-top:25px}.actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}.login{max-width:520px;margin:45px auto}.error{color:var(--danger);font-size:14px;white-space:pre-wrap}.notice{min-height:24px;font-size:14px;margin-bottom:14px;color:var(--accent)}.task-list{display:grid;gap:9px;max-height:580px;overflow:auto}.task-item{display:block;width:100%;text-align:left;background:#141b23;padding:12px}.task-item strong{display:block;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.task-item small{color:var(--muted);font-size:12px}.task-item.active{border-color:var(--accent)}.badge{font-size:12px;border:1px solid var(--line);padding:4px 8px;border-radius:20px;color:var(--accent);display:inline-block}pre{font:15px/1.65 system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;margin:18px 0 0;min-height:55px}.small{font-size:12px}.tabs{display:flex;gap:8px;margin-bottom:20px}.tabs [aria-selected=true]{background:var(--accent);color:#10221b}.memory-item{padding:15px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}.memory-item p{white-space:pre-wrap;font-size:14px}.memory-item summary{font-size:12px;color:var(--muted);cursor:pointer}.memory-item details pre{font-size:12px;min-height:0;color:var(--muted)}[hidden]{display:none!important}#taskTitle{overflow-wrap:anywhere}#logout{font-size:13px;padding:7px 12px}.split{display:grid;grid-template-columns:1fr auto;gap:10px}.footer{color:var(--muted);font-size:12px;padding-top:10px}@media(max-width:760px){.wrap{padding:0 16px}.grid{grid-template-columns:1fr;gap:0}.card{padding:17px}h1{font-size:24px}.status{font-size:12px}.actions{align-items:flex-start;flex-direction:column}.actions button{width:100%}.split{grid-template-columns:1fr}.login{margin:20px auto}.bar{gap:8px}.task-list{max-height:300px}}
++.home-filters{display:grid;grid-template-columns:minmax(160px,1fr) 180px 190px auto;gap:12px;margin:20px 0}select{font:inherit;color:inherit;background:#11171e;border:1px solid var(--line);border-radius:9px;padding:10px;max-width:100%}.home-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.entity{padding:15px;border:1px solid var(--line);border-radius:10px;background:#141b23;overflow-wrap:anywhere}.entity h3{font-size:16px;margin:0 0 6px}.entity p{margin:5px 0}.entity.offline{border-color:#806451}.entity .value{font-size:20px;font-weight:600}.home-links{display:flex;gap:18px;flex-wrap:wrap}.home-links a{color:var(--accent)}@media(max-width:760px){.home-filters{grid-template-columns:1fr}.tabs{flex-wrap:wrap}header .row{flex-wrap:wrap;justify-content:flex-end}#haWidget{max-width:220px}.home-list{grid-template-columns:1fr}}
+ </style>
+ </head>
+ <body>
+@@ -15,13 +16,14 @@
+ <section id="workspace" hidden>
+ <h1>Что делаем сегодня?</h1><p class="muted">Задайте команду, следите за выполнением и сохраняйте важное.</p>
+ <div id="notice" class="notice" role="status" aria-live="polite"></div>
+-<div class="tabs" role="tablist" aria-label="Разделы"><button id="tasksTab" role="tab" aria-selected="true" aria-controls="tasksPanel">Задачи</button><button id="memoryTab" role="tab" aria-selected="false" aria-controls="memoryPanel">Память</button></div>
++<div class="tabs" role="tablist" aria-label="Разделы"><button id="tasksTab" role="tab" aria-selected="true" aria-controls="tasksPanel">Задачи</button><button id="memoryTab" role="tab" aria-selected="false" aria-controls="memoryPanel">Память</button><button id="homeTab" role="tab" aria-selected="false" aria-controls="homePanel">Дом</button></div>
+ <div id="tasksPanel" role="tabpanel"><div class="grid">
+ <div><section class="card"><form id="taskForm"><label for="command">Новая задача</label><textarea id="command" maxlength="24000" required placeholder="Например: вычисли 125 * 8"></textarea><div class="actions"><span class="muted small">Задачи выполняются по очереди.</span><button class="primary" id="submitTask">Запустить задачу</button></div></form></section>
+ <section class="card" id="resultCard"><div class="bar"><h2 id="taskTitle">Результат появится здесь</h2><span id="taskState" class="badge" hidden></span></div><p id="taskHint" class="muted">Выберите задачу в истории или создайте новую.</p><pre id="answer" aria-live="polite"></pre><div class="actions"><span id="execution" class="muted small"></span><button id="cancelTask" class="danger" hidden>Остановить</button></div></section></div>
+ <aside class="card"><div class="bar"><h2>История задач</h2><button id="refresh" aria-label="Обновить историю">↻</button></div><p id="emptyHistory" class="muted">Здесь появятся ваши задачи.</p><div id="history" class="task-list"></div></aside>
+ </div></div>
+ <div id="memoryPanel" role="tabpanel" hidden><div class="grid"><section class="card"><h2>Найти в памяти</h2><p id="memoryStatus" class="muted"></p><form id="searchForm" class="split"><input id="memoryQuery" maxlength="512" required aria-label="Запрос к памяти" placeholder="Событие, проект или факт"><button class="primary">Найти</button></form><div id="memoryResults" aria-live="polite"></div></section><section class="card"><h2>Сохранить новый факт</h2><p class="muted">Новые записи хранятся отдельно от восстановленной истории.</p><form id="factForm"><label for="factText">Что запомнить</label><textarea id="factText" maxlength="10000" required placeholder="Важная информация для следующих задач"></textarea><div class="actions"><span></span><button class="primary">Сохранить в память</button></div></form></section></div></div>
++<section id="homePanel" role="tabpanel" hidden class="card"><div class="bar"><h2>Дом · Home Assistant</h2><span class="badge">Только чтение</span></div><p class="muted">Реальные состояния Home Assistant. «Недоступно» и «Неизвестно» означают отсутствие данных, а не выключенное устройство.</p><p id="haDetails" role="status" aria-live="polite">Ожидаем данные.</p><div class="home-links"><a id="haDashboard" hidden target="_blank" rel="noopener">Открыть HA · ARGOS Дом ↗</a><a id="haOverview" hidden target="_blank" rel="noopener">Обзор Home Assistant ↗</a></div><div class="home-filters"><input id="haSearch" aria-label="Найти сущность" placeholder="Название или entity ID"><select id="haDomain" aria-label="Домен"><option value="">Все домены</option></select><select id="haAvailability" aria-label="Доступность"><option value="">Все состояния</option><option value="available">Доступные</option><option value="unavailable">Недоступные</option><option value="unknown">Неизвестные</option></select><button id="haRefresh">Обновить</button></div><p id="haShown" class="muted"></p><div id="haEntities" class="home-list"></div></section>
+ <p class="footer">Отмена останавливает дальнейшую обработку. Уже выполненные действия сохраняются.</p>
+ </section>
+ </main>
+@@ -30,9 +32,9 @@
+ const $=id=>document.getElementById(id);
+ const labels={queued:'В очереди',running:'Выполняется',cancelling:'Останавливается',completed:'Завершена',failed:'Ошибка',cancelled:'Отменена',interrupted:'Прервана'};
+ const terminal=new Set(['completed','failed','cancelled','interrupted']);
+-let key='',selected='',streamController=null,authEpoch=0;
++let key='',selected='',streamController=null,authEpoch=0,haData=null,haRequest=0;
+ function notice(text){$('notice').textContent=text;}
+-function clearHa(){const link=$('haLink');link.hidden=true;link.removeAttribute('href');$('haSum').textContent='—';}
++function clearHa(){const link=$('haLink');link.hidden=true;link.removeAttribute('href');$('haSum').textContent='—';haData=null;for(const id of ['haDashboard','haOverview']){$(id).hidden=true;$(id).removeAttribute('href');}renderHome();}
+ function logout(){key='';authEpoch+=1;clearHa();selected='';if(streamController)streamController.abort();$('workspace').hidden=true;$('login').hidden=false;$('logout').hidden=true;$('connection').textContent='Ожидает входа';$('history').replaceChildren();$('memoryResults').replaceChildren();$('answer').textContent='';}
+ async function api(path,options={}){
+ const requestEpoch=authEpoch,requestKey=key;
+@@ -61,12 +63,24 @@
+ $('taskForm').onsubmit=async event=>{event.preventDefault();const text=$('command').value;if(!text.trim())return;$('submitTask').disabled=true;try{const task=await(await api('/api/tasks',{method:'POST',body:JSON.stringify({text})})).json();$('command').value='';selected=task.id;showTask(task);await refresh();watch(task.id);notice('Задача добавлена.');}catch(error){notice(error.message);}finally{$('submitTask').disabled=false;}};
+ $('cancelTask').onclick=async()=>{try{showTask(await(await api('/api/tasks/'+selected+'/cancel',{method:'POST'})).json());await refresh();}catch(error){notice(error.message);}};
+ $('refresh').onclick=()=>refresh().catch(error=>notice(error.message));
+-function tab(memory){$('tasksPanel').hidden=memory;$('memoryPanel').hidden=!memory;$('tasksTab').setAttribute('aria-selected',String(!memory));$('memoryTab').setAttribute('aria-selected',String(memory));if(memory)status().catch(error=>notice(error.message));}
+-$('tasksTab').onclick=()=>tab(false);$('memoryTab').onclick=()=>tab(true);
++function tab(name){for(const id of ['tasks','memory','home']){$(id+'Panel').hidden=id!==name;$(id+'Tab').setAttribute('aria-selected',String(id===name));}if(name==='memory')status().catch(error=>notice(error.message));if(name==='home')haTick();}
++$('tasksTab').onclick=()=>tab('tasks');$('memoryTab').onclick=()=>tab('memory');$('homeTab').onclick=()=>tab('home');
+ $('searchForm').onsubmit=async event=>{event.preventDefault();try{const results=await(await api('/api/memory/search?q='+encodeURIComponent($('memoryQuery').value))).json();$('memoryResults').replaceChildren();if(!results.length){const empty=document.createElement('p');empty.className='muted memory-item';empty.textContent='Совпадений не найдено.';$('memoryResults').append(empty);}for(const item of results){const card=document.createElement('article'),text=document.createElement('p'),details=document.createElement('details'),summary=document.createElement('summary'),source=document.createElement('pre');card.className='memory-item';text.textContent=item.text;summary.textContent=(item.origin==='current_registry'?'Текущая карта системы':item.origin==='fact'?'Новый факт':'Восстановленная история')+' · Источник';source.textContent=[item.source,item.source_file,item.date,item.id?'ID: '+item.id:'',item.source_sha256?'SHA-256: '+item.source_sha256:''].filter(Boolean).join('\n');details.append(summary,source);card.append(text,details);$('memoryResults').append(card);}}catch(error){notice(error.message);}};
+ $('factForm').onsubmit=async event=>{event.preventDefault();try{await api('/api/memory/facts',{method:'POST',body:JSON.stringify({text:$('factText').value})});$('factText').value='';notice('Факт сохранён в отдельное хранилище.');await status();}catch(error){notice(error.message);}};
+ setInterval(()=>{if(key)refresh().catch(error=>notice(error.message));},5000);
+-async function haTick(){clearHa();if(!key)return;const epoch=authEpoch,link=$('haLink');try{const d=await(await api('/api/ha')).json();if(epoch!==authEpoch||!key)return;$('haSum').textContent=(d.lights_on||'—')+' · '+(d.voltage||'—')+' · '+(d.power||'—')+' · '+(d.climate||'—');if(d.ok&&d.url){const u=new URL(d.url);if(['http:','https:'].includes(u.protocol)){if(['127.0.0.1','localhost','[::1]'].includes(u.hostname))u.hostname=location.hostname;link.href=u.href;link.hidden=false;}}}catch(e){if(epoch===authEpoch&&key)$('haSum').textContent='офлайн';}}
++function haUrl(raw,path=''){const u=new URL(raw);if(!['http:','https:'].includes(u.protocol))return null;if(['127.0.0.1','localhost','[::1]'].includes(u.hostname))u.hostname=location.hostname;if(path)u.pathname=path;return u.href;}
++function renderHome(){
++const list=$('haEntities');list.replaceChildren();
++if(!haData?.ok){$('haDetails').textContent=haData?'Home Assistant: '+(haData.online||'офлайн')+'. Данные не получены.':'Ожидаем данные Home Assistant.';$('haShown').textContent='';return;}
++const counts=haData.counts||{},rows=haData.entities||[];
++$('haDetails').textContent='Доступно состояний: '+(counts.available??'—')+' из '+(counts.total??'—')+' · Недоступно: '+(counts.unavailable??'—')+' · Неизвестно: '+(counts.unknown??'—')+(haData.observed_at?' · Получено '+new Date(haData.observed_at*1000).toLocaleTimeString('ru-RU'):'');
++const q=$('haSearch').value.trim().toLowerCase(),domain=$('haDomain').value,availability=$('haAvailability').value;
++const matches=rows.filter(x=>(!q||(x.name+' '+x.entity_id).toLowerCase().includes(q))&&(!domain||x.domain===domain)&&(!availability||(availability==='available'?x.available:x.state===availability)));
++$('haShown').textContent=matches.length?'Показано: '+matches.length+' из '+rows.length:'Совпадений не найдено.';
++for(const row of matches){const article=document.createElement('article'),title=document.createElement('h3'),value=document.createElement('p'),id=document.createElement('p'),stamp=document.createElement('p');article.className='entity'+(row.available?'':' offline');title.textContent=row.name;value.className='value';value.textContent=row.state==='unavailable'?'Недоступно':row.state==='unknown'?'Неизвестно':row.state+(row.unit?' '+row.unit:'');id.className='muted small';id.textContent=row.entity_id;stamp.className='muted small';stamp.textContent=row.last_updated?'Изменено в HA: '+new Date(row.last_updated).toLocaleString('ru-RU'):'';article.append(title,value,id,stamp);list.append(article);}
++}
++async function haTick(){if(!key){clearHa();return;}const epoch=authEpoch,request=++haRequest;$('haRefresh').disabled=true;try{const d=await(await api('/api/ha')).json();if(epoch!==authEpoch||request!==haRequest||!key)return;clearHa();haData=d;const domain=$('haDomain'),chosen=domain.value;domain.replaceChildren(new Option('Все домены',''));for(const [name,count] of Object.entries(d.domains||{}))domain.add(new Option(name+' ('+count+')',name));domain.value=chosen;renderHome();$('haSum').textContent=d.ok?'Свет/выключатели: '+(d.lights_on||'—')+' · '+(d.voltage||'—')+' · '+(d.power||'—'):'HA: '+(d.online||'офлайн');if(d.ok&&d.url){const base=haUrl(d.url),dashboard=haUrl(d.url,d.dashboard_path||'');for(const [id,url] of [['haLink',dashboard],['haDashboard',dashboard],['haOverview',base]]){if(url){$(id).href=url;$(id).hidden=false;}}}}catch(e){if(epoch===authEpoch&&request===haRequest&&key){clearHa();$('haSum').textContent='офлайн';$('haDetails').textContent='Home Assistant недоступен. Обновите данные позже.';}}finally{if(epoch===authEpoch&&request===haRequest)$('haRefresh').disabled=false;}}
++$('haRefresh').onclick=haTick;$('haSearch').oninput=renderHome;$('haDomain').onchange=renderHome;$('haAvailability').onchange=renderHome;
+ setInterval(haTick,15000);haTick();
+ })();
+ </script>
+--- a/src/connectivity/home_assistant.py
++++ b/src/connectivity/home_assistant.py
+@@ -42,15 +42,19 @@
+ class HomeAssistantBridge:
+     def __init__(self, core=None):
+         self.core = core
+-        self.base_url = (os.getenv("HA_URL") or os.getenv("ARGOS_HA_URL") or "http://localhost:8123").rstrip("/")
+         self.token = _read_token()
+         self.mqtt_host = os.getenv("HA_MQTT_HOST", "localhost").strip()
+         self.mqtt_port = int(os.getenv("HA_MQTT_PORT", "1883"))
+         self._mqtt = None
+ 
+     @property
++    def base_url(self) -> str:
++        from src.runtime_registry import api_url
++        return api_url("home_assistant", os.getenv("HA_URL") or os.getenv("ARGOS_HA_URL"), "http://localhost:8123")
++
++    @property
+     def enabled(self) -> bool:
+-        return bool(self.token)
++        return bool(self.token and self.base_url)
+ 
+     @property
+     def write_enabled(self) -> bool:

@@ -1,0 +1,43 @@
+{
+  "live_api": {
+    "auth_required": true,
+    "counts": {
+      "total": 91,
+      "available": 45,
+      "unavailable": 30,
+      "unknown": 16
+    },
+    "read_only": true,
+    "climate": "—"
+  },
+  "browser": {
+    "argos": {
+      "identity": true,
+      "filters": true,
+      "refresh": true,
+      "mobile_overflow": false,
+      "console_errors": []
+    },
+    "ha": {
+      "identity": true,
+      "entity_rows": 52,
+      "controls": 0,
+      "bridge_to_argos": true,
+      "mobile_overflow": false,
+      "console_errors": [],
+      "service_calls": 0
+    }
+  },
+  "tests": {
+    "suite_passed": 26,
+    "source": "public/tests",
+    "independent_review": "passed; no open findings"
+  },
+  "deployment": {
+    "home_assistant_administrative_container_restarts": 1,
+    "device_service_calls": 0,
+    "existing_native_dashboards_preserved": 1,
+    "runtime_hashes_verified": true
+  },
+  "verified_at": "2026-09-27T12:12:33.708047+00:00"
+}

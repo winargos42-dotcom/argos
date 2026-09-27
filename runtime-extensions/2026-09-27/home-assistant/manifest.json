@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "src/ha_dashboard.py",
+      "before": null,
+      "after": "ebb4487f8ce495f9d11ecccdf6faf6a0fdc6de8d6e81253625c71034692ae51e"
+    },
+    {
+      "path": "src/control_api.py",
+      "before": "426e4bdb3c1ad14d5e0f4b2e94f30fe8b83f78dabf745d7d5ec5bfe624fede2e",
+      "after": "803c4de92dd0e0ce241b2589152ccf1871c2fb192833f11333cd18ea46d0dbf7"
+    },
+    {
+      "path": "src/interface/control_panel.html",
+      "before": "642618a245a79f94ffff8296d562347b53ea95a124b1f00c105cac577816c458",
+      "after": "7209228aced744d2450bbdfa763ea87d02aa9e81bbad291c713f6524e267f860"
+    },
+    {
+      "path": "src/connectivity/home_assistant.py",
+      "before": "de64cf6308233ac677ac6a6d2049d59b67c71ff73b099385b942927a2c9a8ac9",
+      "after": "a24598e8d61f5b74c5551761752e7da2ab9e1514a1e26ace863553d2e559e13b"
+    }
+  ]
+}
