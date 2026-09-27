@@ -1,0 +1,16 @@
+{
+  "source": "MaleCNS step2948 mushroom_body_odour, 5 seeds",
+  "n_seeds": 5,
+  "kenyon_cells": 4064,
+  "mbons": 97,
+  "dans": 340,
+  "kc_mbon_synapses": 61210,
+  "mean_test_acc": {
+    "frozen": 0.4699,
+    "backprop": 0.7070,
+    "dan_per_mbon": 0.6902,
+    "dan_wiring": 0.6691,
+    "global_reward": 0.6395
+  },
+  "caveat": "Synthetic token-as-odour conditioning; not robot gas-source navigation."
+}

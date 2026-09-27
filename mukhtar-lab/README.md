@@ -283,7 +283,7 @@ GF takeoff и haltere/IMU stabilization — пока архитектурные 
 ## Артефакты независимой проверки
 
 - `verification/b09_shadow_results.json` — свежие 3 повторения six-CPG shadow.
-- `verification/t2_closed_fresh.log` — свежий T2 held-out closed loop.
+- `verification/t2_closed_fresh.txt` — свежий T2 held-out closed loop.
 - `verification/cc_activity.json` — synthetic Δθ scan EPG/Delta7/FC2/PFL3/PFL2.
 - `verification/cc_real_control.json` — те же CX-популяции на 6400 real frames.
 - `verification/vision_phase0_rec20.json` — untrained optic-lobe encoder benchmark.
