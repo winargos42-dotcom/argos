@@ -12,7 +12,7 @@ their causal contribution to behavior.
 
 | Каталог | Что |
 |---|---|
-| `package/` | Модульный рефлекторный пакет Stage 1: `reflexes/` (R1a stumble, R1b foot-catch, R3 v2 searching, R4 load-coordination, mixer, база ReflexContext/ReflexOutput), `sensors/` (ContactPipeline с kind floor/obstacle/self), `telemetry/`, `tests/` (38/38 pytest), `ОТЧЁТ_Stage1.md` |
+| `mukhtar/` | Модульный рефлекторный пакет Stage 1: `reflexes/` (R1a stumble, R1b foot-catch, R3 v2 searching, R4 load-coordination, mixer, база ReflexContext/ReflexOutput), `sensors/` (ContactPipeline с kind floor/obstacle/self), `telemetry/`, `tests/` (38/38 pytest), `ОТЧЁТ_Stage1.md` |
 | `controllers/` | Контроллеры: A = CPGGaitController (эталонный синус-CPG), Б = SineContactController (+contact feedback), В = SpikeCPGController (6-нейронный LIF half-center); `limb_reflexes_FROZEN_v03_filters.py` — замороженный боевой контроллер (sha256 `a8db07c0…6dcde`) |
 | `models/` | `hexapod.xml` (6 ног × 3 сустава, 18 приводов) + генератор `gen_hexapod.py` |
 | `cpg_m0/` | Изолированный MaleCNS-модуль T1-L: `config.json` (клетки DgR/E1/E2/I1/I2 + рёбра, BASE-веса), raster `*.npz` и метрики `*.json` для normal / KO DNg100 / KO E1 / KO E2 / KO I1 / KO I2 / KO I1+I2 при drive 0.4–1.6. Base checkpoint `male_cns_spikewhale.pt` sha256 `b381422e…f6fb` |
@@ -40,7 +40,7 @@ their causal contribution to behavior.
 
 Нода: `cd /opt/argos-roach && ./venv/bin/python fly_bridge/stage1_matrix.py`
 (X230: тот же пакет в `/home/argos-data/improve/mukhtar/`).
-Тесты пакета: `python -m pytest package/tests/ -q` → 38 passed.
+Тесты пакета: `python -m pytest mukhtar/tests/ -q` → 38 passed.
 
 Публикации: HF Space `ARGOS-MUKHTAR-Lab`, dataset `MUKHTAR-Bench`,
 model repo `ARGOS-MUKHTAR` (аккаунт AvaSiG).

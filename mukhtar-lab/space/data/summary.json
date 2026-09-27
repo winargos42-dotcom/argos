@@ -1,0 +1,437 @@
+{
+  "seed": 42,
+  "results": [
+    {
+      "ctrl": "B01-flat_BASE",
+      "x": 1.26,
+      "fell": 0,
+      "false_events": 0,
+      "events": {},
+      "self_contacts": 33946,
+      "min_foot_z_mm": -1.6,
+      "body_drop_mm": 0.0,
+      "max_tilt_deg": 57.6,
+      "net_progress": null,
+      "bench_id": "B01-flat",
+      "controller": "BASE",
+      "seed": 42,
+      "description": "flat, отсутствие ложных рефлексов (контроль)"
+    },
+    {
+      "ctrl": "B01-flat_R1b",
+      "x": 1.26,
+      "fell": 0,
+      "false_events": 0,
+      "events": {},
+      "self_contacts": 33946,
+      "min_foot_z_mm": -1.6,
+      "body_drop_mm": 0.0,
+      "max_tilt_deg": 57.6,
+      "net_progress": null,
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "bench_id": "B01-flat",
+      "controller": "R1b",
+      "seed": 42,
+      "description": "flat, ложных 0 у R1b"
+    },
+    {
+      "ctrl": "B01-flat_R3v2",
+      "x": 1.26,
+      "fell": 0,
+      "false_events": 0,
+      "events": {},
+      "self_contacts": 33946,
+      "min_foot_z_mm": -1.6,
+      "body_drop_mm": 0.0,
+      "max_tilt_deg": 57.6,
+      "net_progress": null,
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "bench_id": "B01-flat",
+      "controller": "R3v2",
+      "seed": 42,
+      "description": "flat, ложных 0 у R3 v2"
+    },
+    {
+      "ctrl": "B01-flat_R4",
+      "x": 0.887,
+      "fell": 0,
+      "false_events": 10544,
+      "events": {
+        "R4_LOAD_HOLD": 10544
+      },
+      "self_contacts": 25449,
+      "min_foot_z_mm": -1.9,
+      "body_drop_mm": 0.0,
+      "max_tilt_deg": 57.7,
+      "net_progress": null,
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 108,
+      "r4_releases": 108,
+      "r4_hold_mean_ms": 195.3,
+      "r4_hold_max_ms": 402.0,
+      "r4_chatter": 0,
+      "bench_id": "B01-flat",
+      "controller": "R4",
+      "seed": 42,
+      "description": "flat, R4 v2 (эксперимент: deadlock измерен)"
+    },
+    {
+      "ctrl": "B02-footcatch12_BASE",
+      "x": 0.486,
+      "fell": 0,
+      "false_events": 0,
+      "events": {},
+      "self_contacts": 26252,
+      "min_foot_z_mm": -2.2,
+      "body_drop_mm": 0.0,
+      "max_tilt_deg": 58.5,
+      "net_progress": null,
+      "bench_id": "B02-footcatch12",
+      "controller": "BASE",
+      "seed": 42,
+      "description": "ловушка 12 мм, BASE застревает"
+    },
+    {
+      "ctrl": "B02-footcatch12_R1b",
+      "x": 1.238,
+      "fell": 0,
+      "false_events": 9,
+      "events": {
+        "R1B_FOOT_CATCH": 9
+      },
+      "self_contacts": 33167,
+      "min_foot_z_mm": -2.3,
+      "body_drop_mm": 0.0,
+      "max_tilt_deg": 57.9,
+      "net_progress": null,
+      "time_to_first_search_s": null,
+      "search_duration_ms": 0.0,
+      "ground_found": false,
+      "n_searches": 0,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          8.784,
+          1,
+          "floor",
+          0.002,
+          0
+        ],
+        [
+          8.786,
+          1,
+          "floor",
+          0.004,
+          0
+        ],
+        [
+          8.788,
+          1,
+          "floor",
+          0.006,
+          0
+        ],
+        [
+          8.79,
+          1,
+          "floor",
+          0.008,
+          0
+        ],
+        [
+          8.792,
+          1,
+          "floor",
+          0.01,
+          0
+        ],
+        [
+          8.794,
+          1,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          8.796,
+          1,
+          "floor",
+          0.014,
+          0
+        ]
+      ],
+      "bench_id": "B02-footcatch12",
+      "controller": "R1b",
+      "seed": 42,
+      "description": "ловушка 12 мм, R1b foot-catch проход"
+    },
+    {
+      "ctrl": "B03-gap20_BASE",
+      "x": 0.939,
+      "fell": 1,
+      "false_events": 0,
+      "events": {},
+      "self_contacts": 30727,
+      "min_foot_z_mm": -24.0,
+      "body_drop_mm": 152.3,
+      "max_tilt_deg": 58.6,
+      "net_progress": null,
+      "bench_id": "B03-gap20",
+      "controller": "BASE",
+      "seed": 42,
+      "description": "яма 20 мм, BASE теряет опору"
+    },
+    {
+      "ctrl": "B03-gap20_R3v2",
+      "x": 0.987,
+      "fell": 0,
+      "false_events": 1911,
+      "events": {
+        "R3_SEARCHING": 1446,
+        "R3_SEARCH_TIMEOUT_RETRACT": 465
+      },
+      "self_contacts": 29079,
+      "min_foot_z_mm": -47.1,
+      "body_drop_mm": 19.1,
+      "max_tilt_deg": 59.5,
+      "net_progress": 0.306,
+      "time_to_first_search_s": 10.306,
+      "search_duration_ms": 1074.0,
+      "ground_found": true,
+      "n_searches": 16,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          9.336,
+          0,
+          "floor",
+          0.002,
+          1
+        ],
+        [
+          9.338,
+          0,
+          "floor",
+          0.004,
+          1
+        ],
+        [
+          9.34,
+          0,
+          "floor",
+          0.006,
+          1
+        ],
+        [
+          9.342,
+          0,
+          "floor",
+          0.008,
+          1
+        ],
+        [
+          9.344,
+          0,
+          "floor",
+          0.01,
+          1
+        ],
+        [
+          9.346,
+          0,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          9.348,
+          0,
+          "floor",
+          0.014,
+          0
+        ],
+        [
+          9.35,
+          0,
+          "floor",
+          0.016,
+          0
+        ],
+        [
+          9.352,
+          0,
+          "floor",
+          0.018,
+          0
+        ],
+        [
+          9.354,
+          0,
+          "floor",
+          0.02,
+          0
+        ],
+        [
+          9.356,
+          0,
+          "floor",
+          0.022,
+          0
+        ],
+        [
+          9.864,
+          5,
+          "floor",
+          0.002,
+          1
+        ]
+      ],
+      "bench_id": "B03-gap20",
+      "controller": "R3v2",
+      "seed": 42,
+      "description": "яма 20 мм, R3 v2 поиск опоры"
+    },
+    {
+      "ctrl": "B03-gap20_R1b+R3v2",
+      "x": 1.19,
+      "fell": 0,
+      "false_events": 730,
+      "events": {
+        "R1B_FOOT_CATCH": 13,
+        "R3_SEARCHING": 566,
+        "R3_SEARCH_TIMEOUT_RETRACT": 151
+      },
+      "self_contacts": 31413,
+      "min_foot_z_mm": -55.4,
+      "body_drop_mm": 18.8,
+      "max_tilt_deg": 59.6,
+      "net_progress": 0.545,
+      "time_to_first_search_s": 10.266,
+      "search_duration_ms": 464.0,
+      "ground_found": true,
+      "n_searches": 8,
+      "r4_holds": 0,
+      "r4_releases": 0,
+      "r4_hold_mean_ms": 0.0,
+      "r4_hold_max_ms": 0.0,
+      "r4_chatter": 0,
+      "tibia_trace": [
+        [
+          9.336,
+          0,
+          "floor",
+          0.002,
+          1
+        ],
+        [
+          9.338,
+          0,
+          "floor",
+          0.004,
+          1
+        ],
+        [
+          9.34,
+          0,
+          "floor",
+          0.006,
+          1
+        ],
+        [
+          9.342,
+          0,
+          "floor",
+          0.008,
+          1
+        ],
+        [
+          9.344,
+          0,
+          "floor",
+          0.01,
+          1
+        ],
+        [
+          9.346,
+          0,
+          "floor",
+          0.012,
+          0
+        ],
+        [
+          9.348,
+          0,
+          "floor",
+          0.014,
+          0
+        ],
+        [
+          9.35,
+          0,
+          "floor",
+          0.016,
+          0
+        ],
+        [
+          9.352,
+          0,
+          "floor",
+          0.018,
+          0
+        ],
+        [
+          9.354,
+          0,
+          "floor",
+          0.02,
+          0
+        ],
+        [
+          9.356,
+          0,
+          "floor",
+          0.022,
+          0
+        ],
+        [
+          12.244,
+          0,
+          "floor",
+          0.002,
+          0
+        ]
+      ],
+      "bench_id": "B03-gap20",
+      "controller": "R1b+R3v2",
+      "seed": 42,
+      "description": "яма 20 мм, combined"
+    }
+  ]
+}
