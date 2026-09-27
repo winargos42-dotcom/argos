@@ -1,0 +1,40 @@
+{
+ "cells": {
+  "DgR": 10056,
+  "E1": 800173,
+  "E2": 800863,
+  "I1": 801884,
+  "I2": 800374
+ },
+ "edges": {
+  "DgR->E1": 1.55,
+  "DgR->E2": 0.01,
+  "DgR->I2": 0.07,
+  "E1->E2": 4.65,
+  "E2->E1": 0.11,
+  "E1->DgR": 0.01,
+  "E2->I1": 0.38,
+  "E1->I1": 0.06,
+  "E1->I2": 0.84,
+  "E2->I2": 2.15,
+  "I1->E1": -5.26,
+  "I1->E2": -1.21,
+  "I1->I2": -0.02,
+  "I2->E1": -3.28,
+  "I2->E2": -0.56
+ },
+ "ticks": 500,
+ "drives": [
+  0.4,
+  0.8,
+  1.2,
+  1.6
+ ],
+ "beta": 0.9,
+ "thr": 1.0,
+ "lif": "SpikeWhale primitive (upstream/lif.py), soft_clamp 30",
+ "init": "zero mem/spk, deterministic",
+ "orientation": "W[post,pre], recurrent=(W @ spk.T).T",
+ "base_checkpoint": "/root/output/male_cns_spikewhale.pt",
+ "base_sha256": "b381422e88d41ad3525f63284815784b3bbadfe32b59d8166986f92d7083f6fb"
+}
