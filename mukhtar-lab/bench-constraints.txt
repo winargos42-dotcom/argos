@@ -1,0 +1,4 @@
+# Versions used for the verified 2026-09-27 runs (Python 3.11.16).
+numpy==2.4.6
+mujoco==3.14.0
+pytest==9.1.1

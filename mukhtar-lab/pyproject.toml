@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "argos-mukhtar"
+version = "0.1.0"
+description = "ARGOS-MUKHTAR embodied connectome benchmark and reflex package"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26,<3"]
+
+[project.optional-dependencies]
+bench = ["mujoco>=3.3,<4"]
+test = ["pytest>=8,<10"]
+
+[tool.setuptools]
+packages = ["mukhtar", "mukhtar.reflexes", "mukhtar.sensors", "mukhtar.telemetry"]
+
+[tool.setuptools.package-dir]
+mukhtar = "package"
+
+[tool.pytest.ini_options]
+testpaths = ["package/tests"]

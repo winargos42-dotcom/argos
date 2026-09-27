@@ -38,9 +38,48 @@ their causal contribution to behavior.
 
 ## Воспроизведение
 
-Нода: `cd /opt/argos-roach && ./venv/bin/python fly_bridge/stage1_matrix.py`
-(X230: тот же пакет в `/home/argos-data/improve/mukhtar/`).
-Тесты пакета: `python -m pytest package/tests/ -q` → 38 passed.
+Запуск из чистого checkout, без `/opt/argos-roach` и рабочего дерева X230:
+
+```bash
+cd mukhtar-lab
+python3.11 -m venv /tmp/mukhtar-venv
+/tmp/mukhtar-venv/bin/python -m pip install -c bench-constraints.txt -e '.[bench,test]'
+/tmp/mukhtar-venv/bin/python -m pytest
+/tmp/mukhtar-venv/bin/python fly_bridge/bench_jsonl.py --out /tmp/mukhtar-bench-v1
+```
+
+Каталог `--out` должен быть новым: существующие результаты не перезаписываются.
+Экспортёр выполняет девять 20-секундных прогонов B01-flat/B02-footcatch12/B03-gap20.
+Для короткой проверки: `--scenario B01-flat --controller BASE --duration 1.02`.
+Короткая проверка подтверждает запуск, но не является locomotion benchmark.
+
+В `summary.json` находятся агрегаты; `*_events.jsonl` содержит сырые события
+рефлексов (не полную кинематическую траекторию). Для каждого сценария сохраняется
+точный XML модели. `manifest.json` содержит git revision, dirty-флаг, SHA256
+исходников и артефактов, версии Python/NumPy/MuJoCo, seed и длительность.
+Состояние `complete` записывается только после завершения всех выбранных прогонов.
+Эти контроллеры аналитические: neural checkpoint отсутствует и обозначен `null`.
+Seed фиксирует настройку запуска; стохастических входов у текущих сценариев нет.
+
+### Метрики схемы 2
+
+- `reflex_events`/`trigger_count`: число начал эпизодов по рефлексу/ноге/reason.
+  `event_active_ticks`/`active_tick_count`: число активных записей, включая
+  продолжающийся R4 hold. Это разные величины; `n_searches` остаётся отдельным
+  доменным счётчиком R3.
+- `false_events`: число начал эпизодов только в flat-проверке с явным условием
+  «рефлексы не ожидаются». На препятствиях и ямах значение `null`: сырые события
+  сами по себе не устанавливают ложность или полезность.
+- `max_tilt_deg`: угол между вертикалью тела и мировой вертикалью; yaw не
+  считается наклоном.
+- `peak_body_drop_mm`: максимальная просадка после первой секунды стабилизации.
+  `final_body_drop_mm`: просадка в конце. Старое `body_drop_mm` сохранено как
+  псевдоним конечной просадки.
+
+Исторические цифры выше получены старым кодом. Его `false_events` вне flat
+считал все активные записи, а `max_tilt_deg` не был углом. Исторические артефакты
+не исправляются задним числом; для сравнений используйте новые прогоны схемы 2
+с совпадающими версиями, длительностью и параметрами среды.
 
 Публикации: HF Space `ARGOS-MUKHTAR-Lab`, dataset `MUKHTAR-Bench`,
 model repo `ARGOS-MUKHTAR` (аккаунт AvaSiG).

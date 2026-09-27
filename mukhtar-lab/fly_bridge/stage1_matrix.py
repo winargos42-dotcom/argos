@@ -11,30 +11,30 @@ armed-R3, hold/cooldown-жизненный цикл).
 - gap: R3-only expected-touchdown (событие есть, коллапса нет);
 - FULL на 12 мм: без регрессии >= R1b-only.
 
-Event-log на каждый триггер: t, leg, reason, contact_pair, contact_kind,
-leg_phase (рад), armed, cooldown_remaining.
+Event-log сохраняет каждый активный тик; event_type различает начало
+reason-эпизода (trigger) и продолжение (active_tick).
 """
 
 import json
 import math
 import re
 import sys
+from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, '/opt/argos-roach')
-sys.path.insert(0, '/opt/argos-roach/controllers')
-sys.path.insert(0, '/opt/argos-roach/fly_bridge')
-sys.path.insert(0, '/opt/argos-roach/mukhtar')
+LAB_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(LAB_ROOT))
 
 import mujoco  # noqa: E402
 
-from contact_reflex import SineContactController  # noqa: E402
-from gait_controller import LEG_COUNT, SIDE  # noqa: E402
+from controllers.contact_reflex import SineContactController  # noqa: E402
+from controllers.gait_controller import LEG_COUNT, SIDE  # noqa: E402
 from mukhtar.reflexes import (R1FootCatchReflex, R1StumbleReflex,  # noqa: E402
                               R3SearchingReflex, R4LoadCoordinationReflex,
                               ReflexContext, mix_reflex_outputs)
 from mukhtar.sensors.contact_pipeline import ContactPipeline  # noqa: E402
+from mukhtar.telemetry.metrics import BodyMetrics, EventMetrics  # noqa: E402
 
 TWO_PI = 2.0 * math.pi
 CONTROL_DT = 0.002
@@ -79,6 +79,7 @@ class Stage1Controller(SineContactController):
         self._stage1_boost = np.zeros((LEG_COUNT, 5), dtype=float)
         self.events = {}
         self.event_log = []
+        self.event_metrics = EventMetrics()
         self._r3_max_int = [0.0] * LEG_COUNT
         self.tibia_trace = []
         super().__init__(**kw)
@@ -90,16 +91,18 @@ class Stage1Controller(SineContactController):
         self._stage1_boost.fill(0.0)
         self.events = {}
         self.event_log = []
+        self.event_metrics = EventMetrics()
         self._r3_max_int = [0.0] * LEG_COUNT
 
     def _log_event(self, t, leg, reason, pair, kind, phase, armed=None,
-                   cooldown_remaining=0.0):
+                   cooldown_remaining=0.0, event_type="active_tick"):
         rec = {"t": round(float(t), 3), "leg": leg, "reason": reason,
                "contact_pair": list(pair),
                "contact_kind": kind,
                "leg_phase": round(float(phase), 2),
                "armed": armed, "cooldown_remaining":
-                   round(float(cooldown_remaining), 3)}
+                   round(float(cooldown_remaining), 3),
+               "event_type": event_type}
         self.event_log.append(rec)
         self.events.setdefault(reason, []).append(t)
 
@@ -147,9 +150,9 @@ class Stage1Controller(SineContactController):
                                             self.r3[leg].integral)
             if 'r4' in self.enabled:
                 outs['r4'] = self.r4[leg].update(ctx)
-            # event-log по каждому отдельному триггеру (до mixer)
             contacts = leg_contacts[leg]
             for name, o in outs.items():
+                event_types = self.event_metrics.observe(leg, name, o.reasons)
                 if not o.reasons:
                     continue
                 if name == 'r1a':
@@ -177,8 +180,10 @@ class Stage1Controller(SineContactController):
                     kind = foot.kind if foot is not None else "none"
                     armed = self.r3[leg].armed
                     cd = 0.0
-                self._log_event(t, leg, o.reasons[0], pair, kind, prev_phi,
-                                armed=armed, cooldown_remaining=cd)
+                for reason, event_type in event_types.items():
+                    self._log_event(t, leg, reason, pair, kind, prev_phi,
+                                    armed=armed, cooldown_remaining=cd,
+                                    event_type=event_type)
             out = mix_reflex_outputs(
                 list(outs.values()),
                 joint_delta_limit=np.array([0.3, 0.4, 0.4]),
@@ -245,7 +250,9 @@ def build_gap(xml_path, gap=(0.60, 0.64), depth=0.012):
     return mujoco.MjModel.from_xml_string(src)
 
 
-def run(model, make_ctrl, pipeline, duration=20.0, label=""):
+def run(model, make_ctrl, pipeline, duration=20.0, label="",
+        expected_no_reflex=False):
+    """Measure a trial; only an explicit no-reflex oracle labels false events."""
     data = mujoco.MjData(model)
     data.qpos[2] += 0.012
     mujoco.mj_forward(model, data)
@@ -261,8 +268,7 @@ def run(model, make_ctrl, pipeline, duration=20.0, label=""):
     dt = model.opt.timestep
     n_self = 0
     min_foot_z = 9.0
-    z0 = None
-    max_tilt = 0.0
+    body_metrics = BodyMetrics()
     x_first_search = None
     while t < duration:
         lc = pipeline.update(data)
@@ -275,10 +281,7 @@ def run(model, make_ctrl, pipeline, duration=20.0, label=""):
         fz = [float(p[2] - 0.016) for p in fpos]
         if t >= 1.0:
             min_foot_z = min(min_foot_z, min(fz))
-            if z0 is None:
-                z0 = float(data.qpos[2])
-            max_tilt = max(max_tilt, abs(float(data.qpos[3]))
-                           + abs(float(data.qpos[4])))
+            body_metrics.observe(data.qpos[2], data.qpos[3:7])
             if x_first_search is None and hasattr(ctrl, 'r3') \
                     and any(r.t_first_search is not None for r in ctrl.r3):
                 x_first_search = float(data.qpos[0])
@@ -298,19 +301,20 @@ def run(model, make_ctrl, pipeline, duration=20.0, label=""):
         if data.qpos[2] < 0.10:
             fell = True
         t += dt
+    if t >= 1.0:
+        body_metrics.observe(data.qpos[2], data.qpos[3:7])
     counts = {k: len(v) for k, v in getattr(ctrl, 'events', {}).items()}
     res = {'ctrl': label, 'x': round(float(data.qpos[0]), 3),
+           'metrics_schema_version': 2,
            'fell': int(fell),
-           'false_events': sum(len(v) for v in
-                               getattr(ctrl, 'events', {}).values()),
            'events': counts, 'self_contacts': n_self,
            'min_foot_z_mm': round(1000.0 * min_foot_z, 1),
-           'body_drop_mm': round(1000.0 * max(0.0, (z0 or 0.25)
-                                             - float(data.qpos[2])), 1),
-           'max_tilt_deg': round(float(np.degrees(max_tilt)), 1),
            'net_progress': (round(float(data.qpos[0])
                                   - (x_first_search or 0.0), 3)
                             if x_first_search is not None else None)}
+    res.update(body_metrics.summary())
+    event_metrics = getattr(ctrl, 'event_metrics', EventMetrics())
+    res.update(event_metrics.summary(expected_no_reflex=expected_no_reflex))
     if hasattr(ctrl, 'r3'):
         tf = [r.t_first_search for r in ctrl.r3
               if r.t_first_search is not None]
@@ -341,7 +345,7 @@ def pipeline_for(model):
 
 
 def main():
-    xml_path = '/opt/argos-roach/models/hexapod.xml'
+    xml_path = str(LAB_ROOT / 'models' / 'hexapod.xml')
     out = []
     # ---- FLAT: ложных 0 (R1b known-good, R1a off, R3 v2) ----
     mf = mujoco.MjModel.from_xml_path(xml_path)
@@ -351,7 +355,7 @@ def main():
                           ('FLAT_R3V2', ('r3',), True)]:
         r = run(mf, lambda e=en, a=ar: Stage1Controller(
             freq=1.0, k_ret=0.30, enabled=e, apply_response=a), pf,
-            label=label)
+            label=label, expected_no_reflex=True)
         out.append(r)
     # ---- 12 мм ловушка ----
     m12 = build_wall(xml_path, 0.012)
@@ -388,7 +392,7 @@ def main():
     pf2 = pipeline_for(mf2)
     out.append(run(mf2, lambda: Stage1Controller(
         freq=1.0, k_ret=0.30, enabled=('r4',), apply_response=True), pf2,
-        label='FLAT_R4'))
+        label='FLAT_R4', expected_no_reflex=True))
     m12b = build_wall(xml_path, 0.012)
     p12b = pipeline_for(m12b)
     out.append(run(m12b, lambda: Stage1Controller(
