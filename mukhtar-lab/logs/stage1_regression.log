@@ -1,0 +1,5 @@
+{"ctrl": "BASE", "x": 0.486, "fell": 0, "wire_hits_ticks": 6289, "events": {}, "events_t": {}}
+{"ctrl": "STAGE1_R1B", "x": 1.238, "fell": 0, "wire_hits_ticks": 624, "events": {"R1B_FOOT_CATCH": 9}, "events_t": {"R1B_FOOT_CATCH": [7.33, 7.81, 8.04, 8.05, 8.32, 8.51]}}
+{"ctrl": "STAGE1_R1A_R1B", "x": 1.238, "fell": 0, "wire_hits_ticks": 624, "events": {"R1B_FOOT_CATCH": 9}, "events_t": {"R1B_FOOT_CATCH": [7.33, 7.81, 8.04, 8.05, 8.32, 8.51]}}
+{"ctrl": "STAGE1_FULL", "x": 0.849, "fell": 1, "wire_hits_ticks": 669, "events": {"R1B_FOOT_CATCH": 23, "R3_SEARCHING": 8412, "R1A_TIBIA_STUMBLE": 11}, "events_t": {"R1B_FOOT_CATCH": [7.33, 7.81, 8.04, 8.05, 8.32, 8.51], "R3_SEARCHING": [9.01, 9.01, 9.01, 9.01, 9.02, 9.02], "R1A_TIBIA_STUMBLE": [11.91, 12.46, 13.15, 14.12, 15.1, 16.78]}}
+STAGE1_REGRESSION_DONE

@@ -12,13 +12,15 @@ their causal contribution to behavior.
 
 | Каталог | Что |
 |---|---|
-| `package/` | Модульный рефлекторный пакет Stage 1: `reflexes/` (R1a stumble, R1b foot-catch, R3 v2 searching, R4 load-coordination, mixer, база ReflexContext/ReflexOutput), `sensors/` (ContactPipeline с kind floor/obstacle/self), `telemetry/`, `tests/` (38/38 pytest), `ОТЧЁТ_Stage1.md` |
+| `mukhtar/` | Модульный рефлекторный пакет Stage 1: `reflexes/` (R1a stumble, R1b foot-catch, R3 v2 searching, R4 load-coordination, mixer, база ReflexContext/ReflexOutput), `sensors/` (ContactPipeline с kind floor/obstacle/self), `telemetry/`, `tests/` (38/38 pytest), `ОТЧЁТ_Stage1.md` |
 | `controllers/` | Контроллеры: A = CPGGaitController (эталонный синус-CPG), Б = SineContactController (+contact feedback), В = SpikeCPGController (6-нейронный LIF half-center); `limb_reflexes_FROZEN_v03_filters.py` — замороженный боевой контроллер (sha256 `a8db07c0…6dcde`) |
 | `models/` | `hexapod.xml` (6 ног × 3 сустава, 18 приводов) + генератор `gen_hexapod.py` |
 | `cpg_m0/` | Изолированный MaleCNS-модуль T1-L: `config.json` (клетки DgR/E1/E2/I1/I2 + рёбра, BASE-веса), raster `*.npz` и метрики `*.json` для normal / KO DNg100 / KO E1 / KO E2 / KO I1 / KO I2 / KO I1+I2 при drive 0.4–1.6. Base checkpoint `male_cns_spikewhale.pt` sha256 `b381422e…f6fb` |
 | `fly_bridge/` | Сценарии и бенчи: `stage1_matrix.py` (матрица flat/12мм/gap + event-log), `stage1_regression.py`, `calib_load.py`, `scan_tibia.py`, CPG: `cpg_module_test.py`, `cpg_m5.py`, `cpg_base_vs_trained.py`, `cpg_prc.py`, `base_provenance.py`, история: `foot_catch.py`, `support_loss.py`, `neural_metronome.py` |
 | `docs/` | `PROJECT_STATUS.md` (статус ноды 26.09), протоколы диагностики |
 | `logs/` | Сырые логи прогонов матрицы/regression (если доступны) |
+| `bench/`, `space/` | Опубликованный Hermes бенчмарк v1 и Gradio Space; их исторические данные сохранены |
+| `benchmarks/2026-09-27-schema2/` | Девять проверенных прогонов с исправленными метриками, raw JSONL, точными XML и manifest SHA256 |
 
 ## Статусы рефлексов (измерено 27.09.2026)
 
@@ -80,6 +82,12 @@ Seed фиксирует настройку запуска; стохастиче�
 считал все активные записи, а `max_tilt_deg` не был углом. Исторические артефакты
 не исправляются задним числом; для сравнений используйте новые прогоны схемы 2
 с совпадающими версиями, длительностью и параметрами среды.
+
+Проверенная матрица схемы 2: [результаты и протокол](benchmarks/2026-09-27-schema2/README.md).
+Она записана на коммите `62ce2a9`, до объединения с переименованием `package/`
+в `mukhtar/`. Этот коммит сохранён в истории ветки для точного воспроизведения.
+Space пока использует собственный исторический `space/data/summary.json`;
+новые результаты не подменяют его автоматически.
 
 Публикации: HF Space `ARGOS-MUKHTAR-Lab`, dataset `MUKHTAR-Bench`,
 model repo `ARGOS-MUKHTAR` (аккаунт AvaSiG).

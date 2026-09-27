@@ -36,7 +36,7 @@ def sha256(path):
 def source_provenance():
     """Hash actual checkout inputs; a git revision alone misses uncommitted fixes."""
     paths = [LAB / "pyproject.toml"]
-    for directory in ("controllers", "fly_bridge", "package", "models"):
+    for directory in ("controllers", "fly_bridge", "mukhtar", "models"):
         paths.extend(p for p in (LAB / directory).rglob("*")
                      if p.is_file() and p.suffix in (".py", ".xml")
                      and "tests" not in p.parts and "__pycache__" not in p.parts)
@@ -69,7 +69,7 @@ def verify_import_origins():
         if name == "stage1_matrix":
             expected = LAB / "fly_bridge" / "stage1_matrix.py"
         elif name == "mukhtar" or name.startswith("mukhtar."):
-            expected = LAB / "package"
+            expected = LAB / "mukhtar"
             if name != "mukhtar":
                 expected = expected.joinpath(*name.split(".")[1:])
             expected = (expected / "__init__.py" if hasattr(module, "__path__")

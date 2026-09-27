@@ -52,12 +52,16 @@ def test_cli_rejects_settling_only_run(tmp_path):
 
 def test_export_rejects_code_imported_from_another_checkout(tmp_path):
     other = tmp_path / "other-checkout"
-    shutil.copytree(LAB / "package", other / "mukhtar")
+    shutil.copytree(LAB / "mukhtar", other / "mukhtar")
     output = tmp_path / "mixed-run"
+    # Simulate a host that imported another installation before invoking the CLI.
+    code = (f"import mukhtar, runpy, sys; sys.path.insert(0, {str(SCRIPT.parent)!r}); "
+            f"runpy.run_path({str(SCRIPT)!r}, run_name='__main__')")
     result = subprocess.run(
-        [sys.executable, str(SCRIPT), "--out", str(output),
+        [sys.executable, "-c", code, "--out", str(output),
          "--scenario", "B01-flat", "--controller", "BASE", "--duration", "1.02"],
         env={**os.environ, "PYTHONPATH": str(other)}, cwd=tmp_path,
         capture_output=True, text=True)
     assert result.returncode != 0, "A run must not hash code other than what it imports"
+    assert "outside this checkout" in result.stderr
     assert not output.exists()
