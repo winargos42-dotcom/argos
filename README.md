@@ -10,6 +10,7 @@
 [![Android APK](https://github.com/labuaqlysnecy/Argos/actions/workflows/android-apk.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/android-apk.yml)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/labuaqlysnecy/Argos/blob/main/colab/ARGOS_Colab_Launch.ipynb)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Powered by RustChain](https://img.shields.io/badge/Powered%20by-RustChain-orange)](https://rustchain.org)
 # 👁️ ARGOS UNIVERSAL OS (v2.1.4)
 
 > **Docker image:** `ghcr.io/labuaqlysnecy/Argos:latest` — published automatically on every push to `main`.  
