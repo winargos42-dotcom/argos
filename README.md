@@ -21,6 +21,15 @@
 
 ---
 
+## 💼 Заказать работу / поддержать восстановление
+
+Сейчас доступны небольшие удалённые работы: **Linux, Docker/Compose, Ollama и локальный ИИ, Home Assistant, Telegram-боты и восстановление сервисов**.
+
+- Услуги и цены: [SERVICES.md](SERVICES.md)
+- Предложить задачу: https://github.com/winargos42-dotcom/argos/issues/20
+- Передать сервер/рабочую станцию в дар: https://github.com/winargos42-dotcom/argos/issues/2
+- Поддержать ARGOS REBOOT: https://pay.cloudtips.ru/p/8df874d0
+
 ## 🌌 Что такое Аргос
 
 **Argos Universal OS** — автономная ИИ-система с полным стеком возможностей:
