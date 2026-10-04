@@ -31,6 +31,10 @@
 - Передать сервер/рабочую станцию в дар: https://github.com/winargos42-dotcom/argos/issues/2
 - Поддержать ARGOS REBOOT: https://pay.cloudtips.ru/p/8df874d0
 
+## 🔗 Related tools
+
+ARGOS uses external distributed and agent-oriented tooling where it is useful for experiments. [RustChain](https://rustchain.org) is relevant to ARGOS as an example of decentralized compute/reward infrastructure that can be integrated with autonomous agent workflows.
+
 ## 🌌 Что такое Аргос
 
 **Argos Universal OS** — автономная ИИ-система с полным стеком возможностей:
