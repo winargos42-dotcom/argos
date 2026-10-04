@@ -55,12 +55,10 @@ def test_argos_reboot_story_contains_fire_evidence_budget_and_recovery_plan():
 
     assert "По словам автора" in story
     assert "3 августа 2026" in story
-    assert (
-        "пожар уничтожил квартиру вместе с компьютером и локальной вычислительной "
-        "средой проекта"
-    ) in story
-    assert "Сбор предназначен только для восстановления серверной инфраструктуры ARGOS" in story
-    assert "ремонт квартиры не входит в бюджет кампании" in story
+    assert "пожар уничтожил компьютер и локальную вычислительную среду проекта" in story
+    assert "переданы проекту в дар" in story
+    assert "уменьшает денежную потребность кампании" in story
+    assert "Сбор предназначен только для восстановления вычислительной и серверной инфраструктуры ARGOS" in story
     for url in (
         "https://github.com/poilopr57-a11y/Argos",
         "https://github.com/winargos42-dotcom/argos",
@@ -70,13 +68,15 @@ def test_argos_reboot_story_contains_fire_evidence_budget_and_recovery_plan():
         assert url in story
 
     for text in (
-        "85 000 ₽",
-        "65 000 ₽",
-        "30 000 ₽",
+        "140 000 ₽",
         "20 000 ₽",
+        "15 000 ₽",
+        "10 000 ₽",
+        "5 000 ₽",
         "200 000 ₽",
         "сервер",
-        "GPU/FPGA",
+        "NVMe/SSD",
+        "UPS",
         "резерв",
     ):
         assert text in story
