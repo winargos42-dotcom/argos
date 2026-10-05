@@ -1,0 +1,15 @@
+name: fpga
+display_name: "ПЛИС"
+version: "1.0.0"
+description: "FPGA Gyrfalcon/Xilinx: живой статус, BAR-чтение, self-healing"
+author: "Аргос / Всеволод"
+entry: "skill.py"
+permissions: ['files']
+dependencies: []
+category: hardware
+tags: ['fpga', 'xilinx', 'gyrfalcon', 'плис']
+lifecycle:
+  on_load: true
+  on_unload: true
+  on_update: true
+  health_check: true

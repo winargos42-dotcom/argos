@@ -27,3 +27,6 @@ files.zip
 .openclaw-workspace/
 data/*.jsonl
 .worktrees/
+
+# ARGOS recovery venv
+.venv-argos/

@@ -1,0 +1,6 @@
+# ARGOS AI Brain — зависимости (восстановлено по LAUNCH_INSTRUCTIONS.md).
+# Без openai мозг работает в rule-based режиме: /think вернёт fallback: true.
+flask>=3.0
+flask-cors>=4.0
+requests>=2.31
+openai>=1.0
