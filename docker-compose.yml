@@ -1,32 +1,34 @@
-version: '3.8'
-
 services:
-  ollama-gpu:
-    image: ollama/ollama:latest
-    container_name: argos-ollama-gpu
+  argos-core:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    container_name: argos-core
+    command: ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+    ports:
+      - "8080:8080"
+    environment:
+      ARGOS_NODE_ID: ${ARGOS_NODE_ID:-argos-standalone}
+      ARGOS_PC_URL: ${ARGOS_PC_URL:-}
+      ARGOS_MCP_URL: ${ARGOS_MCP_URL:-}
+      ARGOS_BRAIN_API_URL: ${ARGOS_BRAIN_API_URL:-}
+      ARGOS_P2P_TOKEN: ${ARGOS_P2P_TOKEN:-}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["llm"]
     ports:
       - "11434:11434"
-    environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-      - OLLAMA_VULKAN=1
-      - OLLAMA_NUM_PARALLEL=3
-      - OLLAMA_FLASH_ATTENTION=1
-      - OLLAMA_KEEP_ALIVE=24h
     volumes:
       - ollama-models:/root/.ollama/models
-      # Пробрасываем GPU (для Windows Docker Desktop экспериментально)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: amd
-              count: all
-              capabilities: [gpu]
-    # Привилегированный режим для доступа к железу
-    privileged: true
-    # Используем host сеть для лучшей производительности (Linux only)
-    # network_mode: host
+    restart: unless-stopped
 
 volumes:
   ollama-models:
