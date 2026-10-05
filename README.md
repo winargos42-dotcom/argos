@@ -1,39 +1,42 @@
-# 👁️ ARGOS UNIVERSAL OS (v2.1.4)
-[![🏗️ Build ARGOS APK](https://github.com/labuaqlysnecy/Argos/actions/workflows/build_apk.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/build_apk.yml)
-[![🚀 ARGOS Release — Сборка и публикация релиза](https://github.com/labuaqlysnecy/Argos/actions/workflows/release.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/release.yml)
-[![📊 ARGOS Status Report](https://github.com/labuaqlysnecy/Argos/actions/workflows/status_report.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/status_report.yml)
-[![🤖 Argos Auto-Publish Skills to PyPI](https://github.com/labuaqlysnecy/Argos/actions/workflows/argos_evolution_publish.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/argos_evolution_publish.yml)
-[![🚀 ARGOS Release — Сборка и публикация релиза](https://github.com/labuaqlysnecy/Argos/actions/workflows/release.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/release.yml)
-[![🖥️ Build ARGOS Windows setup.exe](https://github.com/labuaqlysnecy/Argos/actions/workflows/build_windows.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/build_windows.yml)
-[![CI](https://github.com/labuaqlysnecy/Argos/actions/workflows/ci.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/ci.yml)
-[![Docker](https://github.com/labuaqlysnecy/Argos/actions/workflows/docker.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/docker.yml)
-[![Android APK](https://github.com/labuaqlysnecy/Argos/actions/workflows/android-apk.yml/badge.svg)](https://github.com/labuaqlysnecy/Argos/actions/workflows/android-apk.yml)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/labuaqlysnecy/Argos/blob/main/colab/ARGOS_Colab_Launch.ipynb)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Powered by RustChain](https://img.shields.io/badge/Powered%20by-RustChain-orange)](https://rustchain.org)
-# 👁️ ARGOS UNIVERSAL OS (v2.1.4)
+# ARGOS Universal OS
 
-> **Docker image:** `ghcr.io/labuaqlysnecy/Argos:latest` — published automatically on every push to `main`.  
-> **Android APK:** download the latest debug APK from the [Actions tab](https://github.com/labuaqlysnecy/Argos/actions/workflows/android-apk.yml) → select the most recent run → expand **Artifacts** → download `argos-apk-debug-<run_number>`.
+**Experimental distributed AI/agent system · ARGOS REBOOT · Linux / Docker / Edge AI / FPGA**
 
-> *"Самовоспроизводящаяся кроссплатформенная экосистема ИИ с квантовой логикой,*
-> *P2P-подключением и интеграцией с IoT. Создана для цифрового бессмертия."*
-> — Всеволод, 2026
+ARGOS объединяет локальные и облачные AI-модели, специализированных агентов, долговременную память, MCP/ACP-инструменты, автоматизацию, IoT и экспериментальные аппаратные ускорители.
+
+> **Статус, октябрь 2026:** проект находится в активной разработке и восстановлении инфраструктуры. Это не концепт: отдельные программные и аппаратные контуры уже запускались и тестировались. Сейчас приоритет — стабильный ARGOS Core 24/7, воспроизводимые эксперименты и резервирование.
+
+## Для грантовых и инфраструктурных партнёров
+
+ARGOS REBOOT восстанавливает постоянную вычислительную среду проекта и переносит критичные сервисы с временных узлов на устойчивую инфраструктуру.
+
+**Что уже есть:** Linux/Docker runtime, Telegram и Home Assistant интеграции, локальный LLM inference, распределённые узлы, Coral Edge TPU, экспериментальный Xilinx Artix-7 FPGA-контур и исследовательское направление ARGOS-MUKHTAR.
+
+**Что требуется сейчас:** стабильный серверный контур для API, контейнеров, памяти, CI, CPU inference, хранения моделей/результатов и длительных A/B-тестов. GPU-ресурс полезен для обучения и дистилляции, но не обязан работать 24/7.
+
+- [ARGOS REBOOT — восстановление и Stage 1](ARGOS_REBOOT.md)
+- [Roadmap 2026–2027](ROADMAP_2026_2027.md)
+- [Запрос оборудования / in-kind support](https://github.com/winargos42-dotcom/argos/issues/2)
+- [Полная техническая документация](ARGOS_COMPLETE_DOCUMENTATION.md)
+
+## Проверяемые направления
+
+| Контур | Текущий фокус |
+|---|---|
+| ARGOS Core | Linux, Docker, API, агенты, память, автоматизация |
+| Distributed runtime | узлы, сервисы, маршрутизация задач и телеметрия |
+| Edge AI | Google Coral Edge TPU, INT8 inference |
+| ARGOS-MUKHTAR | биомиметические/SNN эксперименты, управление и обучение |
+| FPGA | Xilinx Artix-7, PCIe/XDMA/BRAM и экспериментальные ускорители |
+| IoT | Home Assistant, Telegram, устройства и локальная автоматизация |
+
+Результаты в исследовательских разделах следует считать **экспериментальными**, пока они не оформлены отдельным воспроизводимым benchmark/artifact. README сознательно отделяет подтверждённую инфраструктуру от исследовательских целей.
+
+## 12-месячная цель
+
+Собрать устойчивый ARGOS Core, формализовать воспроизводимые benchmark-наборы для Edge AI/MUKHTAR/FPGA, автоматизировать резервирование и CI, а затем опубликовать демонстрационные сервисы и технические результаты. Подробные этапы: [ROADMAP_2026_2027.md](ROADMAP_2026_2027.md).
 
 ---
-
-## 💼 Заказать работу / поддержать восстановление
-
-Сейчас доступны небольшие удалённые работы: **Linux, Docker/Compose, Ollama и локальный ИИ, Home Assistant, Telegram-боты и восстановление сервисов**.
-
-- Услуги и цены: [SERVICES.md](SERVICES.md)
-- Предложить задачу: https://github.com/winargos42-dotcom/argos/issues/20
-- Передать сервер/рабочую станцию в дар: https://github.com/winargos42-dotcom/argos/issues/2
-- Поддержать ARGOS REBOOT: https://pay.cloudtips.ru/p/8df874d0
-
-## 🔗 Related tools
-
-ARGOS uses external distributed and agent-oriented tooling where it is useful for experiments. [RustChain](https://rustchain.org) is relevant to ARGOS as an example of decentralized compute/reward infrastructure that can be integrated with autonomous agent workflows.
 
 ## 🌌 Что такое Аргос
 
