@@ -1,0 +1,10 @@
+{
+  "experiment": "amd-act3-v1",
+  "project": "ARGOS-MUKHTAR",
+  "seed": 42,
+  "warmup_runs": 20,
+  "measured_runs": 200,
+  "stages": ["amd_rocm", "edge_tpu", "biocore"],
+  "metrics": ["latency_ms_p50", "latency_ms_p95", "throughput", "task_score"],
+  "require_measured_evidence": true
+}
