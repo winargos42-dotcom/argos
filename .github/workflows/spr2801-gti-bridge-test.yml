@@ -1,0 +1,39 @@
+name: SPR2801 GTI/XDMA bridge regression
+
+on:
+  push:
+    branches:
+      - recovery/spr2801-gti-bridge-20261010
+    paths:
+      - "src/connectivity/gti_pcie_bridge.py"
+      - "src/connectivity/xdma_transport.py"
+      - "tests/test_spr2801_gti_xdma.py"
+      - ".github/workflows/spr2801-gti-bridge-test.yml"
+  pull_request:
+    paths:
+      - "src/connectivity/gti_pcie_bridge.py"
+      - "src/connectivity/xdma_transport.py"
+      - "tests/test_spr2801_gti_xdma.py"
+      - ".github/workflows/spr2801-gti-bridge-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-protocol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out ARGOS recovery
+        uses: actions/checkout@v4
+      - name: Python version
+        run: python3 --version
+      - name: Compile syntax
+        run: python3 -m py_compile src/connectivity/gti_pcie_bridge.py src/connectivity/xdma_transport.py tests/test_spr2801_gti_xdma.py
+      - name: Test vendor ioctl framing and XDMA BAR safety
+        run: python3 -m unittest discover -s tests -p 'test_spr2801_gti_xdma.py' -v
+      - name: Confirm no physical device access on runner
+        run: |
+          test ! -e /dev/xdma0_h2c_0
+          test ! -e /dev/gti2800-0
