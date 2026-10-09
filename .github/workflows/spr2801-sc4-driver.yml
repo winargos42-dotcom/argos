@@ -1,0 +1,33 @@
+name: SPR2801 SC4 native driver regression
+on:
+  push:
+    paths:
+      - 'drivers/spr2801_sc4/**'
+      - '.github/workflows/spr2801-sc4-driver.yml'
+  pull_request:
+    paths:
+      - 'drivers/spr2801_sc4/**'
+      - '.github/workflows/spr2801-sc4-driver.yml'
+permissions:
+  contents: read
+jobs:
+  native-driver-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile original Linux SC4/XDMA C driver-adapter
+        run: make -C drivers/spr2801_sc4 all
+      - name: Run fake-PCIe manufacturer GTI/XDMA regression
+        run: make -C drivers/spr2801_sc4 test
+      - name: Audit no loaded model or real hardware result claimed
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('drivers/spr2801_sc4/src/argos_sc4.c').read_text()
+          assert 'sc4_select_asic' in src
+          assert 'factory' in src.lower()
+          assert 'npu_acknowledged = 0' in src
+          assert '0x10000' in Path('drivers/spr2801_sc4/src/argos_sc4.h').read_text()
+          print('Host transport driver present. Factory NPU ABI deliberately not invented.')
+          PY
