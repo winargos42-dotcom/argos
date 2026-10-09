@@ -110,8 +110,12 @@ def test_real_vendor_backend_exact_native_ioctl_and_read_write(monkeypatch):
 
 def test_native_interface_never_promises_xdma_to_npu_mapping():
     code=(Path(__file__).resolve().parents[1]/"src/connectivity/gti_pcie_bridge.py").read_text()
-    assert "/dev/xdma0_h2c_0" not in code
+    native_backend=code.split("class NativeGTIDevice:",1)[1].split("class FakeGTIDevice:",1)[0]
+    # Global device-inventory only mentions /dev/xdma*; NativeGTIDevice
+    # must never secretly use that generic transport to replay GTI ioctls.
+    assert "/dev/xdma0_h2c_0" not in native_backend
     assert "os.pwrite(" not in code
+    assert "xdma_model_upload_enabled" in code
     assert "FIP" in code
 
 def test_readonly_sc4_gate_reports_no_inference():
