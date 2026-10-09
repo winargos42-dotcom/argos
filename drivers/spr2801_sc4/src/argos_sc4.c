@@ -213,8 +213,16 @@ int sc4_diag_h2c(sc4_device *d, const char *kind, const char *proof_file,
         return -1;
     }
     const char *reason = "ARGOS: ONE H2C DMA attempted; NOT NPU inference.\n";
-    (void)write(marker, reason, strlen(reason));
+    size_t marker_len = strlen(reason);
+    ssize_t marker_written = write(marker, reason, marker_len);
+    int marker_error = errno;
     close(marker);
+    if (marker_written != (ssize_t)marker_len) {
+        errno = marker_written < 0 ? marker_error : EIO;
+        sc4_err(err, errlen, "Cannot persist one-shot H2C marker: %s",
+                strerror(errno));
+        return -1;
+    }
 
     char path[PATH_MAX];
     if (path_join(path, sizeof path, d->devdir, "xdma0_h2c_0")) return -1;
