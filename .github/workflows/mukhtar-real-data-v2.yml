@@ -1,5 +1,8 @@
 name: MUKHTAR real-data validation search
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - research/mukhtar-zerogpu-validation-v2-20261010
