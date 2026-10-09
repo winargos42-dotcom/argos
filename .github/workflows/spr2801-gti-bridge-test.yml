@@ -33,6 +33,10 @@ jobs:
         run: python3 -m py_compile src/connectivity/gti_pcie_bridge.py src/connectivity/xdma_transport.py tests/test_spr2801_gti_xdma.py
       - name: Test vendor ioctl framing and XDMA BAR safety
         run: python3 -m unittest discover -s tests -p 'test_spr2801_gti_xdma.py' -v
+      - name: Install pytest for original factory-trace regression
+        run: python3 -m pip install --disable-pip-version-check pytest
+      - name: Check full GTI model load and exact write framing
+        run: python3 -m pytest -q tests/test_gti_pcie_bridge.py
       - name: Confirm no physical device access on runner
         run: |
           test ! -e /dev/xdma0_h2c_0
