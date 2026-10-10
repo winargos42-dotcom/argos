@@ -1,0 +1,26 @@
+name: SC4 native XDMA driver
+
+on:
+  push:
+    paths:
+      - 'src/connectivity/argos_sc4/**'
+      - '.github/workflows/spr2801-sc4-native-driver.yml'
+  pull_request:
+    paths:
+      - 'src/connectivity/argos_sc4/**'
+      - '.github/workflows/spr2801-sc4-native-driver.yml'
+  workflow_dispatch:
+
+jobs:
+  linux-compile-and-simulated-bars:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build real C userspace driver and shared library
+        run: make -C src/connectivity/argos_sc4 all
+      - name: Test driver against synthetic PCI sysfs, BAR0, XDMA control and H2C memory
+        run: make -C src/connectivity/argos_sc4 test
+      - name: Ensure no physical PCIe access on CI
+        run: |
+          test ! -e /dev/xdma0_user
+          test ! -e /dev/gti2800-0
