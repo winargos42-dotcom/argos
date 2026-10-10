@@ -123,3 +123,47 @@ def test_readonly_sc4_gate_reports_no_inference():
     assert info["xdma_to_GTIFIP_driver_map_verified"] is False
     assert info["U4_U5_U9_U10_selection_verified"] is False
     assert info["xdma_model_upload_enabled"] is False
+
+
+def test_prefix_validation_never_authorizes_ninth_native_ioctl():
+    """Regression: old validator checked 8 stages, replay executed a 9th."""
+    original=parse_trace(factory_trace())
+    attack=original+[Record(b"I",IOCTL_COMMAND,struct.pack("<I",0xfeedcafe))]
+    with pytest.raises(ProtocolError,match="Unverified extra GTI command"):
+        validate_model_load(attack)
+    class NativeSpy:
+        real_npu_device=True
+        def __init__(self):self.events=[]
+        def ioctl(self,*args):self.events.append(("ioctl",args))
+        def write(self,*args):self.events.append(("write",args))
+        def read(self,*args):self.events.append(("read",args))
+        def close(self):pass
+    spy=NativeSpy()
+    with pytest.raises(ProtocolError,match="Unverified extra GTI command"):
+        replay(attack,spy,logical_index=0)
+    assert spy.events==[], "No device operation may occur before attestation"
+
+
+def test_native_replay_rejects_synthetic_model_before_first_ioctl():
+    """Fake payload shape is not enough to authorize genuine NPU access."""
+    original=parse_trace(factory_trace())
+    class NativeSpy:
+        real_npu_device=True
+        def __init__(self):self.events=[]
+        def ioctl(self,*args):self.events.append(("ioctl",args))
+        def write(self,*args):self.events.append(("write",args))
+        def read(self,*args):self.events.append(("read",args))
+        def close(self):pass
+    spy=NativeSpy()
+    with pytest.raises(FactoryABIMissing,match="SHA256 not verified"):
+        replay(original,spy,logical_index=2)
+    assert spy.events==[]
+
+
+def test_whitelisted_manufacturer_full_trace_hashes_are_distinct():
+    from src.connectivity.gti_pcie_bridge import VERIFIED_MODEL_GTITXN_SHA256
+    assert VERIFIED_MODEL_GTITXN_SHA256=={
+        "9978890e0accc21e0a6e87f96f6fd38ae07604d26bd0835dae8104e91cbd51ec",
+        "22fe1a77530f8f4ad9d51bf2149f024f18711b144158e0e3e839bd8396cc1f81",
+    }
+    assert len(VERIFIED_MODEL_GTITXN_SHA256)==2
