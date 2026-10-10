@@ -1,0 +1,38 @@
+name: ARGOS SPR2801 SC4 C driver backup regression
+
+on:
+  push:
+    branches:
+      - backup/spr2801-sc4-c-driver-20261010
+    paths:
+      - hardware/spr2801-sc4-driver/**
+      - .github/workflows/spr2801-sc4-c-driver-backup-test.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Compile native SC4 driver and test without hardware
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: hardware/spr2801-sc4-driver
+    steps:
+      - name: Check out archived ARGOS recovery
+        uses: actions/checkout@v4
+      - name: Build C11 SC4 driver and shared library
+        run: make all
+      - name: Verify compiled artifacts
+        run: |
+          test -x bin/argos-sc4
+          test -f bin/libargos_sc4.so
+      - name: Run native C and Python bridge regressions
+        run: python3 -m unittest discover -s tests -t . -p 'test_*.py' -v
+      - name: Confirm no real accelerator attached to runner
+        run: |
+          test ! -e /dev/xdma0_user
+          test ! -e /dev/xdma0_h2c_0
+          test ! -e /dev/gti2800-0
