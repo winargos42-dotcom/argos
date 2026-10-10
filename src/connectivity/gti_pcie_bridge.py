@@ -28,6 +28,13 @@ MAX_EVENTS=12000
 MAX_TOTAL=24*1024*1024
 MODEL_OPCODES=(0,0,1,0,5,0,3,3)
 MODEL_STAGE4=bytes.fromhex("00 02 00 00")+bytes(84)
+# Byte-exact original GTI SDK v4.5.1 GtiCreateModel captures.
+# Only these two known factory model loads may run on a genuine GTI
+# kernel char device. Never authorize an unknown custom model by shape.
+VERIFIED_MODEL_GTITXN_SHA256=frozenset({
+    "9978890e0accc21e0a6e87f96f6fd38ae07604d26bd0835dae8104e91cbd51ec",  # GNet3
+    "22fe1a77530f8f4ad9d51bf2149f024f18711b144158e0e3e839bd8396cc1f81",  # GNet18
+})
 
 class ProtocolError(ValueError):
     pass
@@ -76,18 +83,29 @@ def parse_trace(raw:bytes)->list[Record]:
         raise ProtocolError("No GTI opening ioctl")
     return output
 
-def validate_model_load(records:list[Record])->list[dict]:
+def validate_model_load(records:list[Record],*,allow_postload:bool=False)->list[dict]:
+    """Validate exactly 8 load stages for hardware; fake tests may have a tail.
+
+    Do NOT approve a real GTI ioctl replay based on a valid eight-stage
+    prefix followed by arbitrary extra commands. The old prefix-only
+    validator could allow a ninth unchecked ioctl through replay().
+    """
     stages=[]
     for r in records:
         if r.kind==b"I":
-            if len(stages)>=8:break
+            if len(stages)>=8:
+                if allow_postload:
+                    break  # test-only synthetic result, never native replay
+                raise ProtocolError("Unverified extra GTI command after model load")
             stages.append({"ioctl":r.request,"opcode":int.from_bytes(r.payload,"little"),
                            "data":bytearray(),"writes":[]})
         elif r.kind==b"W" and 0<len(stages)<=8:
             stages[-1]["data"].extend(r.payload)
             stages[-1]["writes"].append(len(r.payload))
-        elif r.kind==b"R" and len(stages)<8:
+        elif r.kind==b"R":
             raise ProtocolError("Unexpected read during model load")
+        else:
+            raise ProtocolError("Unexpected event outside GTI model stages")
     if len(stages)!=8 or tuple(x["opcode"] for x in stages)!=MODEL_OPCODES:
         raise ProtocolError("Unexpected model-load command order")
     if stages[0]["ioctl"]!=IOCTL_OPEN or any(x["ioctl"]!=IOCTL_COMMAND for x in stages[1:]):
@@ -184,7 +202,20 @@ class ReplayResult:
                 "asic_package_mapping_verified":False}
 
 def replay(records:list[Record],backend:Backend,*,logical_index:int|None=None)->ReplayResult:
-    validate_model_load(records)
+    native=backend.real_npu_device
+    validate_model_load(records,allow_postload=not native)
+    if native:
+        # The genuine vendor driver can move physical NPU commands. Require
+        # a byte-exact capture of a factory model and refuse any extended
+        # evaluation/read stages until independently reviewed.
+        canonical=bytearray(MAGIC)
+        for r in records:
+            if r.kind not in (b"I",b"W") or not isinstance(r.payload,bytes):
+                raise ProtocolError("Native device accepts model load records only")
+            canonical.extend(ENTRY.pack(r.kind,len(r.payload),r.request))
+            canonical.extend(r.payload)
+        if hashlib.sha256(canonical).hexdigest() not in VERIFIED_MODEL_GTITXN_SHA256:
+            raise FactoryABIMissing("Original factory GTI SDK model-load SHA256 not verified")
     n_io=n_w=n_r=total=0;out=bytearray()
     for r in records:
         if r.kind==b"I":
