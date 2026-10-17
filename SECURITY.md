@@ -31,5 +31,5 @@ disclosing real credentials. No response-time SLA is promised.
 ## Scope of automated checks
 
 The repository's tracked-file scanner catches some high-confidence accidental
-credential disclosures. It does **not** prove the codebase or its history is
+credential disclosures (including complete PEM private-key blocks). It does **not** prove the codebase or its history is
 free of secrets or vulnerabilities.

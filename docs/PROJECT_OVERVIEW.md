@@ -35,6 +35,6 @@ results.
 
 ## Security
 
-The tracked-file secret check can catch PEM private-key headers, selected
+The tracked-file secret check can catch complete PEM private-key blocks, selected
 credential-file paths and Google service-account JSON, but is not a full
 history scan. See [SECURITY.md](../SECURITY.md).

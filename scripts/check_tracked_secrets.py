@@ -9,7 +9,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-PRIVATE_KEY_HEADER = re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----")
+PRIVATE_KEY_BLOCK = re.compile(
+    rb"-----BEGIN ([A-Z ]*PRIVATE KEY)-----\\s*"
+    rb"([A-Za-z0-9+/=\\r\\n]{128,})"
+    rb"-----END \\1-----"
+)
 SENSITIVE_EXTENSIONS = {".pem", ".key", ".p8", ".p12", ".pfx", ".jks", ".keystore"}
 ALLOWED_ENV_TEMPLATES = {".env.example", ".env.sample", ".env.template"}
 
@@ -47,8 +51,8 @@ def scan():
         except OSError:
             problems.append((path, "unreadable tracked file"))
             continue
-        if PRIVATE_KEY_HEADER.search(content):
-            problems.append((path, "PEM private key header"))
+        if PRIVATE_KEY_BLOCK.search(content):
+            problems.append((path, "complete PEM private key block"))
         if path.suffix.lower() == ".json":
             try:
                 obj = json.loads(content)
