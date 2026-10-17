@@ -27,3 +27,19 @@ files.zip
 .openclaw-workspace/
 data/*.jsonl
 .worktrees/
+
+# Credentials and private local configuration (not a substitute for revocation)
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*service-account*.json
+*service_account*.json
+*credentials*.json
+argos-489214-782ee50ae90b.json
+*.p8
+*.pfx
+*.jks
+*.keystore
+secrets/
+credentials/

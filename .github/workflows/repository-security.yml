@@ -1,0 +1,26 @@
+name: Repository security (tracked secrets)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tracked-secret-check:
+    name: Detect high-confidence credential leaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Scan tracked files (without printing values)
+        run: python3 scripts/check_tracked_secrets.py
