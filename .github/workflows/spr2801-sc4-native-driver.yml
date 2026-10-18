@@ -15,7 +15,7 @@ jobs:
   linux-compile-and-simulated-bars:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build real C userspace driver and shared library
         run: make -C src/connectivity/argos_sc4 all
       - name: Test driver against synthetic PCI sysfs, BAR0, XDMA control and H2C memory

@@ -1,13 +1,19 @@
-name: Deploy to Railway
+name: Railway source-link check (not a deployment)
 on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
-  deploy:
+  source-link-info:
     runs-on: ubuntu-latest
     steps:
-      - name: Confirm Railway source deployment
+      - name: Explain deployment boundary
         run: |
-          echo "Railway deploys this repository from its connected GitHub source."
-          echo "Commit: ${GITHUB_SHA}"
+          echo "GitHub repository commit: ${GITHUB_SHA}"
+          echo "This workflow does not deploy to Railway."
+          echo "Check Railway deployment logs and environment separately."
+          echo "### Railway source-link check" >> "${GITHUB_STEP_SUMMARY}"
+          echo "This workflow only acknowledges a GitHub push. It does **not** verify deployment." >> "${GITHUB_STEP_SUMMARY}"

@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Compile original Linux SC4/XDMA C driver-adapter
         run: make -C drivers/spr2801_sc4 all
       - name: Run fake-PCIe manufacturer GTI/XDMA regression
