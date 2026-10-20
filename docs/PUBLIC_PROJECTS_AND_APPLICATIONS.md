@@ -72,3 +72,9 @@ Read-only inspection of X230 file `projects/mukhtar-runtime-stability/evidence/p
 ## Foresight correction — 2026-10-21
 
 The October 17 opportunities sweep's `NOT SENT` entry is contradicted by a subsequently inspected saved Airtable **post-submit success page**. The HTML has the exact text `Thank you for submitting the form!` and is paired with local before/after screenshots and a saved application PDF. Accordingly, **submission is supported by local browser evidence**, but an organizer acceptance decision, application identifier, or grant award has not been verified. Do not publish the personal application contents.
+
+## Additional verification — 2026-10-21
+
+- On X230, `projects/mukhtar-runtime-stability`: `python3 -m unittest discover -s tests -v` completed **15/15 PASS**. Tests include crash recovery, integrity of persisted neural checkpoints, pointer promotion safety, and queued supervisor exit receipts.
+- Existing physical run evidence: `maintenance_status.txt` says `FINISHED_EXIT=0 VISION_RESTORED=1`; `supervisor.exit` contains `0`. This confirms the **recorded October 16 run** finished successfully, not that a new physical experiment was performed today.
+- Current learned candidate remains **QUARANTINE** until more paired seeds and multiple maps establish non-regression. No live memory pointer was changed.
