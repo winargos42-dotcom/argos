@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ARGOS: независимый аудит безопасности Docker, Linux, CI/CD и AI-приложений. Проверка с разрешения владельца, понятный отчёт, исправления по согласованию.">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>ARGOS — аудит инфраструктуры и безопасности веб-приложений</title>
+<style>
+:root{color-scheme:dark;--bg:#0b121d;--panel:#152438;--line:#30485e;--text:#eaf2f9;--muted:#bacbdc;--a:#8ed5ff;--accent:#93e2cb;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);line-height:1.55}a{color:var(--a);text-underline-offset:3px}
+.wrap{max-width:1050px;padding:0 22px;margin:auto}header{border-bottom:1px solid var(--line)}nav{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;padding:18px 0}nav a{font-size:.93rem}
+.brand{font-weight:800;letter-spacing:.13em;color:#fff;text-decoration:none;font-size:1.18rem}.navlinks{display:flex;flex-wrap:wrap;gap:17px}
+.hero{padding:76px 0 55px}h1{font-size:clamp(2.1rem,5vw,4.1rem);line-height:1.12;letter-spacing:-.035em;margin:12px 0 19px;max-width:870px}
+h2{font-size:clamp(1.6rem,3vw,2.1rem);line-height:1.2;margin:0 0 18px}
+h3{font-size:1.12rem;margin:0 0 9px}
+.lead{font-size:1.18rem;color:var(--muted);max-width:790px}
+.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.07em;text-transform:uppercase;font-size:.82rem}
+.actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:30px}
+.cta{display:inline-block;color:#071d29;background:var(--accent);padding:13px 20px;border-radius:8px;font-weight:760;text-decoration:none}
+.cta:hover,.cta:focus{background:#b4f3e1}.hint{font-size:.9rem;color:var(--muted)}
+section{padding:45px 0;border-top:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:21px}
+.card p,.step p{color:var(--muted);margin:0}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.step{padding:10px 0}.n{font-weight:800;color:var(--accent);font-size:1.55rem;margin-bottom:10px}
+.twocol{display:grid;grid-template-columns:1.2fr .8fr;gap:25px}.price{padding:25px;background:var(--panel);border:1px solid var(--line);border-radius:13px}
+.price strong{display:block;font-size:2rem;line-height:1.15;margin:12px 0}
+.note{color:var(--muted);font-size:.95rem}.small{font-size:.85rem;color:var(--muted)}
+ul{padding-left:21px}li{margin:8px 0}.footer{padding:32px 0 45px;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+@media(max-width:700px){.hero{padding:46px 0}.grid,.steps,.twocol{grid-template-columns:1fr}section{padding:32px 0}.wrap{padding:0 17px}.navlinks{gap:12px}}
+</style>
+</head>
+<body>
+<header><nav class="wrap" aria-label="Навигация">
+<a class="brand" href="#top">ARGOS</a>
+<div class="navlinks"><a href="#services">Что проверяем</a><a href="#process">Результат</a><a href="#price">Стоимость</a><a href="#en">English</a></div>
+</nav></header>
+<main id="top" class="wrap">
+<div class="hero">
+<p class="eyebrow">Linux · Docker · CI/CD · AI-приложения</p>
+<h1>Ваше приложение работает. А его инфраструктура защищена?</h1>
+<p class="lead">Независимый технический аудит небольших веб-сервисов и AI-проектов: сетевой доступ, контейнеры, секреты, права, развёртывание и базовые настройки безопасности. Проверяем только системы, на которые у заказчика есть право дать разрешение.</p>
+<div class="actions">
+<a class="cta" href="mailto:winargos42@gmail.com?subject=ARGOS%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%20%D0%BD%D0%B0%20%D0%B0%D1%83%D0%B4%D0%B8%D1%82&body=%D0%9A%D1%80%D0%B0%D1%82%D0%BA%D0%BE%20%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B5%3A%0A%D0%93%D0%B4%D0%B5%20%D1%80%D0%B0%D0%B7%D0%BC%D0%B5%D1%89%D1%91%D0%BD%3A%0A%D0%A7%D1%82%D0%BE%20%D0%BD%D1%83%D0%B6%D0%BD%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%B8%D1%82%D1%8C%3A">Запросить аудит по почте</a>
+<span class="hint">Письменное общение · без обязательных звонков</span>
+</div>
+</div>
+<section id="services">
+<h2>Что входит в проверку</h2>
+<div class="grid">
+<div class="card"><h3>Сеть и доступ</h3><p>Прослушиваемые порты, обратные прокси, TLS, межсетевой экран, доступ к административным интерфейсам и сегментация.</p></div>
+<div class="card"><h3>Docker и Linux</h3><p>Публикация портов контейнеров, права сервисов, тома, конфигурации, обновления и опасные настройки развёртывания.</p></div>
+<div class="card"><h3>CI/CD и код</h3><p>GitLab/GitHub pipelines, управление секретами, зависимости, права токенов и воспроизводимость сборки в согласованной области.</p></div>
+<div class="card"><h3>AI и API</h3><p>Доступ к Ollama, MCP, агентским API, границы полномочий, аутентификация и защита ключей.</p></div>
+<div class="card"><h3>Мониторинг</h3><p>Логи, базовые сигналы инцидентов, резервные копии, возможности fail2ban/CrowdSec и пригодность оповещений.</p></div>
+<div class="card"><h3>Приоритеты исправлений</h3><p>Что требует внимания сразу, что исправить при следующем релизе, а что не является подтверждённой уязвимостью.</p></div>
+</div>
+</section>
+<section id="process">
+<h2>Вы получаете проверяемый результат</h2>
+<div class="steps">
+<div class="step"><div class="n">01</div><h3>Согласованная область</h3><p>Вы письменно утверждаете принадлежащие вам системы, рамки проверки и разрешённые действия. Сначала — неразрушающая диагностика.</p></div>
+<div class="step"><div class="n">02</div><h3>Отчёт с доказательствами</h3><p>Таблица наблюдений, подтверждённые риски, способы воспроизведения и конкретные рекомендации без выдачи предположений за факты.</p></div>
+<div class="step"><div class="n">03</div><h3>Исправление отдельно</h3><p>При необходимости — согласованный список изменений и повторная проверка. Ничего не устанавливаем и не перезапускаем без одобрения.</p></div>
+</div>
+</section>
+<section id="price">
+<div class="twocol">
+<div><h2>Начнём с небольшой задачи</h2>
+<p>Подходит, если приложение было собрано быстро — самостоятельно, подрядчиком или с помощью AI — и теперь нужна независимая проверка его инфраструктуры.</p>
+<ul><li>Минимальный доступ и согласованные сроки.</li><li>Без передачи паролей по электронной почте.</li><li>Оплата, объём и критерии приёмки согласуются до начала работ.</li><li>Не обещаем «абсолютную защиту» и не проводим проверки без разрешения.</li></ul></div>
+<div class="price">
+<span class="eyebrow">Стартовый аудит</span>
+<strong>От 5 000 ₽</strong>
+<p>Один ограниченный контур Linux/Docker/API, первичная диагностика и письменный отчёт. Точная стоимость зависит от согласованного объёма.</p>
+<div class="actions"><a class="cta" href="mailto:winargos42@gmail.com?subject=ARGOS%20DevOps%20Audit">Обсудить задачу</a></div>
+</div></div>
+</section>
+<section id="en" lang="en">
+<h2>English — Security & DevOps review</h2>
+<p>ARGOS is an independent engineering project offering small, fixed-scope, authorized reviews of Linux, Docker, CI/CD and AI/API deployments. Deliverables: written findings, evidence, prioritized improvements and optional separately approved remediation. We do not claim certification, guaranteed security or unrestricted penetration testing.</p>
+<p>Email <a href="mailto:winargos42@gmail.com?subject=ARGOS%20Security%20Review">winargos42@gmail.com</a> with your system scope and expected outcome. A written agreement on permissions, price, timing and acceptance comes first.</p>
+</section>
+</main>
+<footer class="footer"><div class="wrap">ARGOS · Independent engineering · 2026. This page is static: no tracking, account registration, forms or collected credentials.</div></footer>
+</body></html>
