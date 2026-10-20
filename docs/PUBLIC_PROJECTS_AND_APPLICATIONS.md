@@ -60,3 +60,11 @@ Read-only inspection of X230 file `projects/mukhtar-runtime-stability/evidence/p
 - Before/after learning on matched seeds 63600 and 63601 (2 attempts per condition): health gain 16 -> 24; damage 100 -> 108; deaths 1 -> 1; pickups 1 -> 1.
 - Report explicitly says `superiority_established=false`, `heldout_map_generalisation_proven=false`, and `native_level_exits_measured=false`. Do **not** claim proven improvement or generalization.
 - These are results from October 16, not a new benchmark on October 20. Next experiment: larger matched-seed A/B with frozen vs learned checkpoints and held-out maps, with evidence and confidence intervals.
+
+## Live verification — 2026-10-20
+
+- X230 executed `python3 -m unittest discover -s tests -v` inside `projects/mukhtar-learning-promotion-gate`: **9/9 tests passed**.
+- X230 executed `python3 learning_gate.py <restart_verification.json>` using the physical report dated October 16: **QUARANTINE**, `canary_eligible=false`, `live_promotion_performed=false`.
+- The three explicit gate failures are: **2 paired seeds < 6**, **1 tested map < 2**, and **damage increased from 100 to 108**. Health gain improved 16 to 24, but this does not establish overall superiority.
+- No deployment, system installation, root operation or live checkpoint promotion was performed in this audit.
+- Foresight evidence files `grants/20261016_foresight_submission/after_submit_run9.html`, `run9_after_submit.png`, and `application_run9.pdf` exist locally. A saved post-submit HTML page alone is not a submission receipt; final Foresight status remains disputed pending receipt/confirmation.
