@@ -21,7 +21,7 @@ These entries are based on earlier submission reports or correspondence, not pub
 
 | Program | Public program link | Evidence status |
 |---|---|---|
-| Foresight Institute AI Nodes / Local Compute | [Foresight Institute](https://foresight.org/) | **STATUS DISPUTED — NOT VERIFIED SUBMITTED.** Local audit dated 17 October says application prepared but NOT SENT; original receipt still missing. |
+| Foresight Institute AI Nodes / Local Compute | [Foresight Institute](https://foresight.org/) | **SUBMITTED — saved Airtable confirmation found.** X230 evidence `grants/20261016_foresight_submission/after_submit_run9.html` contains `Thank you for submitting the form!` (SHA-256 `27bc15b96a313b6723e26efd06b03b75b541d7d11374c50441a1585e17ae77db`). Submission confirmation is not an award or payment. |
 | fal Research Grants | [fal Grants](https://fal.ai/grants) | **Application email previously reported sent**; no public receipt URL. |
 | LUMOS Project EDGE | [Project EDGE](https://www.lumosbot.tech/project-edge/) | **Submission previously reported**, including a form success/receipt; no public application URL. |
 | Dimensional Hardware Grant | [Dimensional](https://build.dimensional.org/) | **Conflicting prior status reports** (submitted vs draft); needs receipt reconciliation. |
@@ -68,3 +68,7 @@ Read-only inspection of X230 file `projects/mukhtar-runtime-stability/evidence/p
 - The three explicit gate failures are: **2 paired seeds < 6**, **1 tested map < 2**, and **damage increased from 100 to 108**. Health gain improved 16 to 24, but this does not establish overall superiority.
 - No deployment, system installation, root operation or live checkpoint promotion was performed in this audit.
 - Foresight evidence files `grants/20261016_foresight_submission/after_submit_run9.html`, `run9_after_submit.png`, and `application_run9.pdf` exist locally. A saved post-submit HTML page alone is not a submission receipt; final Foresight status remains disputed pending receipt/confirmation.
+
+## Foresight correction — 2026-10-21
+
+The October 17 opportunities sweep's `NOT SENT` entry is contradicted by a subsequently inspected saved Airtable **post-submit success page**. The HTML has the exact text `Thank you for submitting the form!` and is paired with local before/after screenshots and a saved application PDF. Accordingly, **submission is supported by local browser evidence**, but an organizer acceptance decision, application identifier, or grant award has not been verified. Do not publish the personal application contents.
