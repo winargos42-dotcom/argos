@@ -51,3 +51,12 @@ These entries are based on earlier submission reports or correspondence, not pub
 3. Do not publish private email addresses, tokens, personal information, private application documents, or unlicensed third-party material.
 4. Cross-link this registry from project READMEs and published project pages when authorized edit access exists.
 5. Never imply an award, grant, or cash payment from registration or submission alone.
+
+## MUKHTAR benchmark evidence (2026-10-20 audit)
+
+Read-only inspection of X230 file `projects/mukhtar-runtime-stability/evidence/physical_20261016T021939Z/restart_verification.json`:
+
+- 10 recorded attempts across 4 independent gameplay processes, one `health_gathering` map; exact live restoration passed, but OS reboot not tested.
+- Before/after learning on matched seeds 63600 and 63601 (2 attempts per condition): health gain 16 -> 24; damage 100 -> 108; deaths 1 -> 1; pickups 1 -> 1.
+- Report explicitly says `superiority_established=false`, `heldout_map_generalisation_proven=false`, and `native_level_exits_measured=false`. Do **not** claim proven improvement or generalization.
+- These are results from October 16, not a new benchmark on October 20. Next experiment: larger matched-seed A/B with frozen vs learned checkpoints and held-out maps, with evidence and confidence intervals.
