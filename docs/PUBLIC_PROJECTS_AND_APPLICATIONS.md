@@ -21,7 +21,7 @@ These entries are based on earlier submission reports or correspondence, not pub
 
 | Program | Public program link | Evidence status |
 |---|---|---|
-| Foresight Institute AI Nodes / Local Compute | [Foresight Institute](https://foresight.org/) | **Submission previously reported and receipt noted**; private evidence retained separately; no public submission URL verified. |
+| Foresight Institute AI Nodes / Local Compute | [Foresight Institute](https://foresight.org/) | **STATUS DISPUTED — NOT VERIFIED SUBMITTED.** Local audit dated 17 October says application prepared but NOT SENT; original receipt still missing. |
 | fal Research Grants | [fal Grants](https://fal.ai/grants) | **Application email previously reported sent**; no public receipt URL. |
 | LUMOS Project EDGE | [Project EDGE](https://www.lumosbot.tech/project-edge/) | **Submission previously reported**, including a form success/receipt; no public application URL. |
 | Dimensional Hardware Grant | [Dimensional](https://build.dimensional.org/) | **Conflicting prior status reports** (submitted vs draft); needs receipt reconciliation. |
