@@ -16,10 +16,15 @@ class FakeBot:
     def __init__(self, fail_default=False):
         self.commands = None
         self.menu_calls = []
+        self.command_calls = []
         self.fail_default = fail_default
 
-    async def set_my_commands(self, commands):
+    async def get_my_commands(self, **kwargs):
+        return [("menudemo", "Пилот меню"), ("menu", "Меню ресторана")]
+
+    async def set_my_commands(self, commands, **kwargs):
         self.commands = list(commands)
+        self.command_calls.append((list(commands), kwargs))
 
     async def set_chat_menu_button(self, **kwargs):
         self.menu_calls.append(kwargs)
@@ -45,6 +50,19 @@ class TelegramMenuTests(unittest.IsolatedAsyncioTestCase):
         errors = await configure_command_menu(bot, ["123"], object())
         self.assertEqual(len(errors), 1)
         self.assertEqual(bot.menu_calls[1]["chat_id"], 123)
+
+    async def test_all_commands_preserve_pilot_and_chat_scopes(self):
+        bot = FakeBot()
+        await configure_command_menu(
+            bot, ["123"], object(),
+            registered_commands={"start", "status", "menudemo", "menu", "menudemoai", "tghealth"},
+            scope_for_chat=lambda chat_id: ("chat", chat_id),
+        )
+        self.assertEqual(len(bot.command_calls), 4)
+        for commands, options in bot.command_calls:
+            names = {row[0] for row in commands}
+            self.assertTrue({"help", "status", "menudemo", "menu", "menudemoai"}.issubset(names))
+        self.assertEqual(bot.command_calls[-1][1], {"scope": ("chat", 123), "language_code": "ru"})
 
 
 if __name__ == "__main__":
