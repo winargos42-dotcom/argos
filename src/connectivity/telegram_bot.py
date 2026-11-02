@@ -1161,6 +1161,18 @@ class ArgosTelegram:
 
         await self._safe_reply_text(update.message, "\n".join(msg), markdown=False)
 
+    async def _configure_telegram_menu(self, application: Application) -> None:
+        """Replace stale external WebApp menu buttons with ARGOS commands."""
+        from telegram import MenuButtonCommands
+        from src.connectivity.telegram_menu import configure_command_menu
+
+        chat_ids = self.admin_ids | self.user_ids | self.allowed_ids
+        errors = await configure_command_menu(
+            application.bot, chat_ids, MenuButtonCommands()
+        )
+        for error in errors:
+            print(f"[TG] Ошибка настройки меню команд: {error}")
+
     # --- Запуск бота ------------------------------------------------------
     def run(self):
         """Блокирующий запуск Telegram бота (используется в отдельном потоке)."""
@@ -1180,6 +1192,7 @@ class ArgosTelegram:
                 builder = (
                     Application.builder()
                     .token(self.token)
+                    .post_init(self._configure_telegram_menu)
                     .connect_timeout(self.tg_connect_timeout)
                     .read_timeout(self.tg_read_timeout)
                     .write_timeout(self.tg_write_timeout)
