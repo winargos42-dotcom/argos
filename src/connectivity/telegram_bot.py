@@ -1163,12 +1163,23 @@ class ArgosTelegram:
 
     async def _configure_telegram_menu(self, application: Application) -> None:
         """Replace stale external WebApp menu buttons with ARGOS commands."""
-        from telegram import MenuButtonCommands
+        from telegram import BotCommandScopeChat, MenuButtonCommands
         from src.connectivity.telegram_menu import configure_command_menu
 
         chat_ids = self.admin_ids | self.user_ids | self.allowed_ids
+        registered_commands = {
+            command
+            for handlers in application.handlers.values()
+            for handler in handlers
+            if isinstance(handler, CommandHandler)
+            for command in handler.commands
+        }
         errors = await configure_command_menu(
-            application.bot, chat_ids, MenuButtonCommands()
+            application.bot,
+            chat_ids,
+            MenuButtonCommands(),
+            registered_commands=registered_commands,
+            scope_for_chat=BotCommandScopeChat,
         )
         for error in errors:
             print(f"[TG] Ошибка настройки меню команд: {error}")
