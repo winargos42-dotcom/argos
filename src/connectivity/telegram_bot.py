@@ -2987,6 +2987,16 @@ class ArgosTelegram:
             await self._handle_mcp(update, user_text)
             return
 
+        # Send image search results as Telegram photos plus clickable sources.
+        # Keep this before the generic core Search response (text-only).
+        from src.connectivity.telegram_image_search import (
+            is_image_search_request,
+            reply_with_images_and_links,
+        )
+        if is_image_search_request(user_text):
+            await reply_with_images_and_links(update.message, user_text)
+            return
+
         # Погода: жёсткий direct-роутинг, чтобы не уходить в Analytic-заглушки.
         if self.core and getattr(self.core, "skill_loader", None):
             is_weather_intent = (
