@@ -1,34 +1,22 @@
-# Memory
+# ARGOS — контекст для Claude Code
 
-## Me
-Всеволод (Seva / АvA / SiG) — разработчик, автор проекта ARGOS.
+Репозиторий: `/root/argos` (github.com/winargos42-dotcom/argos, ветка `main`, shallow clone).
 
-## Projects
-| Name | What |
-|------|------|
-| **ARGOS** | Argos Universal OS v2.1.3 — самовоспроизводящаяся кроссплатформенная AI-экосистема (Desktop / Android / Docker / Telegram) |
+## Что читать сначала
+1. `README.md` — обзор системы и статус (1244 строки).
+2. `AGENTS.md` — правила для агентов, работающих в этом репозитории (828 строк).
+3. `docs/PROJECT_OVERVIEW.md` — карта проекта для новых участников.
 
-## Teams / Owners
-Всё один человек (Сева). Роли — контекст задачи, не реальные люди.
-| Tag | Контекст |
-|-----|---------|
-| `infra` | Инфраструктура (Llama.cpp, Ollama, RAM-диск) |
-| `platform` | Платформа (Redis, aiohttp, PostgreSQL, Cloudflare) |
-| `sre` | Надёжность (circuit breaker, watchtower, ArgoCD) |
-| `app` | Приложение (Docker-изоляция, логирование) |
+## Правила владельца (обязательны)
+- Только реальные проверки: не выдавать «должно работать» за «работает».
+- Зелёный CI не равен успешному тесту на физическом оборудовании.
+- Секреты, токены, UUID и приватные ключи — не в код, не в отчёты, не в коммиты.
+- Тяжёлые сборки/обновления на этом узле — по одной, узел чувствителен к нагрузке.
 
-## Key Terms
-| Term | Meaning |
-|------|---------|
-| `web_learn` | Модуль поиска через DuckDuckGo |
-| `Llama.cpp` | Локальный оффлайн LLM-движок |
-| `Ollama` | Запускатель LLM-моделей |
-| `ArgoCD` | GitOps-инструмент синхронизации конфигураций |
-| `watchtower` | Авто-обновлятор Docker-контейнеров |
-| `circuit breaker` | Паттерн отказоустойчивости (3 неудачи → fallback) |
-| `AWA-Core` | Центральный координатор модулей ARGOS |
-| `ColibriAsmEngine` | Ассемблер/дизассемблер микрокода в реальном времени |
+## MCP-инструменты, доступные в этой сессии
+- `argos` — status, command, providers, code_runtime, cloudflare_chat, bailian_* (ядро ARGOS на X230).
+- `coral` — classify/detect на живом Coral Edge TPU.
 
-## Preferences
-- Язык задач: русский
-- Приоритеты: P1 (критичные) → P2 (важные) → P3 (низкий приоритет)
+## Железо узла
+Xeon E5-2680 v4 (28 потоков), 31 ГБ RAM, Tesla P100 16 ГБ (llama.cpp/ollama), Coral Edge TPU, SPR2801S.
+Локальные модели: `http://127.0.0.1:11434` (ollama), например `qwen3-coder-30b-32k`.
