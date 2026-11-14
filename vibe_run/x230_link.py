@@ -40,7 +40,7 @@ os.environ.setdefault("ARGOS_PG_ENABLED", "0")
 import httpx  # noqa: E402
 
 INBOX_REPO = os.getenv("ARGOS_X230_INBOX_REPO", "winargos42-dotcom/argos")
-INBOX_BRANCH = os.getenv("ARGOS_X230_INBOX_BRANCH", "vibe/argos-vibe-stage1-10-review-20261114")
+INBOX_BRANCH = os.getenv("ARGOS_X230_INBOX_BRANCH", "vibe/argos-vibe-stage1-11-review-20261114")
 INBOX_PATH = os.getenv("ARGOS_X230_INBOX_PATH", "vibe_run/inbox.json")
 STATE_FILE = os.getenv("ARGOS_X230_LINK_STATE",
                        "/workspace/argos-runtime/x230_link_state.json")
