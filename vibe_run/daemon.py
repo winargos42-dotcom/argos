@@ -33,6 +33,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -176,15 +177,77 @@ def heartbeat_loop(cm: CognitiveMemory, results: agent_pool.TaskResult, state: d
         cm.log_event("daemon", "heartbeat", payload)
 
 
+def result_envelope(row: dict, reply_id: str) -> dict:
+    return {
+        "msg_id": str(uuid.uuid4()),
+        "type": "result",
+        "in_reply_to": reply_id,
+        "from": "argos-vibe-sandbox",
+        "to": "argos-x230",
+        "goal_id": row.get("goal_id"),
+        "status": row.get("status"),
+        "mode": row.get("mode"),
+        "exec_s": row.get("exec_s"),
+        "result": str(row.get("result", ""))[:4000],
+        "created_utc": now(),
+    }
+
+
+def x230_outbox_push(row: dict) -> None:
+    """Upload a finished task result to x0.at and record it in outbox.jsonl.
+
+    The upload is automatic; delivering the new URL to X230 still needs one
+    manual hop until VIBE regains GitHub write or a private tunnel exists.
+    """
+    try:
+        import tempfile
+
+        import x230_link
+        reply_id = x230_link.reply_id_for_goal(row.get("goal_id"))
+        if not reply_id:
+            return  # Local tasks/results must never be exported publicly.
+        env = result_envelope(row, reply_id)
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False,
+                                         encoding="utf-8") as tf:
+            json.dump(env, tf, ensure_ascii=False, indent=2)
+            path = tf.name
+        try:
+            rec = x230_link.send_result(path)
+        finally:
+            os.unlink(path)
+        rec["in_reply_to"] = env["in_reply_to"]
+        rec["goal_id"] = env["goal_id"]
+        cm = CognitiveMemory(prefer_pg=False)
+        cm.log_event("x230_link", "result_outboxed",
+                     {"url": rec["url"], "sha256": rec["sha256"],
+                      "goal_id": env["goal_id"], "at": now()})
+        cm.close()
+    except Exception as exc:
+        cm = CognitiveMemory(prefer_pg=False)
+        cm.log_event("x230_link", "result_outbox_error",
+                     {"error": str(exc)[:200], "goal_id": row.get("goal_id"), "at": now()})
+        cm.close()
+
+
 def results_writer(results: agent_pool.TaskResult, stop: threading.Event) -> None:
     written = 0
+    auto_outbox = os.getenv("ARGOS_X230_AUTO_OUTBOX", "1") == "1"
     while not stop.wait(10):
         rows = results.rows
         if len(rows) > written:
+            new_rows = rows[written:]
             with RESULTS_FILE.open("a") as fh:
-                for row in rows[written:]:
+                for row in new_rows:
                     fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             written = len(rows)
+            if auto_outbox:
+                import x230_link
+                for row in new_rows:
+                    # Explicitly scope public uploads to validated inbox tasks.
+                    if (row.get("status") == "ok" and
+                            x230_link.reply_id_for_goal(row.get("goal_id"))):
+                        threading.Thread(target=x230_outbox_push, args=(row,),
+                                         daemon=True).start()
 
 
 def main() -> int:
@@ -241,6 +304,14 @@ def main() -> int:
             poll = github_watch(cm, state, results)
             cm.log_event("daemon", "github_poll", poll)
             print(f"[daemon] scheduled github poll: {poll}", flush=True)
+            try:
+                import x230_link
+                inbox = x230_link.check_inbox()
+                cm.log_event("daemon", "x230_inbox", inbox)
+                if inbox.get("new_tasks") or inbox.get("errors"):
+                    print(f"[daemon] x230 inbox: {inbox}", flush=True)
+            except Exception as exc:
+                cm.log_event("daemon", "x230_inbox_error", {"error": str(exc)[:200], "at": now()})
             next_poll_at = time.monotonic() + interval
     except KeyboardInterrupt:
         print("[daemon] interrupt — stopping")
