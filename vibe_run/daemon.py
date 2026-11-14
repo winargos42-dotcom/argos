@@ -212,15 +212,20 @@ def x230_outbox_push(row: dict) -> None:
             json.dump(env, tf, ensure_ascii=False, indent=2)
             path = tf.name
         try:
-            rec = x230_link.send_result(path)
+            rec = x230_link.send_result(
+                path, in_reply_to=reply_id, goal_id=env["goal_id"])
         finally:
             os.unlink(path)
-        rec["in_reply_to"] = env["in_reply_to"]
-        rec["goal_id"] = env["goal_id"]
         cm = CognitiveMemory(prefer_pg=False)
         cm.log_event("x230_link", "result_outboxed",
                      {"url": rec["url"], "sha256": rec["sha256"],
                       "goal_id": env["goal_id"], "at": now()})
+        try:
+            notice = x230_link.notify_x230(rec)
+            cm.log_event("x230_link", "result_notice_sent", notice)
+        except Exception as exc:
+            cm.log_event("x230_link", "result_notice_error",
+                         {"goal_id": env["goal_id"], "error": str(exc)[:200], "at": now()})
         cm.close()
     except Exception as exc:
         cm = CognitiveMemory(prefer_pg=False)
@@ -312,6 +317,13 @@ def main() -> int:
                     print(f"[daemon] x230 inbox: {inbox}", flush=True)
             except Exception as exc:
                 cm.log_event("daemon", "x230_inbox_error", {"error": str(exc)[:200], "at": now()})
+            try:
+                import x230_link
+                retries = x230_link.retry_unnotified()
+                cm.log_event("daemon", "x230_notice_retries", retries)
+            except Exception as exc:
+                cm.log_event("daemon", "x230_notice_retry_error",
+                             {"error": str(exc)[:200], "at": now()})
             next_poll_at = time.monotonic() + interval
     except KeyboardInterrupt:
         print("[daemon] interrupt — stopping")

@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 import re
+from pathlib import Path
 import subprocess
 import sys
 import uuid
@@ -163,8 +164,79 @@ def reply_id_for_goal(goal_id: object) -> str | None:
         return None
 
 
-def send_result(path: str) -> dict:
-    """Выгрузить файл на x0.at и записать исходящее в outbox.jsonl."""
+RETURN_CFG = Path(__file__).with_name("return_channel.json")
+NOTIFIED_FILE = os.getenv("ARGOS_X230_NOTIFIED",
+    f"{RUNTIME}/logs/stage9/notice_receipts.jsonl")
+
+
+def notify_x230(rec: dict) -> dict:
+    """Announce only the result URL and SHA, never the full body."""
+    if not rec.get("in_reply_to") or (
+            reply_id_for_goal(rec.get("goal_id")) != rec["in_reply_to"]):
+        raise ValueError("non-inbox result cannot be announced")
+    config = json.loads(RETURN_CFG.read_text(encoding="utf-8"))
+    if config.get("server") != "https://ntfy.sh":
+        raise ValueError("unapproved notice server")
+    topic = config.get("topic", "")
+    if not re.fullmatch(r"[a-z0-9-]{16,96}", topic):
+        raise ValueError("invalid ntfy topic")
+    notice = {"schema": 1, "type": "vibe_result_notice",
+              "in_reply_to": rec["in_reply_to"],
+              "result_msg_id": rec["msg_id"],
+              "goal_id": rec.get("goal_id"),
+              "url": rec["url"], "sha256": rec["sha256"]}
+    response = httpx.post(f"https://ntfy.sh/{topic}",
+        content=json.dumps(notice, separators=(",", ":")),
+        headers={"Content-Type": "text/plain"}, timeout=20)
+    response.raise_for_status()
+    receipt = response.json()
+    if receipt.get("event") != "message" or receipt.get("topic") != topic:
+        raise ValueError("ntfy acknowledgement invalid")
+    os.makedirs(os.path.dirname(NOTIFIED_FILE), exist_ok=True)
+    entry = {"outbox_msg_id": rec["msg_id"], "ntfy_id": receipt["id"],
+             "at": now(), "in_reply_to": rec["in_reply_to"]}
+    with open(NOTIFIED_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    return entry
+
+
+def retry_unnotified(limit: int = 20) -> dict:
+    """Retry unpublished notices for previously uploaded inbox results."""
+    if not os.path.exists(OUTBOX_FILE):
+        return {"pending": 0, "notified": 0, "errors": []}
+    already = set()
+    if os.path.exists(NOTIFIED_FILE):
+        with open(NOTIFIED_FILE, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    already.add(json.loads(line)["outbox_msg_id"])
+                except (ValueError, KeyError):
+                    continue
+    pending = []
+    with open(OUTBOX_FILE, encoding="utf-8") as f:
+        for line in f:
+            try:
+                rec = json.loads(line)
+                if (rec["msg_id"] not in already and rec.get("in_reply_to")
+                        and reply_id_for_goal(rec.get("goal_id")) == rec["in_reply_to"]):
+                    pending.append(rec)
+            except (ValueError, KeyError):
+                continue
+    result = {"pending": len(pending), "notified": 0, "errors": []}
+    for rec in pending[:limit]:
+        try:
+            notify_x230(rec)
+            result["notified"] += 1
+        except Exception as exc:
+            result["errors"].append(f"{rec['msg_id'][:8]}: {type(exc).__name__}: {str(exc)[:80]}")
+    return result
+
+
+def send_result(path: str, *, in_reply_to: str | None = None,
+                goal_id: object = None) -> dict:
+    """Upload verified inbox result; save correlation for notice retries."""
+    if in_reply_to and reply_id_for_goal(goal_id) != in_reply_to:
+        raise ValueError("cannot export unrelated private task")
     with open(path, "rb") as f:
         raw = f.read()
     if len(raw) > MAX_PAYLOAD:
@@ -177,7 +249,8 @@ def send_result(path: str) -> dict:
     url = r.text.strip()
     rec = {"msg_id": str(uuid.uuid4()), "file": os.path.basename(path),
            "url": url, "sha256": hashlib.sha256(raw).hexdigest(),
-           "size": len(raw), "ts": now()}
+           "size": len(raw), "ts": now(),
+           "in_reply_to": in_reply_to, "goal_id": goal_id}
     os.makedirs(os.path.dirname(OUTBOX_FILE), exist_ok=True)
     with open(OUTBOX_FILE, "a") as f:
         f.write(json.dumps(rec) + "\n")

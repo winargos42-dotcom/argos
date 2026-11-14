@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "server": "https://ntfy.sh",
+  "topic": "argos-vibe-outbox-a71680a72b560afac6a05faa08f3100d19d1c646",
+  "purpose": "public metadata-only notices; no secrets or full result content"
+}
