@@ -72,9 +72,13 @@ def route(master: ArgosMasterCore, goal_text: str) -> tuple[str, str]:
 
 
 def run_task(master: ArgosMasterCore, goal_text: str, out: dict) -> None:
-    mode, result = route(master, goal_text)
-    out["mode"] = mode
-    out["result"] = result
+    try:
+        mode, result = route(master, goal_text)
+        out["mode"] = mode
+        out["result"] = result
+    except Exception as exc:
+        out["mode"] = "error"
+        out["result"] = f"{type(exc).__name__}: {exc}"[:500]
     out["done_at"] = now()
 
 
@@ -195,14 +199,22 @@ def worker_loop(name: str, stop: threading.Event, results: TaskResult) -> None:
             cm.log_event("agent_pool", "task_timeout",
                          {"goal_id": gid, "worker": name, "exec_s": exec_s})
         else:
-            row.update({"status": "ok", "exec_s": round(exec_s, 3),
-                        "mode": out.get("mode"), "result": str(out.get("result"))[:2000]})
-            cm.log_event("agent_pool", "task_done",
-                         {"goal_id": gid, "worker": name, "mode": out.get("mode"),
-                          "exec_s": exec_s})
-            cm.set_goal_state(gid, "done")
-            cm.learn(f"task:{gid}", {"goal": text[:500], "mode": out.get("mode"),
-                                     "exec_s": exec_s, "worker": name})
+            if out.get("mode") == "error":
+                row.update({"status": "error", "exec_s": round(exec_s, 3),
+                            "result": str(out.get("result"))[:2000]})
+                cm.set_goal_state(gid, f"failed:{name}")
+                cm.log_event("agent_pool", "task_error",
+                             {"goal_id": gid, "worker": name, "exec_s": exec_s,
+                              "error": str(out.get("result"))[:500]})
+            else:
+                row.update({"status": "ok", "exec_s": round(exec_s, 3),
+                            "mode": out.get("mode"), "result": str(out.get("result"))[:2000]})
+                cm.log_event("agent_pool", "task_done",
+                             {"goal_id": gid, "worker": name, "mode": out.get("mode"),
+                              "exec_s": exec_s})
+                cm.set_goal_state(gid, "done")
+                cm.learn(f"task:{gid}", {"goal": text[:500], "mode": out.get("mode"),
+                                         "exec_s": exec_s, "worker": name})
         cm.reflect(f"Задача #{gid} ({row['status']}) рабочим {name}",
                    {"goal": text[:200], "exec_s": row.get("exec_s")})
         results.add(row)
