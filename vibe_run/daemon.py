@@ -178,7 +178,8 @@ def heartbeat_loop(cm: CognitiveMemory, results: agent_pool.TaskResult, state: d
 
 
 def result_envelope(row: dict, reply_id: str) -> dict:
-    return {
+    from message_auth import sign_envelope, load_key
+    env = {
         "msg_id": str(uuid.uuid4()),
         "type": "result",
         "in_reply_to": reply_id,
@@ -191,6 +192,11 @@ def result_envelope(row: dict, reply_id: str) -> dict:
         "result": str(row.get("result", ""))[:4000],
         "created_utc": now(),
     }
+    if os.getenv("ARGOS_LINK_SECRET"):
+        return sign_envelope(env, load_key())
+    if os.getenv("ARGOS_LINK_AUTH_REQUIRED") == "1":
+        raise RuntimeError("HMAC required but ARGOS_LINK_SECRET absent")
+    return env
 
 
 def x230_outbox_push(row: dict) -> None:

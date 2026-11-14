@@ -124,6 +124,17 @@ def check_inbox() -> dict:
                 payload = json.loads(download_verified(m["url"], m["sha256"]))
                 if payload.get("msg_id") != mid:
                     raise ValueError("inner msg_id mismatch")
+                # Signed inbound tasks are checked before enqueue.
+                # GitHub inbox remains the existing authenticated source.
+                has_secret = bool(os.getenv("ARGOS_LINK_SECRET"))
+                signed = isinstance(payload.get("auth"), dict)
+                if has_secret and signed:
+                    from message_auth import verify_envelope, load_key
+                    valid, reason = verify_envelope(payload, load_key())
+                    if not valid:
+                        raise ValueError("inbound task HMAC invalid: " + reason[:60])
+                elif os.getenv("ARGOS_LINK_AUTH_REQUIRED") == "1":
+                    raise ValueError("inbound task HMAC signature required")
                 goal = sanitize_goal(str(payload.get("goal", "")))
                 if goal == "analyze: " or len(goal) < 12:
                     raise ValueError("empty goal")
@@ -182,9 +193,15 @@ def notify_x230(rec: dict) -> dict:
         raise ValueError("invalid ntfy topic")
     notice = {"schema": 1, "type": "vibe_result_notice",
               "in_reply_to": rec["in_reply_to"],
-              "result_msg_id": rec["msg_id"],
+              "result_msg_id": rec.get("result_msg_id", rec["msg_id"]),
               "goal_id": rec.get("goal_id"),
-              "url": rec["url"], "sha256": rec["sha256"]}
+              "url": rec["url"], "sha256": rec["sha256"],
+              "created_utc": now()}
+    if os.getenv("ARGOS_LINK_SECRET"):
+        from message_auth import sign_envelope, load_key
+        notice = sign_envelope(notice, load_key())
+    elif os.getenv("ARGOS_LINK_AUTH_REQUIRED") == "1":
+        raise RuntimeError("HMAC required but ARGOS_LINK_SECRET absent")
     response = httpx.post(f"https://ntfy.sh/{topic}",
         content=json.dumps(notice, separators=(",", ":")),
         headers={"Content-Type": "text/plain"}, timeout=20)
@@ -241,6 +258,15 @@ def send_result(path: str, *, in_reply_to: str | None = None,
         raw = f.read()
     if len(raw) > MAX_PAYLOAD:
         raise ValueError(f"payload too large: {len(raw)}")
+    source = json.loads(raw)
+    if not isinstance(source, dict) or source.get("type") != "result":
+        raise ValueError("only result envelopes are eligible")
+    if in_reply_to and source.get("in_reply_to") != in_reply_to:
+        raise ValueError("outbox correlation mismatch")
+    if in_reply_to and source.get("goal_id") != goal_id:
+        raise ValueError("outbox goal mismatch")
+    if not isinstance(source.get("msg_id"), str):
+        raise ValueError("missing result msg_id")
     r = httpx.post(X0_AT,
                    files={"file": (os.path.basename(path), raw, "application/octet-stream")},
                    timeout=60)
@@ -250,6 +276,7 @@ def send_result(path: str, *, in_reply_to: str | None = None,
     rec = {"msg_id": str(uuid.uuid4()), "file": os.path.basename(path),
            "url": url, "sha256": hashlib.sha256(raw).hexdigest(),
            "size": len(raw), "ts": now(),
+           "result_msg_id": source["msg_id"],
            "in_reply_to": in_reply_to, "goal_id": goal_id}
     os.makedirs(os.path.dirname(OUTBOX_FILE), exist_ok=True)
     with open(OUTBOX_FILE, "a") as f:
