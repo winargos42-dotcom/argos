@@ -118,16 +118,16 @@ def github_watch(cm: CognitiveMemory, state: dict, results: agent_pool.TaskResul
             ["gh", "api", f"repos/{REPO_SLUG}/commits", "-X", "GET",
              "-f", "sha=main", "-f", "per_page=10"],
             capture_output=True, text=True, timeout=60).stdout)
-        seen_sha = state.get("last_commit_sha")
-        new = [c for c in commits if c["sha"] != seen_sha]
-        if commits:
-            state["last_commit_sha"] = commits[0]["sha"]
-        if seen_sha and new:
+        seen_shas = set(state.get("seen_shas", []))
+        shas = [c["sha"] for c in commits]
+        new = [c for c in commits if c["sha"] not in seen_shas]
+        if seen_shas and new:
             summary["new_commits"] = len(new)
-            shas = ", ".join(c["sha"][:8] for c in new[:5])
-            enqueue_goal(cm, f"analyze: new commits on {REPO_SLUG} main: {shas}")
-        elif not seen_sha:
-            state["last_commit_sha"] = commits[0]["sha"] if commits else None
+            short = ", ".join(c["sha"][:8] for c in new[:5])
+            enqueue_goal(cm, f"analyze: new commits on {REPO_SLUG} main: {short}")
+        elif not seen_shas:
+            summary["baseline"] = len(shas)
+        state["seen_shas"] = shas[-50:]
 
         issues = json.loads(subprocess.run(
             ["gh", "api", f"repos/{REPO_SLUG}/issues", "-X", "GET",
