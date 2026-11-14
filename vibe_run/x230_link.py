@@ -135,8 +135,14 @@ def check_inbox() -> dict:
                         raise ValueError("inbound task HMAC invalid: " + reason[:60])
                 elif os.getenv("ARGOS_LINK_AUTH_REQUIRED") == "1":
                     raise ValueError("inbound task HMAC signature required")
-                goal = sanitize_goal(str(payload.get("goal", "")))
-                if goal == "analyze: " or len(goal) < 12:
+                # Only a verified HMAC task may start an isolated code proposal.
+                if payload.get("mode") == "develop":
+                    if not has_secret or not signed:
+                        raise ValueError("develop requires authenticated signed task")
+                    goal = "develop: " + str(payload.get("goal", "")).strip()[:480]
+                else:
+                    goal = sanitize_goal(str(payload.get("goal", "")))
+                if goal in ("analyze: ", "develop: ") or len(goal) < 12:
                     raise ValueError("empty goal")
                 gid = cm.add_goal(goal, priority=3)
                 # Persist the inbound correlation before the worker can publish

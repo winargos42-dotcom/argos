@@ -299,6 +299,14 @@ def main() -> int:
     poll = github_watch(cm, state, results)
     cm.log_event("daemon", "github_poll", poll)
     print(f"[daemon] first github poll: {poll}")
+    import autodev
+    try:
+        candidate = autodev.schedule_one(cm, state)
+        if candidate.get("queued"):
+            save_state(state)
+            print(f"[daemon] autodev queued: {candidate}", flush=True)
+    except Exception as exc:
+        cm.log_event("autodev", "schedule_error", {"error": str(exc)[:160], "at": now()})
 
     # A successful first poll alone does not keep the node useful.
     # Schedule subsequent polls on a monotonic clock, avoiding tight loops if
@@ -315,6 +323,13 @@ def main() -> int:
             poll = github_watch(cm, state, results)
             cm.log_event("daemon", "github_poll", poll)
             print(f"[daemon] scheduled github poll: {poll}", flush=True)
+            try:
+                candidate = autodev.schedule_one(cm, state)
+                if candidate.get("queued"):
+                    save_state(state)
+                    print(f"[daemon] autodev queued: {candidate}", flush=True)
+            except Exception as exc:
+                cm.log_event("autodev", "schedule_error", {"error": str(exc)[:160], "at": now()})
             try:
                 import x230_link
                 inbox = x230_link.check_inbox()

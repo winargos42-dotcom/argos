@@ -66,6 +66,9 @@ class TaskResult:
 
 def route(master: ArgosMasterCore, goal_text: str) -> tuple[str, str]:
     low = goal_text.strip().lower()
+    if low.startswith("develop: "):
+        import autodev
+        return "develop", autodev.generate_proposal(goal_text.strip()[9:])
     if low.startswith(SHELL_PREFIXES):
         return "direct", master.execute(goal_text.strip(), user_id=OPERATOR)
     return "think", master.execute(f"think: {goal_text.strip()}", user_id=OPERATOR)
