@@ -9,9 +9,13 @@ Protocol
        - per goal_id, at most one agent_pool task_done event;
        - no goal left in any claimed:* / failed:* state.
   D. Crash recovery: while a fresh 100-goal run is in flight, SIGKILL the pool
-     process mid-run; goals stay claimed:<dead worker>. Restart the pool — its
-     startup recovery flips stale claims back to active — and verify that all
-     100 goals finish with exactly one execution each.
+     process mid-run; the in-flight goal stays claimed:<dead worker>. Restart
+     the pool and verify STRICT exactly-once semantics:
+       - goals with a task_done marker are closed as 'done', never re-executed;
+       - the in-flight goal (task_started without task_done) is marked
+         'interrupted:<worker>' and is NOT re-executed (its side effect may
+         already have happened); no duplicate task_done appears;
+       - every other goal finishes with exactly one execution each.
 
 No task is fabricated: shell/remember/recall run through the original
 ArgosMasterCore.execute; think tasks go through the real local Qwen.
@@ -116,10 +120,35 @@ def crash_recovery_trial(workers: int) -> dict:
     con.close()
 
     r = run_pool(workers, "/tmp/argos-stress-crash2.json")
-    v = verify(ids)
+
+    con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+    q = f"json_extract(content,'$.goal_id') IN ({','.join('?' * len(ids))})"
+    done_counts = dict(con.execute(
+        "SELECT json_extract(content,'$.goal_id'), COUNT(*) "
+        "FROM memories_events WHERE source='agent_pool' AND event_type='task_done' "
+        f"AND {q} GROUP BY 1", ids).fetchall())
+    states = dict(con.execute(
+        f"SELECT id, state FROM goals WHERE id IN ({','.join('?' * len(ids))})",
+        ids).fetchall())
+    con.close()
+
+    slow_done = done_counts.get(slow_id, 0)
+    slow_state = states.get(slow_id, "")
+    dup = {g: c for g, c in done_counts.items() if c > 1}
+    others = [gid for gid in ids if gid != slow_id]
+    others_done = sum(1 for g in others if states.get(g) == "done")
+    exactly_once = (slow_done == 0 and slow_state.startswith("interrupted:")
+                    and not dup and others_done == len(others))
     return {"workers": workers, "killed_after_s": killed_after_s,
             "goals_left_claimed_after_kill": left_claimed,
-            "restart_rc": r.returncode, **v}
+            "restart_rc": r.returncode,
+            "in_flight_goal_state": slow_state,
+            "in_flight_goal_reexecuted": slow_done > 0,
+            "goals_done": others_done,
+            "goals_expected_done": len(others),
+            "double_executions": len(dup),
+            "all_done": exactly_once,
+            "exactly_once": exactly_once}
 
 
 def main() -> int:
@@ -141,8 +170,10 @@ def main() -> int:
         results["runs"].append({"phase": "crash_recovery", **trial})
         print(f"[stress] crash_recovery: killed_after={trial['killed_after_s']}s, "
               f"left_claimed={trial['goals_left_claimed_after_kill']}, "
-              f"after_restart all_done={trial['all_done']} "
-              f"double={trial['double_executions']}")
+              f"in_flight_state={trial['in_flight_goal_state']} "
+              f"reexecuted={trial['in_flight_goal_reexecuted']}, "
+              f"done={trial['goals_done']}/{trial['goals_expected_done']} "
+              f"double={trial['double_executions']} exactly_once={trial['exactly_once']}")
 
     ok = all(run["all_done"] and run["double_executions"] == 0 for run in results["runs"])
     results["verdict"] = "PASS" if ok else "FAIL"

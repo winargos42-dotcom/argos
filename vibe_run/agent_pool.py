@@ -6,9 +6,10 @@ Dispatcher/worker model on top of ORIGINAL ArgosMasterCore + CognitiveMemory:
     list_goals / set_goal_state are the original APIs).
   * N worker threads each own one ArgosMasterCore + one CognitiveMemory
     connection (SQLite-safe: one connection per thread).
-  * Claiming: a worker flips goal state active -> claimed:<worker> via the
-    original set_goal_state, then re-reads it; if another worker already
-    claimed it, the goal is skipped (optimistic locking on the original schema).
+  * Claiming: a single conditional UPDATE ... WHERE state='active' on the
+    original goals table, so exactly one worker wins; a task_started event is
+    written before execution and task_done before the state flip, so crash
+    recovery can always tell what happened.
   * Execution control: each task runs under a watchdog; on timeout the goal is
     marked failed:<worker> and the abandoned work is reported honestly (a
     Python thread cannot be killed, the timeout marks the result, it does not
@@ -77,20 +78,56 @@ def run_task(master: ArgosMasterCore, goal_text: str, out: dict) -> None:
     out["done_at"] = now()
 
 
-def recover_stale_claims() -> int:
-    """Re-activate goals left claimed by dead workers (crash recovery).
+def recover_stale_claims() -> dict:
+    """Exactly-once crash recovery for goals left in claimed:* state.
 
-    A worker killed mid-task leaves its goal in state claimed:<worker> forever.
-    On pool startup every claimed:* goal is returned to active so it runs
-    exactly once under the new generation of workers.
+    A worker killed mid-task leaves its goal in state claimed:<worker>. The
+    ORIGINAL events log decides the outcome for each stale claim:
+
+      * task_done event exists -> the work actually finished (the crash landed
+        between the done marker and the state update): the goal is closed as
+        'done' and is NOT executed again.
+      * only task_started exists -> the action may or may not have taken
+        effect; it is marked 'interrupted:<worker>' and never re-executed
+        automatically, because re-running an unknown side effect could
+        duplicate it. An operator can requeue explicitly with
+        ARGOS_POOL_REQUEUE_INTERRUPTED=1 (then the duplication risk is
+        accepted and reported).
+      * no events -> the task never began; safe to return to 'active'.
     """
     import sqlite3
     con = sqlite3.connect(f"{RUNTIME}/data/cognitive_memory.db", timeout=10)
     try:
-        cur = con.execute(
-            "UPDATE goals SET state='active' WHERE state LIKE 'claimed:%'")
+        rows = con.execute(
+            "SELECT id, state FROM goals WHERE state LIKE 'claimed:%'").fetchall()
+        counts = {"completed": 0, "interrupted": 0, "requeued": 0}
+        requeue = os.getenv("ARGOS_POOL_REQUEUE_INTERRUPTED") == "1"
+        for gid, state in rows:
+            done = con.execute(
+                "SELECT COUNT(*) FROM memories_events WHERE source='agent_pool' "
+                "AND event_type='task_done' AND json_extract(content,'$.goal_id')=?",
+                (gid,)).fetchone()[0]
+            started = con.execute(
+                "SELECT COUNT(*) FROM memories_events WHERE source='agent_pool' "
+                "AND event_type='task_started' AND json_extract(content,'$.goal_id')=?",
+                (gid,)).fetchone()[0]
+            if done:
+                con.execute("UPDATE goals SET state='done' WHERE id=?", (gid,))
+                counts["completed"] += 1
+            elif started:
+                if requeue:
+                    con.execute("UPDATE goals SET state='active' WHERE id=?", (gid,))
+                    counts["requeued"] += 1
+                else:
+                    worker = state.split(":", 1)[1] if ":" in state else "unknown"
+                    con.execute("UPDATE goals SET state=? WHERE id=?",
+                                (f"interrupted:{worker}", gid))
+                    counts["interrupted"] += 1
+            else:
+                con.execute("UPDATE goals SET state='active' WHERE id=?", (gid,))
+                counts["requeued"] += 1
         con.commit()
-        return cur.rowcount
+        return counts
     finally:
         con.close()
 
@@ -144,6 +181,8 @@ def worker_loop(name: str, stop: threading.Event, results: TaskResult) -> None:
         row: dict = {"goal_id": gid, "worker": name, "goal": text[:200],
                      "started_at": now(), "queued_at": queued_at}
         out: dict = {}
+        cm.log_event("agent_pool", "task_started",
+                     {"goal_id": gid, "worker": name, "at": now()})
         t0 = time.perf_counter()
         th = threading.Thread(target=run_task, args=(master, text, out), daemon=True)
         th.start()
@@ -158,10 +197,10 @@ def worker_loop(name: str, stop: threading.Event, results: TaskResult) -> None:
         else:
             row.update({"status": "ok", "exec_s": round(exec_s, 3),
                         "mode": out.get("mode"), "result": str(out.get("result"))[:2000]})
-            cm.set_goal_state(gid, "done")
             cm.log_event("agent_pool", "task_done",
                          {"goal_id": gid, "worker": name, "mode": out.get("mode"),
                           "exec_s": exec_s})
+            cm.set_goal_state(gid, "done")
             cm.learn(f"task:{gid}", {"goal": text[:500], "mode": out.get("mode"),
                                      "exec_s": exec_s, "worker": name})
         cm.reflect(f"Задача #{gid} ({row['status']}) рабочим {name}",
@@ -179,11 +218,11 @@ def main() -> int:
     results = TaskResult()
     probe = CognitiveMemory(prefer_pg=False)
     recovered = recover_stale_claims()
-    probe.log_event("agent_pool", "start", {"workers": WORKERS, "recovered": recovered,
+    probe.log_event("agent_pool", "start", {"workers": WORKERS, "recovery": recovered,
                                             "at": now()})
     probe.close()
     print(f"[pool] starting {WORKERS} workers, timeout={TASK_TIMEOUT}s, "
-          f"recovered_stale_claims={recovered}, report={REPORT}")
+          f"recovery={recovered}, report={REPORT}")
 
     threads = [threading.Thread(target=worker_loop, args=(f"w{i}", stop, results),
                                 daemon=True)

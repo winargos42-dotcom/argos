@@ -73,6 +73,12 @@ ARGOS_LOOP_MAX=3 ARGOS_LOOP_IDLE_EXIT=1 python vibe_run/agent_loop.py
 # Пул воркеров: атомарный захват целей (UPDATE goals WHERE state='active'),
 # watchdog на задачу, метрики в JSON. Двойное выполнение исключено.
 ARGOS_POOL_WORKERS=3 ARGOS_POOL_IDLE_EXIT=1 python vibe_run/agent_pool.py
+#
+# Восстановление после падения воркера — строго однократно: задача с маркером
+# task_done закрывается как done без перезапуска; незавершённая помечается
+# interrupted:<worker> и НЕ перезапускается автоматически (её побочный эффект
+# мог уже произойти). Явный перезапуск таких задач — только с
+# ARGOS_POOL_REQUEUE_INTERRUPTED=1 (риск дубля принимается оператором).
 
 # Готовность peering: локальные сервисы + пиры ТОЛЬКО из env; публичные
 # argosssss.win жёстко запрещены; link_state=OPERATIONAL только при реальном
@@ -103,3 +109,20 @@ ARGOS_ISO_SESSIONS=3 ARGOS_ISO_ROUNDS=2 python vibe_run/session_isolation_test.p
   найдена; при наличии модели работает реальный Qwen2.5-0.5B (61 tok/s, 4 потока).
 - Оборудование (P100, SPR2801S, Coral Edge TPU, FPGA) недоступно и не
   имитируется.
+
+## Постоянный узел (этап 7): демон
+
+```bash
+# Фоновая обработка очереди: 2 воркера (жёсткий лимит), heartbeat в SQLite и
+# daemon_heartbeat.json, опрос GitHub (коммиты main + открытые issues) раз в
+# 15 минут — только чтение; новые issues ставятся в очередь ТОЛЬКО как
+# "analyze:" (через локальную LLM), shell-цели из непроверенных источников
+# не ставятся никогда.
+nohup python vibe_run/daemon.py > "$ARGOS_RUNTIME/logs/stage7/daemon.out" 2>&1 &
+
+# Состояние: daemon_heartbeat.json (ts, boot_id, сервисы, очередь),
+# daemon_state.json (boot_id, последний коммит, виденные issues),
+# logs/stage7/daemon_results.jsonl (результат каждой задачи).
+# После перезапуска песочницы демон сравнивает boot_id, логирует
+# sandbox_restart и восстанавливает очередь строго однократно.
+```
