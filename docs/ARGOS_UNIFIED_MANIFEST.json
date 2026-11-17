@@ -1,0 +1,1752 @@
+{
+  "schema": "argos.unified.manifest.v2",
+  "manifest_id": "ARGOS-ONE-DIRECTION-20261116-01",
+  "registry_version": "2.0.0",
+  "snapshot_at_utc": "2026-11-16T23:57:12.066958+00:00",
+  "display_timezone": "Asia/Vladivostok",
+  "language": "ru",
+  "canonical": {
+    "repository": "winargos42-dotcom/argos",
+    "branch": "main",
+    "path": "docs/ARGOS_UNIFIED_MANIFEST.json",
+    "publication_base_commit": "617de1176c38fd9a636b7874e398f5ec46f24a3b",
+    "scope": "Координационный индекс и подтверждения. Исходники, первичные результаты и закрытые документы остаются в исходных местах.",
+    "canonical_after": "Публикация одобренной версии; размещение в GitHub само по себе не синхронизирует узлы."
+  },
+  "lineage": {
+    "source_id": "legacy_manifest",
+    "source_sha256": "cf4633b37fb7cc4465f44d6a2a7a5a2f65411c23bcbed358260ca8ea29fa8774",
+    "migration": "Продолжение существующего ARGOS-ONE-DIRECTION-20261116-01, а не новая миссия или повтор выполненных работ.",
+    "legacy_write_policy": "До отдельного разрешённого перехода файлы v1 не изменяются. После перехода общий статус меняют только в каноническом реестре; v1 остаётся историческим источником."
+  },
+  "mission": "Полезная, воспроизводимая ARGOS: достоверно знать своё состояние, исследовать недостатки, проверять улучшения независимо, сохранять успехи и провалы. Финансирование обеспечивает жизнь владельца и устойчивую работу системы.",
+  "scope_and_privacy": {
+    "published": "Идентификаторы задач, роли, обезличенные статусы, пути, SHA-256 и ссылки.",
+    "excluded": "Ключи, пароли, cookies, адреса владельца, учредительные тексты, контакты и содержание частной переписки, платёжные реквизиты.",
+    "original_ano_files": "18 документов на X230; тексты и полный перечень чувствительных имён не копируются в GitHub.",
+    "services": "Изменение служб, кодовая поставка, регистрация АНО, расходы и внешняя переписка требуют отдельного разрешения; реестр не является разрешением."
+  },
+  "nodes": [
+    {
+      "id": "x230",
+      "hostname": "archlinux",
+      "reachable_verified_at_utc": "2026-11-16T23:51:53.182027Z",
+      "reader": "argos-mcp",
+      "source_root": "/home/argos-data/mcp-workspace",
+      "source_readability": "VERIFIED",
+      "runtime_repo": {
+        "path": "/home/argos-data/runtime",
+        "branch": "checkpoint/20261103-live-state",
+        "head_short": "eed05a6",
+        "dirty_files_observed": 114,
+        "observed_at_utc": "2026-11-16T23:51:56Z"
+      },
+      "restricted_path": "/home/argos-data/runtime/work",
+      "restriction": "PermissionError",
+      "registry_v2_installed": false,
+      "registry_v2_read_ack": null
+    },
+    {
+      "id": "coral",
+      "hostname": "argos-coral",
+      "reachable_verified_at_utc": "2026-11-16T23:54:35.310361Z",
+      "access": "forced_read_only",
+      "context_path_from_legacy_manifest": "/mnt/data1/argos-agent-context/",
+      "context_path_read_verified": false,
+      "expected_legacy_files": [
+        "ARGOS_UNIFIED_MISSION_20261116.md",
+        "ARGOS_UNIFIED_MANIFEST_20261116.json",
+        "ANO_AGENT_INDEX_20261116.json"
+      ],
+      "local_file_hashes": null,
+      "registry_v2_installed": false,
+      "registry_v2_read_ack": null,
+      "blocker": "Доступная фиксированная команда читает status/mukhtar-status/mukhtar-files/evidence, но не произвольный каталог контекста. Его существование и содержимое этой проверкой не подтверждены."
+    }
+  ],
+  "agents": [
+    {
+      "id": "coordinator",
+      "name": "Hermes / координатор",
+      "responsibility": "Декомпозиция, единые ID, дедупликация, порядок работ, обновление реестра.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "heretic",
+      "name": "Heretic",
+      "responsibility": "Гипотезы, анализ первичных данных, ограниченные кандидаты улучшений.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "dory",
+      "name": "Dory",
+      "responsibility": "Независимая содержательная проверка данных, метрик и выводов.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "operator_coral",
+      "name": "Оператор / OpenCode на Coral",
+      "responsibility": "Чтение локальных артефактов, инженерные изменения в изоляции, квитанции узла.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "argos_core",
+      "name": "ARGOS Core",
+      "responsibility": "Подтверждённое состояние системы и учёт результатов.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "detective",
+      "name": "ARGOS Detective",
+      "responsibility": "Обоснование денежных возможностей и оплачиваемых пилотов.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "correspondent",
+      "name": "Корреспондент",
+      "responsibility": "Проверка существующих заявок и ответов, подготовка адресных черновиков.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "competition_engineer",
+      "name": "Инженер хакатона",
+      "responsibility": "Отдельный PaymentGuard, демонстрация и доказательства.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "compute_engineer",
+      "name": "Инженер вычислений",
+      "responsibility": "Доступность ресурсов, стоимость и ограниченные измерения.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "embodied_research",
+      "name": "Мухтар / исследователь управления",
+      "responsibility": "Воспроизводимые сценарии, сенсорика и сохранение провалов.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "legal_review",
+      "name": "Роль проверки документов",
+      "responsibility": "Сверка подготовленных документов и условий; решения принимает владелец.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "developer",
+      "name": "Инженер продукта",
+      "responsibility": "Пилоты, CAN AutoLearn, приложения и воспроизводимые сборки.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    },
+    {
+      "id": "vibe",
+      "name": "ARGOS-VIBE",
+      "responsibility": "Разработка в уже существующей среде; не запускать дубликат демона.",
+      "role_basis": "Существующая единая миссия; роль не означает отдельного человека или запущенный процесс.",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "registry_read_ack": null
+    }
+  ],
+  "sources": [
+    {
+      "id": "legacy_manifest",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/ARGOS_UNIFIED_MANIFEST_20261116.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 7642,
+      "sha256": "cf4633b37fb7cc4465f44d6a2a7a5a2f65411c23bcbed358260ca8ea29fa8774",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:20:30.913167+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "mission",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/ARGOS_UNIFIED_MISSION_20261116.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 13035,
+      "sha256": "b7efbe0067b8eab95436381cf24653e525f134ea4012365aa98aa34c47d085b0",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:19:21.143389+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "funding_tracker",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/FUNDING_HACKATHON_STATUS_20261116.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 9517,
+      "sha256": "f5b9eae076e6fd039ce64df8d9f9f0d3e4d940c4ba05eb8c12bb3e46b014ed02",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T12:55:21.868812+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "funding_plan",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/FUNDING_HACKATHON_PLAN_20261116.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 10355,
+      "sha256": "6edf52f53034f25c14a1c08c4ce107b42b94ca31feea9e64e408e5bea670890a",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T12:55:24.839655+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "ano_agent_index",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/ANO_AGENT_INDEX_20261116.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 1945,
+      "sha256": "86f38342c6b05e2731bc3fc892e3061b77e45d87fe9dd50d010477227c115d25",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:20:30.910363+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "ano_private_manifest",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/argos-ano/ANO_MANIFEST.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 5848,
+      "sha256": "8262ce5f40dbb133b319fb5be6a6164f7884c7f4b2884fc7505a4b4fbbc85848",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:20:30.907688+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "finance_policy",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/argos-ano/FINANCING_DIRECTIVE_FIN-20261116-01.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 7794,
+      "sha256": "625398e9806cc6b8594f115ef6c5feef595596efb920236b29df7da9dfaf0dc0",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T12:10:33.939997+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "selfdev_source_index",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/SELFDEV_121_SOURCE_MANIFEST.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 16459,
+      "sha256": "657327384d9cc808b770b0fa42a30db1891eb21f283ab0b0450f0ea6353cfe09",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:01:25.214025+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "selfdev_summary",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/SELFDEV_121_SUMMARY.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 1965,
+      "sha256": "fc6c0abdeb3e3f4dcd2458f88c982a2521c987e717b83586ee18e837c9128fd2",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:01:25.213520+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "selfdev_primary",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/SELFDEV_121_PRIMARY_SANITIZED.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 117824,
+      "sha256": "bf65ad1681f3acc8204ad507f23d4e2d9f5d6ce30725085c6ca25048c57fd3e9",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:01:25.213223+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "selfdev_lab90",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/QUALIFIED9_VERIFIED_LAB_REPORT.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 1223,
+      "sha256": "08121f611f107ee0e5a2683b9a5261200bbd29bdd13813b5109b2bf68a51148a",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:34:03.628656+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "selfdev_v2_ab",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/SHADOW_V2_AB_COMPARE.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 2316,
+      "sha256": "24581a5d8b63427fb9701b2f874befe9f9698feb4948f71d4e5c16d07c83f285",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:54:19.988355+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "dory_v2_review",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/SHADOW_V2_DORY_SHORT_REVIEW.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 491,
+      "sha256": "61fc44d3ca43d461486018bd72f238114719d348f53d4b5c392171a7bdac21b9",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:55:01.962784+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "selfdev_delivery",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/LAB_REPORT_BROADCAST_RECEIPT.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 674,
+      "sha256": "71351adb5f2db1eef629432ebf8c9d2dc83d2927754c1d2d261ef6215912ee26",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:34:41.073408+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "memory_v2_source",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/shadow_memory_v2.py",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 1131,
+      "sha256": "6ff9892994a8092d13177ff4be2213f08b2ccb41a751ebc431ddaf983cbbf350",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:52:38.992891+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "intent_v2_source",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/shadow_intent_v2.py",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 1302,
+      "sha256": "9b5ef913ac585000259282109b81e1f7d42b01bdbdf20aa7c5bc992476d7c73a",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:52:38.993107+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "v2_comparison_source",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/heretic-dory-research/run_shadow_v2_comparison.py",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 3469,
+      "sha256": "e436374de74e736bfc13ec0e81be4a697e9b99b4edecc4278d89943b98cff0b5",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:50:51.443420+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "amd_entitlement",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/AMD_GPU_ENTITLEMENT_AUDIT_20261117.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 6992,
+      "sha256": "4ce28aa0e4fdbba2ab9ecb2eece5bc95f62069bd7ea0866ecbcb02f316537326",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T14:08:59.321637+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "amd_receipt",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/AMD_TOKENLAB_LIVE_RECEIPT_20261116.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 1144,
+      "sha256": "e403bd7c067dcbf9b308c6dcc278f6fd34da92155a22143137c37d23dfa86bad",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:49:09.018193+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "paymentguard_readme",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/yookassa-hackathon-2026/README.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 4938,
+      "sha256": "c658dc09a22c81b0ef7dd50e721207973f7067c2a8ed6b8e92373990321bdd72",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T11:51:20.215472+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "paymentguard_source",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/yookassa-hackathon-2026/paymentguard.py",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 6308,
+      "sha256": "11a9ba70c3f5e046777d66097703d00112d0929073dad3e4c90e35374840ba9d",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T11:51:14.645494+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "paymentguard_tests",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/yookassa-hackathon-2026/tests/test_paymentguard.py",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 2531,
+      "sha256": "4eb0d554c275175f20eb66fc8ccba48da266e177b38864a12ba4d862812c1958",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T11:51:17.539679+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "yookassa_application",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/yookassa-hackathon-2026/APPLICATION_STATUS_2026-11-16.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 1668,
+      "sha256": "69f32bc04dbbe4508681ef383a293117dc82af3fce00157b0385d4888f2ed181",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T12:00:31.613955+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "timeweb_draft",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/TIMEWEB_GRANT_REPLY_DRAFT_20261116.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 5761,
+      "sha256": "a00b6fe8a803d1f5acc9d3c4cead4d5a87af0a974450899ded020b3d22306684",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:01:22.396025+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "paid_pilot",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/startup/argos-migrate/OFFER_PILOT_RU.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 3015,
+      "sha256": "8093f86b61431966ee3069485aeb5bba2205313faa2f463cf5514b7937517b47",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T02:52:20.257275+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "starline_history",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/ARGOS_STARLINE_TBANK_MUKHTAR_2026-10-18.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 7010,
+      "sha256": "a96dcc0f8cff75cb0936f68fa71c0105d640e336961c0ca55058c57ee9bb1748",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-10-17T15:04:37.311310+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "mukhtar_666_status",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/MUKHTAR_CAUSAL_666_STATUS_20261030.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 3913,
+      "sha256": "7705e776b77863fce8ad8ba2ef49820c9b63b93534b7c0459c5392539062621c",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-10-29T23:57:24.703265+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "mukhtar_666_json",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/MUKHTAR_CAUSAL_666_20261030/report_666.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 197063,
+      "sha256": "0227ae6ac5e23450954809b68a80229486ae27af2873b50a2613630c05f322ab",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-10-29T23:56:51.803048+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "mukhtar_666_md",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/MUKHTAR_CAUSAL_666_20261030/REPORT_666.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 886,
+      "sha256": "169136828161de7b772c6e438c5f209edd7d92c8d735a67b14b8838b8f177543",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-10-29T23:56:51.804726+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "mukhtar_666_hashes",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/MUKHTAR_CAUSAL_666_20261030/games_sha256.txt",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 119880,
+      "sha256": "001ca529c77ab48a070462d28f658df98cd0c58177e4d23ec4114985ddc49a0a",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-10-29T23:56:51.805083+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "mukhtar_rgb_status",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/MUKHTAR_RGB_ROBUST_CURRENT_20261030.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 6783,
+      "sha256": "89a87a6d8fef5c2cc4d3e4cdf7c03e5e5022485556371333cacfe6746f811306",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-10-30T01:54:56.241812+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "hermes_notice",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/agent-bridge/inbox_hermes/20261116T1323Z_chatgpt_unified_mission.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 2379,
+      "sha256": "641496c2b8f14a0bdace2ad57a26bf783263eae38c2213643f5e36e2e77d676e",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T13:22:35.963773+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "vibe_heartbeat",
+      "node": "x230",
+      "path": "/home/argos-data/mcp-workspace/argos-vibe-link/receiver_heartbeat.json",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "bytes": 849,
+      "sha256": "4c791e445c1ab862cdd0c680f5531f30597dd3b6b047ff7a103228f2076b0ebe",
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "source_modified_at_utc": "2026-11-16T23:56:22.724317+00:00",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "owner_goals",
+      "node": "x230",
+      "path": "/home/argos-data/runtime/GOALS.md",
+      "access": "LOCAL_METADATA_ONLY",
+      "read_verified": true,
+      "sha256": "c5fcc04f9ff092934b054c80f3c0e942217eccac1fd566bb3277cb0e4607baf2",
+      "observed_at_utc": "2026-11-16T23:56:29Z",
+      "content_published": false,
+      "coral_copy_status": "UNVERIFIED"
+    },
+    {
+      "id": "github_overview",
+      "access": "PUBLIC",
+      "url": "https://github.com/winargos42-dotcom/argos/blob/617de1176c38fd9a636b7874e398f5ec46f24a3b/docs/PROJECT_OVERVIEW.md",
+      "git_commit": "617de1176c38fd9a636b7874e398f5ec46f24a3b",
+      "git_blob_sha": "3a4cfca8221e91a8240c323c52c699287ca3c4e6",
+      "read_verified": true,
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "github_roadmap",
+      "access": "PUBLIC",
+      "url": "https://github.com/winargos42-dotcom/argos/blob/617de1176c38fd9a636b7874e398f5ec46f24a3b/ROADMAP_2026_2027.md",
+      "git_commit": "617de1176c38fd9a636b7874e398f5ec46f24a3b",
+      "git_blob_sha": "0a88a716ae61fb81d85ddde71d40618433136254",
+      "read_verified": true,
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "github_public_projects",
+      "access": "PUBLIC",
+      "url": "https://github.com/winargos42-dotcom/argos/blob/617de1176c38fd9a636b7874e398f5ec46f24a3b/docs/PUBLIC_PROJECTS_AND_APPLICATIONS.md",
+      "git_commit": "617de1176c38fd9a636b7874e398f5ec46f24a3b",
+      "git_blob_sha": "b5129177b50553258515c8c4da4a3771be55e5cc",
+      "read_verified": true,
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "github_legacy_tasks",
+      "access": "PUBLIC",
+      "url": "https://github.com/winargos42-dotcom/argos/blob/617de1176c38fd9a636b7874e398f5ec46f24a3b/tasks.md",
+      "git_commit": "617de1176c38fd9a636b7874e398f5ec46f24a3b",
+      "git_blob_sha": "2341166dce2dc3e47b3292e88b319a2814ac9d52",
+      "read_verified": true,
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "github_legacy_agents",
+      "access": "PUBLIC",
+      "url": "https://github.com/winargos42-dotcom/argos/blob/617de1176c38fd9a636b7874e398f5ec46f24a3b/AGENTS.md",
+      "git_commit": "617de1176c38fd9a636b7874e398f5ec46f24a3b",
+      "git_blob_sha": "69cb7b8756b74e7829b975c8d9571d1ac9f2d33c",
+      "read_verified": true,
+      "observed_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    }
+  ],
+  "workstreams": [
+    {
+      "id": "income",
+      "goal": "lawful net cash through paid projects, cash grants or prizes, donations",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "competitions",
+      "goal": "separate prototype, eligibility and IP review, contest demo",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "grants",
+      "goal": "read replies, update tracker with evidence, targeted drafts",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "ano",
+      "goal": "only if economics plus owner permit",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "selfdev",
+      "goal": "independent holdout and evidence-gated improvements",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "mukhtar",
+      "goal": "reproducible embodied tasks; no fabricated physical tests",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "amd",
+      "goal": "safe inference benchmarking and useful model comparisons",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "safety",
+      "goal": "power/thermal/data integrity, no restarts or leaks without approvals",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "products",
+      "goal": "proof-backed useful systems",
+      "legacy_id_preserved": true
+    },
+    {
+      "id": "coordination",
+      "goal": "Единые ID, доказательства и отдельные квитанции каждого узла и агента."
+    },
+    {
+      "id": "development",
+      "goal": "Согласовать разработку существующими агентами без дублирования процессов и задач."
+    }
+  ],
+  "verified_findings": [
+    {
+      "id": "E-ANO",
+      "level": "MEASURED_IN_THIS_AUDIT",
+      "source_ids": [
+        "ano_private_manifest"
+      ],
+      "fact": "18/18 файлов прочитаны; размеры и SHA совпали с исходным манифестом.",
+      "does_not_prove": "Регистрация АНО, одобрение юридического содержания или наличие копий на Coral."
+    },
+    {
+      "id": "E-V1",
+      "level": "MEASURED_IN_THIS_AUDIT",
+      "source_ids": [
+        "legacy_manifest"
+      ],
+      "fact": "Все 15 ссылок-ресурсов v1 существуют на X230 и совпадают по SHA.",
+      "does_not_prove": "Актуальность каждого утверждения в старых текстах или ACK агентов."
+    },
+    {
+      "id": "E-121",
+      "level": "MEASURED_FROM_SAVED_ROWS",
+      "source_ids": [
+        "selfdev_primary",
+        "selfdev_summary"
+      ],
+      "fact": "Пересчитаны 121 строка и 121 уникальный ID: 104 REJECT, 12 QUALIFIED, 5 ACCEPT. Аудит и экспорт уже существуют.",
+      "does_not_prove": "Фактическую полезность или внедрение исторических ACCEPT."
+    },
+    {
+      "id": "E-90",
+      "level": "READ_EXISTING_REPORT",
+      "source_ids": [
+        "selfdev_lab90"
+      ],
+      "fact": "Отчёт фиксирует 9 уникальных исходников, 33/33 frozen и 57/57 exploratory проверки; суммарно 90/90.",
+      "does_not_prove": "Новый прогон в этой задаче или улучшение действующей ARGOS."
+    },
+    {
+      "id": "E-V2",
+      "level": "READ_EXISTING_MACHINE_RESULT",
+      "source_ids": [
+        "selfdev_v2_ab"
+      ],
+      "fact": "Сохранённое сравнение snapshot: memory stress 8/9 → 9/9; intent 6/9 → 9/9; original и exploratory сохранены. production_modified=false.",
+      "does_not_prove": "Сравнение с live baseline; независимое подтверждение Dory отсутствует."
+    },
+    {
+      "id": "E-MUKHTAR",
+      "level": "READ_EXISTING_REPORT",
+      "source_ids": [
+        "mukhtar_666_status",
+        "mukhtar_666_json",
+        "mukhtar_rgb_status"
+      ],
+      "fact": "Сохранён итог 666 CPU-пар без доказанного выигрыша выживания; RGB detection прошёл критерий, задержка 1 мс не достигнута.",
+      "does_not_prove": "Новый аппаратный прогон TPU/SPR, три пройденных уровня или физический робот."
+    },
+    {
+      "id": "E-AMD",
+      "level": "READ_EXISTING_RECEIPT",
+      "source_ids": [
+        "amd_receipt"
+      ],
+      "fact": "Квитанция подтверждает прошлый вызов установленного адаптера: 10 моделей и точный ответ OK, 2 запроса; автоматическая маршрутизация выключена.",
+      "does_not_prove": "Текущий баланс или выделенная GPU-машина; повторный API-вызов здесь не выполнялся."
+    },
+    {
+      "id": "E-VIBE",
+      "level": "READ_LIVE_RECEIVER_STATUS",
+      "source_ids": [
+        "vibe_heartbeat"
+      ],
+      "fact": "На 2026-11-16T23:57:24.802783Z receiver status=ok, vibe_status=stale, last received heartbeat=2026-11-16T03:17:32.904409Z.",
+      "does_not_prove": "Остановку процесса VIBE, текущую доступность его моделей или ACK данного реестра."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "COORD-001",
+      "workstream": "coordination",
+      "priority": "P0",
+      "title": "Сохранить найденные оригиналы и их адреса",
+      "responsible": "coordinator",
+      "reviewer": "operator_coral",
+      "assignment_state": "COMPLETED_BY_CHATGPT_READ_ONLY_AUDIT",
+      "state": "DONE",
+      "source_ids": [
+        "legacy_manifest",
+        "ano_private_manifest",
+        "mission"
+      ],
+      "depends_on": [],
+      "next_action": "Использовать найденные документы; не создавать заново АНО и аудит 121 записей.",
+      "completion_criteria": "Существование и SHA подтверждены: 18/18 документов АНО и 15/15 ресурсов v1.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "result_level": "MEASURED_IN_THIS_AUDIT",
+      "review_state": "INDEPENDENT_AGENT_REVIEW_NOT_PERFORMED; проверка файлов выполнена ChatGPT напрямую"
+    },
+    {
+      "id": "COORD-002",
+      "workstream": "coordination",
+      "priority": "P0",
+      "title": "Подготовить документальную копию реестра на X230 и Coral после публикации",
+      "responsible": "operator_coral",
+      "reviewer": "coordinator",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "BLOCKED",
+      "source_ids": [
+        "legacy_manifest",
+        "hermes_notice"
+      ],
+      "depends_on": [],
+      "next_action": "После отдельного разрешения на синхронизацию проверить права и фактический каталог Coral, затем выполнить описанную схему доставки.",
+      "completion_criteria": "На каждом узле совпадают commit и SHA, есть read-back и квитанция; сервисы не изменены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "blockers": [
+        "GitHub-публикация ещё не одобрена владельцем.",
+        "Прямое чтение каталога Coral недоступно текущему ограниченному каналу.",
+        "Локальная синхронизация в этой задаче только спроектирована."
+      ]
+    },
+    {
+      "id": "COORD-003",
+      "workstream": "coordination",
+      "priority": "P0",
+      "title": "Получить индивидуальное прочтение и выбор задачи агентами",
+      "responsible": "coordinator",
+      "reviewer": "dory",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "BLOCKED",
+      "source_ids": [
+        "hermes_notice",
+        "selfdev_delivery"
+      ],
+      "depends_on": [
+        "COORD-002"
+      ],
+      "next_action": "Использовать существующие каналы; запросить ACK с agent_id, commit, SHA и task_id только после разрешённого подключения реестра.",
+      "completion_criteria": "Отдельные ACK доступны; запись в inbox не засчитывается как ACK или результат.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "SELFDEV-001",
+      "workstream": "selfdev",
+      "priority": "P1",
+      "title": "Сопоставить кандидатов с действующим обработчиком и провести изолированный A/B",
+      "responsible": "heretic",
+      "reviewer": "dory",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "selfdev_primary",
+        "selfdev_lab90",
+        "selfdev_v2_ab",
+        "memory_v2_source",
+        "intent_v2_source",
+        "v2_comparison_source"
+      ],
+      "depends_on": [],
+      "next_action": "Сначала определить реальный active baseline; зафиксировать обезличенные реальные задачи, критерии и ресурсы. Не повторять экспорт 121 записей и завершённые 90 синтетических проверок.",
+      "completion_criteria": "Версии baseline/candidate, хеши данных, предрегистрация, метрики и независимое заключение; автоматического внедрения нет.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "SELFDEV-002",
+      "workstream": "selfdev",
+      "priority": "P1",
+      "title": "Завершить содержательную независимую рецензию v2",
+      "responsible": "dory",
+      "reviewer": "coordinator",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "BLOCKED",
+      "source_ids": [
+        "selfdev_v2_ab",
+        "dory_v2_review"
+      ],
+      "depends_on": [],
+      "next_action": "Передать Dory измеренные данные и проверить, что ответ содержит оценку методики, ограничений и вывод, а не только технический успех запроса.",
+      "completion_criteria": "Рецензия привязана к SHA; либо мотивированный ACCEPT_LAB_ONLY, либо REJECT. Живой эффект отдельно не доказан.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "blockers": [
+        "Последний сохранённый ответ Dory не содержит содержательного аудита; evidence_level=MODEL_SUGGESTION_NOT_VERIFIED."
+      ]
+    },
+    {
+      "id": "MUKHTAR-001",
+      "workstream": "mukhtar",
+      "priority": "P1",
+      "title": "Продолжить работу от сохранённого CPU baseline и карты провалов",
+      "responsible": "embodied_research",
+      "reviewer": "dory",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "mukhtar_666_status",
+        "mukhtar_666_json",
+        "mukhtar_666_hashes",
+        "mukhtar_rgb_status",
+        "github_public_projects"
+      ],
+      "depends_on": [],
+      "next_action": "Сопоставить существующие результаты и сценарии; выбрать один новый критерий обобщения/задержки до следующего запуска.",
+      "completion_criteria": "Новый протокол, версия карты, полный набор успешных и неудачных исходов; 666 пар повторно не считать новой работой.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "AMD-001",
+      "workstream": "amd",
+      "priority": "P1",
+      "title": "Разделить Token Lab API и право на выделенный GPU",
+      "responsible": "compute_engineer",
+      "reviewer": "dory",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "BLOCKED",
+      "source_ids": [
+        "amd_receipt",
+        "amd_entitlement"
+      ],
+      "depends_on": [],
+      "next_action": "Найти отдельное подтверждение выделения GPU/кредитов; повторные расходующие API-вызовы для доказательства уже известного ответа не нужны.",
+      "completion_criteria": "Доступ, лимит, срок и стоимость подтверждены первоисточником; API inference не объявлен выделенным MI300X.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "blockers": [
+        "Выделенные MI300X/MI325X/MI350X и Developer Cloud credits не подтверждены."
+      ]
+    },
+    {
+      "id": "SAFETY-001",
+      "workstream": "safety",
+      "priority": "P0",
+      "title": "Свести свежие отчёты об инфраструктуре и доступности файлов",
+      "responsible": "argos_core",
+      "reviewer": "operator_coral",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "BLOCKED",
+      "source_ids": [
+        "legacy_manifest",
+        "github_overview"
+      ],
+      "depends_on": [],
+      "next_action": "Получить разрешённое чтение уже существующих work/ARGOS_COLLAB_DEVELOPMENT_20261117.md и work/ARGOS_COLLAB_TASKS_20261117.json; внести ссылки без пересоздания их задач.",
+      "completion_criteria": "Локальные роли, ресурсы и результаты сверены по доступным исходным отчётам; старый AGENTS.md не принят за текущую телеметрию.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "blockers": [
+        "/home/argos-data/runtime/work: PermissionError для argos-mcp."
+      ]
+    },
+    {
+      "id": "PRODUCT-001",
+      "workstream": "products",
+      "priority": "P1",
+      "title": "Продвинуть существующее предложение оплачиваемого пилота",
+      "responsible": "detective",
+      "reviewer": "developer",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "paid_pilot",
+        "github_public_projects"
+      ],
+      "depends_on": [],
+      "next_action": "Сопоставить существующие переговоры, договорённости и критерии приёмки; не создавать повторный отклик.",
+      "completion_criteria": "Согласованный объём/приёмка и подтверждённая оплата учитываются отдельно от предложения.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "PRODUCT-002",
+      "workstream": "products",
+      "priority": "P2",
+      "title": "Сверить актуальный этап CAN AutoLearn / StarLine",
+      "responsible": "developer",
+      "reviewer": "operator_coral",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "starline_history"
+      ],
+      "depends_on": [],
+      "next_action": "Найти текущие исходники и реальные RX/аппаратные квитанции; историческую презентацию не считать готовой прошивкой.",
+      "completion_criteria": "Установлены проверенные пути, commit и граница стендовых/реальных испытаний; неизвестные пути оставлены неизвестными.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "PRODUCT-003",
+      "workstream": "products",
+      "priority": "P1",
+      "title": "Свести существующие сборки ARGOS APK и тесты телефона",
+      "responsible": "developer",
+      "reviewer": "operator_coral",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "UNKNOWN",
+      "source_ids": [],
+      "depends_on": [],
+      "next_action": "Найти уже собранный APK и его исходный commit; сопоставить эмуляторный тест с отдельной проверкой на телефоне.",
+      "completion_criteria": "Путь и SHA APK, версия исходников и отчёт устройства подтверждены; новая сборка нужна только при установленной причине.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "basis": "Ранее поставленная пользователем задача; актуальный артефакт в этой проверке не найден, выполнение не заявляется."
+    },
+    {
+      "id": "VIBE-001",
+      "workstream": "development",
+      "priority": "P1",
+      "title": "Согласовать VIBE с реестром и восстановить свежесть сведений",
+      "responsible": "vibe",
+      "reviewer": "coordinator",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "BLOCKED",
+      "source_ids": [
+        "vibe_heartbeat"
+      ],
+      "depends_on": [],
+      "next_action": "Сверить существующий канал и получить свежую квитанцию от текущего демона; не дублировать задачи, poller или очищать seen IDs.",
+      "completion_criteria": "Есть свежий аутентифицированный heartbeat и ACK конкретного commit/task_id.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "blockers": [
+        "В прочитанном receiver heartbeat статус VIBE=stale; последнее получение 2026-11-16T03:17:32.904409Z. Это не доказательство остановки удалённого процесса."
+      ]
+    },
+    {
+      "id": "ANO-001",
+      "workstream": "ano",
+      "priority": "P2",
+      "title": "Сохранить готовый пакет АНО до решения владельца",
+      "responsible": "legal_review",
+      "reviewer": "coordinator",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "ON_HOLD",
+      "source_ids": [
+        "ano_private_manifest",
+        "ano_agent_index",
+        "finance_policy"
+      ],
+      "depends_on": [],
+      "next_action": "Использовать существующие 18 документов; не начинать регистрацию и не пересоздавать пакет.",
+      "completion_criteria": "Отдельное решение владельца при подтверждённом основании; персональные тексты остаются на X230.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00"
+    },
+    {
+      "id": "FUND-timeweb",
+      "workstream": "grants",
+      "priority": "P0",
+      "title": "Сопровождение: Timeweb Cloud",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker",
+        "timeweb_draft"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить и согласовать уже подготовленный ответ на 7 вопросов; отправка отдельно по разрешению.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "timeweb",
+      "private_source_pointer": "/opportunities/0",
+      "reported_status": "REQUESTED_INFORMATION",
+      "reported_status_date": "2026-10-05",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-cloudru",
+      "workstream": "grants",
+      "priority": "P0",
+      "title": "Сопровождение: Cloud.ru",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить последнее решение по существующему запросу; подготовить адресный черновик при необходимости.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "cloudru",
+      "private_source_pointer": "/opportunities/1",
+      "reported_status": "REFERRED_INTERNAL",
+      "reported_status_date": "2026-10-05",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-yookassa-mcp",
+      "workstream": "competitions",
+      "priority": "P0",
+      "title": "Сопровождение: ЮKassa MCP",
+      "responsible": "correspondent",
+      "reviewer": "competition_engineer",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker",
+        "yookassa_application",
+        "paymentguard_source",
+        "paymentguard_tests"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить письмо о модерации около 21 ноября; подготовку PaymentGuard вести по существующему проекту.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": "2026-11-21",
+      "due_basis": "Ориентир проверки из локального плана; не официальный дедлайн и не созданное напоминание.",
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "yookassa-mcp",
+      "private_source_pointer": "/opportunities/2",
+      "reported_status": "APPLICATION_RECEIVED_NOT_ACCEPTED",
+      "reported_status_date": "2026-11-16",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-foresight",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Foresight",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить официальный ответ в уже существующей переписке; не подавать дубликат.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "foresight",
+      "private_source_pointer": "/opportunities/3",
+      "reported_status": "SUBMITTED_AWAITING_DECISION",
+      "reported_status_date": "2026-10-26",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-snorkel-obg",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Snorkel Open Benchmarks",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить запросы организатора и связать независимый benchmark с сохранёнными результатами Мухтара.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "snorkel-obg",
+      "private_source_pointer": "/opportunities/4",
+      "reported_status": "SUBMITTED_ROLLING_REVIEW",
+      "reported_status_date": "2026-10-07",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-fal-research",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: fal Research Grants",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить ответ, допустимость участия и выделение вычислений; запрос не считать одобрением.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "fal-research",
+      "private_source_pointer": "/opportunities/5",
+      "reported_status": "SUBMITTED_FOLLOWUP_NO_REPLY",
+      "reported_status_date": "2026-10-29",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-dimensional-hardware",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Dimensional",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить наличие нового официального раунда; отказ Batch1 не пересоздавать как активную заявку.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "dimensional-hardware",
+      "private_source_pointer": "/opportunities/6",
+      "reported_status": "REJECTED_BATCH1_POSSIBLE_BATCH2",
+      "reported_status_date": "2026-10-18",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-project-edge-lumos",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Lumos Project EDGE",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Найти квитанцию веб-формы; письмо с приглашением к форме не равно подаче.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "project-edge-lumos",
+      "private_source_pointer": "/opportunities/7",
+      "reported_status": "EMAIL_ONLY_FORM_REQUIRED",
+      "reported_status_date": "2026-10-13",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-kaggle-arc",
+      "workstream": "competitions",
+      "priority": "P2",
+      "title": "Сопровождение: Kaggle / ARC",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Отделить верификацию аккаунта от подтверждения допуска в конкретный конкурс.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "kaggle-arc",
+      "private_source_pointer": "/opportunities/8",
+      "reported_status": "ACCOUNT_VERIFIED_ENTRY_NOT_PROVEN",
+      "reported_status_date": "2026-10-27",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-gitverse-referee",
+      "workstream": "competitions",
+      "priority": "P2",
+      "title": "Сопровождение: GitVerse Referee",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Сохранить решение v2 и квитанцию Runs; исторический public score не выдавать за победу.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "gitverse-referee",
+      "private_source_pointer": "/opportunities/9",
+      "reported_status": "SUBMISSION_RECORDED_SUPPORT_ASKED_SCREENSHOT",
+      "reported_status_date": "2026-10-20",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-riscv-devboards",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: RISC-V DEVBOARDS",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить ответ и условия передачи платы по существующей переписке.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "riscv-devboards",
+      "private_source_pointer": "/opportunities/10",
+      "reported_status": "EMAIL_SENT_NO_REPLY_FOUND",
+      "reported_status_date": "2026-10-20",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-nlnet-codesupply",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: NLnet CodeSupply",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить ответ на вопрос о допустимости участия и актуальные условия перед подготовкой заявки.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "nlnet-codesupply",
+      "private_source_pointer": "/opportunities/11",
+      "reported_status": "ELIGIBILITY_QUESTION_SENT_NO_REPLY_FOUND",
+      "reported_status_date": "2026-10-11",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-superplane",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Superplane",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Проверить содержательный ответ на уже отправленное письмо.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "superplane",
+      "private_source_pointer": "/opportunities/12",
+      "reported_status": "EMAIL_SENT_NO_REPLY_FOUND",
+      "reported_status_date": "2026-10-11",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-seeed-antmicro-google-coral-verisilicon",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Seeed / Antmicro / Coral / VeriSilicon",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Сопоставить ответы с существующими обращениями по оборудованию; не повторять массовую рассылку.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "seeed-antmicro-google-coral-verisilicon",
+      "private_source_pointer": "/opportunities/13",
+      "reported_status": "OUTREACH_SENT_NO_AWARD_FOUND",
+      "reported_status_date": "2026-10-08",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-firefly-spr",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Firefly SPR",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Сохранить установленное отсутствие SDK у адресата; новый технический источник оформить отдельной задачей.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "firefly-spr",
+      "private_source_pointer": "/opportunities/14",
+      "reported_status": "NO_SDK_SUPPORT",
+      "reported_status_date": "2026-10-27",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-huggingface-credits",
+      "workstream": "grants",
+      "priority": "P0",
+      "title": "Сопровождение: Hugging Face",
+      "responsible": "compute_engineer",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Сверить текущее состояние ранее приостановленных Spaces/Job и бесплатный вариант; не включать оплату.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "huggingface-credits",
+      "private_source_pointer": "/opportunities/15",
+      "reported_status": "DEPLETED",
+      "reported_status_date": "2026-11-14",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-sentient-foundation",
+      "workstream": "grants",
+      "priority": "P2",
+      "title": "Сопровождение: Sentient Foundation",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Найти квитанцию внешней формы; оставить подачу непроверенной до первоисточника.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "sentient-foundation",
+      "private_source_pointer": "/opportunities/16",
+      "reported_status": "REPORTED_APPLICATION_NOT_EMAIL_VERIFIED",
+      "reported_status_date": "2026-10-13",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-tbank-premarket",
+      "workstream": "competitions",
+      "priority": "P2",
+      "title": "Сопровождение: Т-Банк Премаркет",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Найти квитанцию участия либо зафиксировать отсутствие подтверждения; новый раунд проверять отдельно.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "tbank-premarket",
+      "private_source_pointer": "/opportunities/17",
+      "reported_status": "PROPOSAL_PREP_NOT_SUBMISSION_VERIFIED",
+      "reported_status_date": "2026-11-11",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "FUND-amd-act-iii",
+      "workstream": "competitions",
+      "priority": "P2",
+      "title": "Сопровождение: AMD Act III",
+      "responsible": "correspondent",
+      "reviewer": "detective",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "funding_tracker"
+      ],
+      "depends_on": [],
+      "next_action": "Разделить старый конкурсный блокер, Token Lab API и доступ к выделенному GPU.",
+      "completion_criteria": "В реестре указан датированный первоисточник и следующий шаг; подача, допуск, одобрение и выплата разделены.",
+      "due_local_date": null,
+      "due_basis": null,
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "legacy_opportunity_id": "amd-act-iii",
+      "private_source_pointer": "/opportunities/18",
+      "reported_status": "PLANNING_ENV_BLOCKED",
+      "reported_status_date": "2026-10-18",
+      "status_verification_level": "READ_LOCAL_RECORD_NOT_RECHECKED_WITH_ORGANIZER"
+    },
+    {
+      "id": "HACK-001",
+      "workstream": "competitions",
+      "priority": "P1",
+      "title": "Подготовить отдельное демо PaymentGuard на базе существующего прототипа",
+      "responsible": "competition_engineer",
+      "reviewer": "dory",
+      "assignment_state": "PROPOSED_NOT_ACKNOWLEDGED",
+      "state": "PLANNED",
+      "source_ids": [
+        "paymentguard_source",
+        "paymentguard_tests",
+        "paymentguard_readme",
+        "yookassa_application"
+      ],
+      "depends_on": [
+        "FUND-yookassa-mcp"
+      ],
+      "next_action": "Сначала перепроверить действующие правила и права на код; подготовить демо в допустимые сроки на отдельных исходниках.",
+      "completion_criteria": "Воспроизводимое демо, разрешённая тестовая интеграция и понятная приёмка; исходники ARGOS и реальные платежи не затронуты.",
+      "due_local_date": "2026-12-04",
+      "due_basis": "Целевая дата из существующего локального плана; актуальные официальные правила ещё нужно перепроверить.",
+      "started_at_utc": null,
+      "acknowledged_at_utc": null,
+      "checked_at_utc": "2026-11-16T23:57:12.066958+00:00",
+      "reported_offline_tests": "8/8 в прежнем отчёте; здесь не перезапускались.",
+      "real_mcp_payment_verified": false
+    }
+  ],
+  "reconciliation": [
+    "REGISTRY_EVIDENCE_20261116.json с 35 строками описывает другой журнал. Поиск первичных 121 записей уже завершён; текущие источники selfdev_primary и selfdev_summary.",
+    "HDC_NEXT_SHADOW_STATUS.md и DEDUP_SHADOW_AUDIT_20261116.md содержат ранние статусы ожидания экспорта. Их перекрывают существующие поздние отчёты лабораторного этапа; не запускать экспорт повторно по старой заметке.",
+    "Поле owner_goals в v1 фактически ссылается на финансовую директиву. Здесь finance_policy и настоящий runtime/GOALS.md разделены.",
+    "GitHub tasks.md и AGENTS.md описывают преимущественно апрель–май; их аппаратуру и незакрытые задачи нельзя автоматически считать текущими.",
+    "PUBLIC_PROJECTS_AND_APPLICATIONS.md сохраняется как публичный исторический каталог. Сводный реестр ссылается на него, но более новые локальные записи имеют собственную дату и уровень проверки.",
+    "Запись в inbox Hermes существует и является валидным JSON. Ответное прочтение единого манифеста не подтверждено; LAB_REPORT_BROADCAST_RECEIPT также содержит read_ack=false.",
+    "Текущие инженерные отчёты runtime/work обнаружены по ссылкам AGENTS, но прочитать их не удалось. Новые задачи из них не пересоздаются вслепую."
+  ],
+  "update_rules": {
+    "required_task_fields": [
+      "id",
+      "workstream",
+      "priority",
+      "title",
+      "responsible",
+      "reviewer",
+      "assignment_state",
+      "state",
+      "source_ids",
+      "depends_on",
+      "next_action",
+      "completion_criteria",
+      "checked_at_utc"
+    ],
+    "states": {
+      "PLANNED": "Следующее действие предложено; запуск не доказан.",
+      "BLOCKED": "Указан конкретный блокер.",
+      "IN_REVIEW": "Есть результат; независимая проверка не завершена.",
+      "VERIFIED": "Критерий проверен в обозначенной области.",
+      "DONE": "Критерии задачи приняты по доказательствам; не обещание агента.",
+      "UNKNOWN": "Доказательств недостаточно.",
+      "REJECTED": "Проверка не пройдена, причина и результаты сохранены.",
+      "ON_HOLD": "Работа отложена решением или зависимостью.",
+      "RUNNING": "Есть реальный ACK, квитанция начала, действующий claim и свидетельство выполняющейся работы."
+    },
+    "identity": "Сохранять manifest_id, legacy_opportunity_id и task_id; одинаковые цель+исходники+критерий обновляют существующую карточку. Не очищать историю отказов.",
+    "ownership": "Один ответственный и отдельный проверяющий. PROPOSED_NOT_ACKNOWLEDGED не означает назначение принятой агентом задачи. RUNNING допускается только после реального ACK и квитанции начала; в текущем снимке таких утверждений нет.",
+    "changes": "Перед изменением читать текущий GitHub commit. Отправлять минимальный diff, source IDs и дату факта; не перезаписывать целый реестр снимком устаревшего узла. При конфликте base commit остановить обновление и согласовать изменения.",
+    "evidence": "Факт содержит время события, время наблюдения, источник/commit/SHA и границу проверки. Прочтение старого отчёта не делает старый результат новым; поздний документ не побеждает первичный источник только по дате.",
+    "freshness": "Хеш относится к прочитанным байтам. Статусы процессов действуют только в момент проверки; перед запуском проверяются заново. Статусы заявок обновляются по новому ответу/квитанции, а не при повторном чтении файла.",
+    "completion": "DONE требует артефакт, проверенный критерий и запись приёмки. Модельный текст, HTTP 200, доставка файла, ACK, 90/90 лабораторных тестов и производственная полезность — разные события.",
+    "privacy": "Проверять разрешённые поля и diff на секреты до каждой публикации. Частные доказательства оставлять локально; в GitHub только безопасная ссылка/путь/хеш и краткий вывод.",
+    "financial_status": "SENT, RECEIVED, REVIEW, APPROVED, PAID независимы. Compute credits и предложение работы не являются денежным доходом.",
+    "review": "У всех записей один координатор публикации. Агент предлагает изменение; независимый проверяющий проверяет его. При недоступной Dory допустим явно названный независимый инженер; не подделывать ACK.",
+    "lease": "Для параллельной работы хранить claim {task_id,agent_id,base_registry_commit,lease_expires_at_utc}; принять его через одну проверенную версию реестра до начала. Истёкший claim сам по себе не доказывает завершение или разрешение дублирующего процесса."
+  },
+  "sync_design": {
+    "implementation_status": "DESIGN_ONLY_NOT_EXECUTED",
+    "publication_scope": "Одобрение файла разрешает только его публикацию в GitHub. Доставка на узлы и подключение потребителей выполняются отдельным разрешённым этапом.",
+    "source_of_truth": "GitHub хранит общие карточки/правила. Оригинальные эксперименты, исходники и закрытые документы не заменяются репозиторием реестра.",
+    "allowed_files": [
+      "docs/ARGOS_UNIFIED_MANIFEST.json"
+    ],
+    "proposed_local_paths": [
+      {
+        "node": "x230",
+        "releases": "/home/argos-data/mcp-workspace/coordination/releases/<git_commit>/ARGOS_UNIFIED_MANIFEST.json",
+        "current": "/home/argos-data/mcp-workspace/coordination/current/ARGOS_UNIFIED_MANIFEST.json",
+        "state": "PROPOSED_NOT_CREATED"
+      },
+      {
+        "node": "coral",
+        "releases": "/mnt/data1/argos-agent-context/releases/<git_commit>/ARGOS_UNIFIED_MANIFEST.json",
+        "current": "/mnt/data1/argos-agent-context/current/ARGOS_UNIFIED_MANIFEST.json",
+        "state": "PROPOSED_NOT_CREATED_PARENT_UNVERIFIED"
+      }
+    ],
+    "steps": [
+      "Получить разрешение на документальную синхронизацию. Проверить штатный доступ и права каждого узла; при RootGuard использовать его предусмотренное подтверждение, не менять SSH или ACL ради обхода.",
+      "Прочитать одобренный GitHub commit и ровно разрешённый JSON. Проверить JSON, schema, ID, зависимости, ссылки, отсутствие секретов. Сопоставить размер и SHA с одобренным содержимым.",
+      "На каждом узле создать временный каталог на том же файловом разделе; записать только JSON. Не использовать git pull/reset/clean/checkout в runtime или recovery, rsync --delete и широкие маски.",
+      "Прочитать файл обратно на целевом узле и сравнить байты/SHA; проверить доступ от имени реального читателя агента. Зафиксировать commit, SHA, время и субъект проверки.",
+      "Переименовать staging в неизменяемый releases/<git_commit>. После проверки атомарно заменить указатель current через временную ссылку+rename. Не перезаписывать оригиналы АНО, результаты или существующий v1.",
+      "Сохранить предыдущий указатель. Ошибка одного узла не означает успех другого: оставить старую проверенную версию и записать STALE/BLOCKED с причиной. Не выполнять автоматический откат служб.",
+      "Только после read-back обновить документационную точку входа/ссылку агента в отдельно разрешённом действии. Запросить отдельный ACK на прочтение и выбор задачи; доставка не равно прочтение.",
+      "Разрешённый откат реестра меняет только current на предыдущую проверенную версию и добавляет квитанцию; исходные данные и новые результаты не удаляются."
+    ],
+    "node_receipt_fields": [
+      "node",
+      "git_commit",
+      "registry_sha256",
+      "local_path",
+      "received_at_utc",
+      "read_back_verified",
+      "reader_identity",
+      "previous_commit",
+      "state",
+      "error"
+    ],
+    "agent_ack_fields": [
+      "agent_id",
+      "node",
+      "git_commit",
+      "registry_sha256",
+      "read_at_utc",
+      "task_id",
+      "decision",
+      "evidence_ref"
+    ],
+    "not_configured": [
+      "cron",
+      "systemd timers",
+      "webhooks",
+      "службы синхронизации",
+      "автозагрузка навыков",
+      "платные API-вызовы"
+    ],
+    "rollback_scope": "Только указатель документации; изменение работающего кода и служб исключено из этой схемы."
+  },
+  "validation_contract": {
+    "unique_ids": true,
+    "all_source_ids_resolve": true,
+    "all_agent_ids_resolve": true,
+    "all_task_dependencies_resolve": true,
+    "dependency_graph_acyclic": true,
+    "sha256_format": "64 lowercase hex characters",
+    "unknown_local_paths": "null/UNVERIFIED; не заполнять догадкой",
+    "publication_required": "Явное одобрение владельцем именно подготовленного файла."
+  }
+}
